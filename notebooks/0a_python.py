@@ -1,11 +1,13 @@
 import marimo
 
+__generated_with = "0.21.1"
 app = marimo.App()
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
@@ -37,7 +39,7 @@ def _(mo):
 
     Python itself is slow. That's a real concern, and we'll address it (vectorization is the answer for 90% of cases). But the ecosystem leverage is overwhelming. You'd need a very good reason to choose anything else for ML research or applied work today.
 
-    For a broader perspective on the mathematical tools we'll be building toward, see [MML Chapter 2 -- Linear Algebra](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) -- much of what makes Python powerful for ML is how directly it maps to the linear algebra and probability operations that underpin everything.
+    For a broader perspective on the mathematical tools we'll be building toward, see [MML Chapter 2 -- Linear Algebra](../textbooks/MML.pdf) -- much of what makes Python powerful for ML is how directly it maps to the linear algebra and probability operations that underpin everything.
     """)
     return
 
@@ -51,7 +53,15 @@ def _(mo):
 
     ### Data Types and Containers
 
-    You remember lists, dicts, tuples, sets. Here's what matters for ML specifically:
+    You remember lists, dicts, tuples, sets. But in ML code, each of these containers shows up in very specific roles, and understanding *why* each one is used where it is will help you read ML codebases much faster.
+
+    - **Lists** are your go-to for collecting things that grow over time -- training losses per epoch, accuracy scores across folds, batches of predictions. They're ordered, mutable, and you can append to them in a training loop.
+
+    - **Dicts** are how virtually every ML experiment is configured. When you see a config dict with keys like `"learning_rate"`, `"batch_size"`, `"epochs"` -- that's the standard pattern. Libraries like Weights & Biases and MLflow expect hyperparameters as dicts. PyTorch model state dicts (the saved weights of a model) are literally Python dicts mapping layer names to tensors.
+
+    - **Tuples** represent shapes, and shapes are everywhere. When you see `(32, 3, 224, 224)`, that's a batch of 32 images, each with 3 color channels, at 224x224 resolution. Tuples are immutable for a reason here -- a tensor's shape is a fixed structural property, not something you should be casually mutating.
+
+    - **Sets** are perfect for vocabulary management in NLP (unique tokens), tracking unique class labels, or computing intersections between prediction sets. If you need to check "is this word in my vocabulary?", a set gives you O(1) lookup vs O(n) for a list.
     """)
     return
 
@@ -87,9 +97,21 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
+    Notice how the tuple unpacking `channels, height, width = 3, 224, 224` works -- you'll see this constantly when extracting dimensions from tensor shapes. In PyTorch, you'll write things like `batch_size, seq_len, hidden_dim = x.shape` to destructure a tensor's shape into named variables. It makes the code self-documenting: instead of `x.shape[2]`, you write `hidden_dim`.
+
+    Also notice that the config dict has a nested list inside it (`"hidden_dims": [128, 64, 32]`). ML configs are often deeply nested -- dicts of dicts, dicts containing lists of dicts. Libraries like Hydra and OmegaConf exist specifically to manage this complexity.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
     ### List Comprehensions and Generators
 
-    List comprehensions are dense but readable once you're used to them. In ML code, you see them constantly:
+    List comprehensions are dense but readable once you're used to them. In ML code, you see them constantly for data transformations, filtering, and reshaping. They're not just syntactic sugar -- they're often significantly faster than equivalent for-loops because Python optimizes them internally.
+
+    Pay attention to the dict comprehension example below. Renaming keys in a state dict is something you will literally do when loading pretrained model weights -- different frameworks or training setups often save weights with different naming conventions, and you need to fix the keys before you can load them.
     """)
     return
 
@@ -115,6 +137,16 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    The nested comprehension syntax (`for batch in batches for pred in batch`) reads left-to-right in the same order you'd write nested for-loops. It trips people up at first, but it becomes second nature. You'll use this pattern when you need to flatten lists of predictions from multiple batches into a single list for computing metrics.
+
+    Now let's look at generators -- they become critical when your data doesn't fit in memory, which happens more often than you'd think in ML.
+    """)
+    return
+
+
+@app.cell
 def _():
     # Generators matter when your dataset doesn't fit in memory (which happens often)
     def data_stream(items):
@@ -130,7 +162,13 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
+    The key insight with generators: the `squares` generator above represents 10 million values but uses almost zero memory. It computes each value only when you ask for it with `next()`. This is exactly how PyTorch's `DataLoader` works under the hood -- it doesn't load your entire dataset into memory at once. It yields batches lazily, one at a time, which is the only way to train on datasets that are larger than your RAM.
+
+    If you see `yield` in ML code, the author is building a data pipeline that processes data incrementally rather than materializing everything at once.
+
     ### Functions, Lambda, *args/**kwargs
+
+    ML code is full of configurable functions with default arguments, short lambda functions for sorting and filtering, and `**kwargs` for passing flexible sets of hyperparameters. Let's look at the patterns you'll encounter most.
     """)
     return
 
@@ -161,11 +199,27 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    The `**kwargs` pattern is especially important because ML frameworks use it heavily. PyTorch's `nn.Module.__init__` passes keyword arguments up the inheritance chain this way.
+    A few things to notice here:
+
+    - The `train` function signature with keyword defaults (`lr=0.001, epochs=10`) is the canonical pattern for ML functions. You'll see this in every training script. The defaults serve as documentation -- they tell you what reasonable values look like.
+
+    - The `lambda` for sorting is a one-liner you'll use when comparing models by performance, sorting layers by parameter count, or ranking features by importance. It's just a function without a name.
+
+    - The `**kwargs` pattern in `log_experiment` is especially important because ML frameworks use it heavily. PyTorch's `nn.Module.__init__` passes keyword arguments up the inheritance chain this way. You also see it in experiment tracking -- you don't know upfront which hyperparameters you'll want to log, so you accept arbitrary keyword arguments.
+
+    **Gotcha with default arguments**: Never use a mutable default like `def f(x, data=[])`. The list is shared across all calls. Use `None` as the default and create the list inside the function. This is a classic Python pitfall that causes subtle bugs.
 
     ### Classes -- Just Enough for PyTorch
 
-    You don't need to be an OOP expert, but you need to understand class basics because every PyTorch model is a class:
+    You don't need to be an OOP expert, but you need to understand class basics because every PyTorch model is a class. The pattern below is a simplified version of what you'll write dozens of times in this course.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    Here's a minimal class that implements a linear regressor using NumPy. Pay attention to the `@` operator in the `predict` method -- that's matrix multiplication, and it's doing all the real work. The `__repr__` method is a nice-to-have that makes debugging easier; when you print a model, you want to see something informative, not `<LinearRegressor object at 0x...>`.
     """)
     return
 
@@ -213,6 +267,8 @@ def _(mo):
     ```
 
     That's the pattern. `__init__` defines the layers, `forward` defines the computation. Inheritance from `nn.Module` gives you parameter tracking, GPU movement, saving/loading -- all for free.
+
+    The `super().__init__()` call is non-negotiable -- skip it and PyTorch won't track your parameters. The `forward` method is called automatically when you do `model(x)` (PyTorch overrides `__call__` to add hooks and gradient tracking around your `forward`).
     """)
     return
 
@@ -222,7 +278,7 @@ def _(mo):
     mo.md(r"""
     ### F-strings, Context Managers, Decorators
 
-    **F-strings** -- use them everywhere for readable logging:
+    **F-strings** -- use them everywhere for readable logging. In ML, you will print training metrics thousands of times (every epoch, sometimes every batch), so it's worth memorizing the format specifiers that make output clean and scannable.
     """)
     return
 
@@ -241,9 +297,15 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    The format specifiers (`:03d`, `:.4f`, `:.2%`) are worth memorizing. You'll print training metrics thousands of times.
+    Let's break down those format specifiers because you'll use them constantly:
 
-    **Context managers** -- the `with` statement handles resource cleanup:
+    - `:03d` -- pad the integer to 3 digits with leading zeros. Makes log output align nicely when epochs go from 1 to 100.
+    - `:.4f` -- show exactly 4 decimal places. Losses are usually in the range 0.0001 to 10.0, so 4 decimals gives you enough precision to see whether your model is still improving.
+    - `:.2%` -- format as a percentage with 2 decimal places. Multiplies by 100 and adds the `%` sign automatically. So `0.9120` becomes `91.20%`.
+
+    When you're monitoring a training run that takes hours, clean log output is the difference between quickly spotting a problem and staring at a wall of numbers.
+
+    **Context managers** -- the `with` statement handles resource cleanup. In ML, two context managers come up constantly:
 
     ```python
     # File I/O
@@ -254,6 +316,8 @@ def _(mo):
     with torch.no_grad():
         predictions = model(test_data)
     ```
+
+    The `torch.no_grad()` context manager is critical for evaluation -- it tells PyTorch not to build a computation graph, which saves memory and speeds things up significantly. Without it, your GPU will run out of memory during evaluation on large models.
 
     **Decorators** -- you'll mostly consume them, not write them:
 
@@ -266,6 +330,8 @@ def _(mo):
     def compute_loss(pred, target):
         ...
     ```
+
+    A decorator is just a function that wraps another function. `@torch.no_grad()` on a function is equivalent to putting the entire function body inside `with torch.no_grad():`. Use the decorator when the whole function should run without gradients; use the context manager when only part of it should.
     """)
     return
 
@@ -279,11 +345,20 @@ def _(mo):
 
     NumPy is the single most important library in the Python ML stack. PyTorch tensors are designed to feel like NumPy arrays. If you understand NumPy deeply, PyTorch will feel natural. If you don't, everything will feel like fighting the framework.
 
-    For the mathematical foundation of array and matrix operations, see [MML Chapter 2 -- Linear Algebra](file:///C:/Users/landa/ml-course/textbooks/MML.pdf).
+    For the mathematical foundation of array and matrix operations, see [MML Chapter 2 -- Linear Algebra](../textbooks/MML.pdf).
 
     ### Why Vectorization Matters
 
     This is the most important conceptual point in this entire module. Python loops are slow. NumPy operations on arrays are fast. The difference is not 2x -- it's 100x or more.
+
+    Why? When you write a Python for-loop, each iteration involves:
+    1. Python interpreter overhead (type checking, reference counting, etc.)
+    2. Fetching the next element from the list (which can be any Python object)
+    3. Performing the operation through Python's generic dispatch
+
+    When you write `a + b` on NumPy arrays, the entire operation happens in a single call to optimized C code that operates on contiguous blocks of memory. The data is stored as raw numbers (not Python objects), and the CPU can use SIMD instructions to process multiple elements simultaneously.
+
+    The bottom line: **every minute you spend learning to think in vectorized operations will save you hours of waiting for code to run.**
     """)
     return
 
@@ -318,9 +393,19 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
+    Run that cell and look at the speedup number. On most machines, you'll see somewhere between 50x and 200x. Now imagine that speedup applied to every matrix operation in a training loop that runs for hours. Vectorization isn't a nice-to-have -- it's the difference between an experiment taking 5 minutes and taking 8 hours.
+
     The rule: **if you're writing a for-loop over array elements in ML code, you're probably doing it wrong.** Think in terms of whole-array operations. This is a mindset shift, and it takes practice, but it's essential.
 
     ### Array Creation, Indexing, Slicing, Reshaping
+
+    Let's go through the array creation functions you'll use most. Each one exists for a reason, and you'll reach for different ones in different situations.
+
+    - `np.zeros` and `np.ones` -- initializing weight matrices, creating masks, placeholder arrays
+    - `np.eye` -- identity matrix, used in regularization and as a baseline transformation
+    - `np.arange` -- like Python's `range()` but returns an array and supports floats
+    - `np.linspace` -- evenly spaced points in an interval, essential for plotting smooth curves and creating learning rate schedules
+    - `np.random.randn` -- samples from the standard normal distribution, used for weight initialization (more on this when we cover neural networks)
     """)
     return
 
@@ -346,6 +431,19 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    Now indexing and slicing. If you've used Python lists, you know the basics, but NumPy extends this to multiple dimensions and adds two powerful features: **boolean indexing** and **fancy indexing**.
+
+    - **Boolean indexing** lets you select elements based on a condition. This is how you filter data points by class, select predictions above a confidence threshold, or mask out padding tokens.
+    - **Fancy indexing** lets you select specific rows/columns by passing a list of indices. This is how you select a subset of training examples (e.g., for a mini-batch) or reorder rows.
+
+    Watch the shapes carefully as you read the output -- understanding how slicing affects dimensionality is crucial for avoiding shape mismatch errors.
+    """)
+    return
+
+
+@app.cell
 def _():
     import numpy as np
 
@@ -363,6 +461,22 @@ def _():
 
     # Fancy indexing -- selecting specific rows/columns
     print(f"A[[0, 2, 3], :] (rows 0, 2, 3):\n{A[[0, 2, 3], :]}")
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    Now reshaping -- this is where most beginners hit errors, and it's worth understanding deeply.
+
+    `reshape` changes the shape of an array without changing its data. The data stays in the same order in memory; you're just telling NumPy to interpret the same block of numbers as a different-shaped grid.
+
+    The `-1` in `reshape(3, -1)` means "figure out this dimension automatically." NumPy divides the total number of elements by the other specified dimensions. So for 12 elements, `reshape(3, -1)` becomes `reshape(3, 4)`. You'll use `-1` constantly because it saves you from computing dimensions by hand.
+
+    `reshape(-1, 1)` turns a 1D vector into a column vector (2D array with one column). This comes up when you need to make a vector compatible with a matrix operation via broadcasting.
+
+    Transpose (`.T`) swaps rows and columns. For a matrix $A$ of shape $(m, n)$, $A^T$ has shape $(n, m)$. You'll use this for things like computing $X^T X$ (the Gram matrix), which appears in linear regression, PCA, and many other places.
+    """)
     return
 
 
@@ -387,7 +501,9 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    **Critical detail**: NumPy slices are *views*, not copies. Modifying a slice modifies the original array. Use `.copy()` when you need independence.
+    **Critical detail**: NumPy slices are *views*, not copies. Modifying a slice modifies the original array. This is a performance optimization (no data is copied), but it's a source of subtle bugs if you're not aware of it. Use `.copy()` when you need independence.
+
+    This matters in ML when you're preprocessing data -- if you normalize a slice of your dataset, you might accidentally modify the original. The cell below demonstrates this behavior.
     """)
     return
 
@@ -413,6 +529,8 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
+    Takeaway: if you slice an array and then modify the slice, check whether you intended to modify the original. In training pipelines, this is a common source of data leakage bugs -- you normalize your test data, which accidentally normalizes the same underlying memory as your training data.
+
     ### Broadcasting Rules
 
     Broadcasting is how NumPy handles operations between arrays of different shapes. It is elegant when you understand it and baffling when you don't. Here are the rules:
@@ -420,6 +538,10 @@ def _(mo):
     1. If arrays have different numbers of dimensions, pad the smaller shape with 1s **on the left**.
     2. Arrays with size 1 along a dimension act as if they had the size of the other array along that dimension (the values are repeated).
     3. If sizes disagree along a dimension and neither is 1, it's an error.
+
+    Why does this matter for ML? Because almost every operation you do involves arrays of different shapes. Adding a bias vector to every row of a matrix? Broadcasting. Normalizing each feature column by its mean? Broadcasting. Computing pairwise distances between two sets of points? Broadcasting. Without it, you'd need explicit loops or manual `np.tile` calls for all of these.
+
+    Let's walk through four examples, from simple to subtle.
     """)
     return
 
@@ -455,11 +577,27 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    The outer product example is worth staring at. Broadcasting lets you avoid explicit loops for operations that would otherwise require nested iteration. In ML, you'll use this pattern for computing pairwise distances, attention scores, and many other things.
+    Let's trace through Example 4 step by step, because this is the pattern that unlocks so much in ML:
+
+    - `x` has shape `(3, 1)` and `y` has shape `(1, 3)`
+    - Broadcasting rule 2: `x` is stretched along axis 1 to `(3, 3)`, and `y` is stretched along axis 0 to `(3, 3)`
+    - Now they're both `(3, 3)` and element-wise multiplication proceeds
+
+    The result is the outer product $x y^T$, computed without any loops. This exact pattern shows up when computing:
+    - **Pairwise distances** between points (for k-nearest neighbors, kernel methods)
+    - **Attention scores** in transformers ($Q K^T$)
+    - **Gram matrices** for kernel methods
+    - **Outer products** in gradient computations
+
+    When you get shape mismatch errors (and you will, frequently), draw out the shapes on paper and apply the broadcasting rules manually. It becomes second nature with practice.
 
     ### Linear Algebra Operations
 
-    This is where NumPy connects directly to the math you'll be doing. See [MML Section 2.3 -- Solving Systems of Linear Equations](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) for the underlying theory.
+    This is where NumPy connects directly to the math you'll be doing. Matrix multiplication is *the* core operation of machine learning -- every neural network layer, every linear regression, every PCA computation boils down to matrix multiplications and element-wise operations.
+
+    The `@` operator was added to Python specifically for this. Before Python 3.5, you had to write `np.dot(A, B)` or `A.dot(B)`, which was harder to read. Now `A @ B` makes matrix multiplication as clean as addition.
+
+    See [MML Section 2.3 -- Solving Systems of Linear Equations](../textbooks/MML.pdf) for the underlying theory.
     """)
     return
 
@@ -496,6 +634,18 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    A key point about `np.linalg.solve` vs `np.linalg.inv`: computing $A^{-1}b$ requires first computing $A^{-1}$ (expensive) and then multiplying (another operation). `solve` uses LU decomposition to find $x$ directly, which is both faster and more numerically stable. In practice, you almost never need the actual inverse matrix -- you need the *result* of applying the inverse, which `solve` gives you directly.
+
+    This is a good example of a broader principle: **the mathematically equivalent approach and the computationally best approach are often different.**
+
+    Now let's look at decompositions. These are the workhorses of dimensionality reduction, data compression, and understanding matrix structure.
+    """)
+    return
+
+
+@app.cell
 def _():
     import numpy as np
 
@@ -521,9 +671,19 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    **Practical tip**: never compute `np.linalg.inv(A) @ b` when you can use `np.linalg.solve(A, b)`. The latter is faster and more numerically stable. SVD will become very important when we cover dimensionality reduction (PCA is just truncated SVD). See [ISLR Section 6.3 -- Dimension Reduction Methods](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) for more context.
+    Why these operations matter for ML:
+
+    - **SVD (Singular Value Decomposition)**: PCA is literally truncated SVD. When you reduce 1000-dimensional data to 50 dimensions, you're keeping the top 50 singular values/vectors. You'll also see SVD in matrix factorization for recommendation systems, low-rank approximations for compressing neural networks, and computing pseudoinverses.
+
+    - **Eigenvalues/Eigenvectors**: These tell you about the "natural axes" of a linear transformation. In PCA, the eigenvectors of the covariance matrix are the principal components. In spectral clustering, you use eigenvectors of the graph Laplacian. The eigenvalues tell you how much variance each axis captures.
+
+    - **Norms**: The L2 norm $\|x\|_2 = \sqrt{\sum x_i^2}$ is the standard Euclidean distance. The L1 norm $\|x\|_1 = \sum |x_i|$ promotes sparsity (this is the core idea behind Lasso regularization). You'll use norms for regularization, gradient clipping, and measuring distances.
+
+    **Practical tip**: never compute `np.linalg.inv(A) @ b` when you can use `np.linalg.solve(A, b)`. The latter is faster and more numerically stable. SVD will become very important when we cover dimensionality reduction (PCA is just truncated SVD). See [ISLR Section 6.3 -- Dimension Reduction Methods](../textbooks/ISLR.pdf) for more context.
 
     ### Random Number Generation
+
+    Randomness is everywhere in ML: weight initialization, data shuffling, dropout, stochastic gradient descent, train/test splitting. Getting randomness right -- and being able to reproduce it exactly -- is essential for scientific work.
     """)
     return
 
@@ -545,15 +705,27 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    Always seed your random number generators for reproducibility. When comparing two models, you need identical train/test splits. Unseeded randomness makes debugging nearly impossible.
+    A few important points about random number generation in ML:
+
+    - **Always seed your RNG for reproducibility.** When comparing two models, you need identical train/test splits and identical weight initializations. Unseeded randomness makes debugging nearly impossible and makes your experiments non-reproducible.
+
+    - **Use the modern `default_rng` API**, not the legacy `np.random.seed()` / `np.random.randn()`. The legacy API uses a global state, which means any library you import could silently change your random state. `default_rng` creates an independent generator object that only you control.
+
+    - **`standard_normal` vs `uniform`**: You'll use normal distributions for weight initialization (with appropriate scaling), and uniform distributions for things like random search over hyperparameters.
+
+    - **`permutation`** is how you shuffle data. Never sort your training data by label -- models will learn the label order instead of the features.
 
     ---
 
     ## 4. Pandas -- Data Manipulation
 
-    Pandas is how you'll load, clean, explore, and preprocess tabular data before feeding it to models. For statistical perspectives on data handling, see [ISLR Chapter 2 -- Statistical Learning Overview](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf).
+    Pandas is how you'll load, clean, explore, and preprocess tabular data before feeding it to models. It's the first tool you reach for when you get a new dataset: What does it look like? How much data is there? Are there missing values? What's the distribution of each feature?
+
+    For statistical perspectives on data handling, see [ISLR Chapter 2 -- Statistical Learning Overview](../textbooks/ISLR.pdf).
 
     ### DataFrames and Series
+
+    A DataFrame is essentially a table -- rows are samples (data points), columns are features (variables). This maps directly to the $X$ matrix in ML notation, where each row $x_i$ is a training example and each column $j$ is a feature dimension.
     """)
     return
 
@@ -581,6 +753,14 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
+    Get in the habit of running these five things on every new dataset:
+
+    1. `.shape` -- How much data do you have? Is it enough? (100 samples and 10,000 features is a very different problem than 10,000 samples and 100 features.)
+    2. `.dtypes` -- Are your numeric columns actually numeric, or are they stored as strings? Pandas silently stores mixed-type columns as `object`, which will cause errors downstream.
+    3. `.describe()` -- What's the range, mean, std of each feature? Are there any obvious outliers (e.g., a negative age)?
+    4. `.head()` -- What does the raw data actually look like? You'd be surprised how often the first few rows reveal data quality issues.
+    5. `.value_counts()` on the label column -- Is the dataset balanced? If 95% of your labels are "normal" and 5% are "anomaly," you have a class imbalance problem that needs specific handling.
+
     A `Series` is a single column. A `DataFrame` is a collection of Series sharing an index.
 
     ### Indexing: loc vs iloc
@@ -619,9 +799,17 @@ def _(df):
 @app.cell
 def _(mo):
     mo.md(r"""
-    **Common gotcha**: `loc[0:2]` includes row 2. `iloc[0:2]` excludes row 2. This is because `loc` uses inclusive-on-both-ends label slicing, while `iloc` follows Python's half-open convention.
+    **Common gotcha**: `loc[0:2]` includes row 2. `iloc[0:2]` excludes row 2. This is because `loc` uses inclusive-on-both-ends label slicing, while `iloc` follows Python's half-open convention. This will bite you at least once -- now you know why.
+
+    Also notice the boolean indexing uses `&` (bitwise AND), not `and` (logical AND). Each condition must be in parentheses. This is a Pandas quirk due to Python's operator precedence rules. `|` is OR, `~` is NOT.
 
     ### groupby, merge, apply
+
+    These three operations cover most of what you'll do with tabular data in the preprocessing stage.
+
+    - **groupby** -- compute per-class statistics (mean accuracy per class, loss per batch, etc.)
+    - **merge** -- join tables together (features table + labels table, train metadata + evaluation results)
+    - **vectorized operations** -- always prefer these over `.apply()` for performance. The same vectorization principle from NumPy applies here.
     """)
     return
 
@@ -650,9 +838,13 @@ def _(df):
 @app.cell
 def _(mo):
     mo.md(r"""
+    That last example -- subtracting the mean and dividing by the standard deviation -- is called **z-score normalization** (or standardization). It transforms each feature to have mean 0 and standard deviation 1. This is one of the most common preprocessing steps in ML because many algorithms (gradient descent, SVMs, k-nearest neighbors) perform poorly or converge slowly when features are on very different scales. If one feature ranges from 0 to 1 and another from 0 to 1,000,000, the large-scale feature will dominate the distance calculations.
+
+    Notice that we used vectorized Pandas operations (`df["col"] - df["col"].mean()`) rather than `.apply(lambda x: ...)`. The vectorized version is 10-100x faster because it drops down to NumPy under the hood.
+
     ### Handling Missing Data
 
-    Real datasets have missing values. Always check and handle them before modeling.
+    Real datasets have missing values. Always check and handle them before modeling. A model trained on data with silently propagated NaNs will produce garbage without any error messages -- one of the most insidious bugs in ML pipelines.
     """)
     return
 
@@ -684,13 +876,36 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
+    Two strategies for missing data, each with tradeoffs:
+
+    - **`dropna()`** -- remove rows with any missing values. Simple but dangerous: if 30% of rows have at least one missing value, you just threw away 30% of your data. Only use this when missing values are rare and random.
+
+    - **`fillna()`** -- replace missing values with a default (mean, median, mode, or a sentinel value). The median is more robust than the mean when your data has outliers. More sophisticated approaches include model-based imputation (predicting missing values from other features), but the median is a reasonable starting point.
+
+    **Gotcha**: always compute fill statistics (mean, median) from the *training* data only, then apply them to both train and test. If you compute the median including test data, you've leaked test information into your preprocessing -- a form of data leakage that inflates your accuracy estimates.
+
+    Also watch for "implicit" missing values -- things like empty strings `""`, the word `"NA"`, or `-999` used as sentinels. `isnull()` won't catch these; you need to inspect `unique()` values manually.
+
     ---
 
     ## 5. Matplotlib -- Visualization
 
-    Visualization is how you build intuition about your data and diagnose model behavior. Don't skip this -- the ability to quickly plot things will save you hours of confusion.
+    Visualization is how you build intuition about your data and diagnose model behavior. Don't skip this -- the ability to quickly plot things will save you hours of confusion. When your model isn't learning, the first thing you should do is plot:
+    - The training and validation loss curves (are they diverging? plateauing?)
+    - The data itself (is there a clear pattern? are classes separable?)
+    - The distribution of predictions (is the model predicting the same class for everything?)
 
     ### Basic Plots
+
+    Let's cover the four plot types you'll use most in ML work.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    **Training curves** are the plot you'll look at most often. The x-axis is the epoch (one full pass through the training data), and the y-axis is the loss (how wrong the model is). A healthy training curve goes down. If the training loss goes down but the validation loss goes up, your model is overfitting -- memorizing the training data instead of learning generalizable patterns.
     """)
     return
 
@@ -719,6 +934,14 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    **Scatter plots** let you visualize 2D data with class labels. This is how you'll check whether your classes are separable, spot clusters, and visualize learned embeddings. The `c=labels` parameter colors points by class, and `cmap="bwr"` gives you a blue/white/red colormap.
+    """)
+    return
+
+
+@app.cell
 def _():
     import matplotlib.pyplot as plt
     import numpy as np
@@ -737,6 +960,14 @@ def _():
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    **Histograms** show the distribution of your data. You'll use these to check whether features are normally distributed (many algorithms assume this), spot outliers, and verify that your data augmentation is working as expected. The `density=True` parameter normalizes the histogram so the area under the curve equals 1, making it comparable to probability density functions.
+    """)
+    return
+
+
+@app.cell
 def _():
     import matplotlib.pyplot as plt
     import numpy as np
@@ -749,6 +980,16 @@ def _():
     ax.hist(data, bins=50, density=True, alpha=0.7, color="steelblue", edgecolor="white")
     ax.set_title("Standard Normal Distribution")
     fig
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md(r"""
+    **Heatmaps** visualize matrices. The two most common uses in ML:
+    - **Correlation matrices**: show how features are related to each other. Highly correlated features are redundant; you might drop one to reduce dimensionality.
+    - **Confusion matrices**: show where your classifier makes mistakes. A perfect classifier has all its weight on the diagonal; off-diagonal entries tell you which classes get confused with each other.
+    """)
     return
 
 
@@ -773,6 +1014,8 @@ def _():
 def _(mo):
     mo.md(r"""
     ### Subplots and Figure Customization
+
+    In practice, you'll almost always want multiple plots side by side -- comparing metrics, showing different views of the same data, or displaying results across experiments. The `subplots` function gives you a grid of axes objects that you can fill independently.
     """)
     return
 
@@ -812,6 +1055,8 @@ def _(mo):
     ### The Object-Oriented API
 
     The pyplot interface (`plt.plot(...)`) is fine for quick exploration, but the object-oriented API gives you more control. The pattern above with `fig, axes = plt.subplots(...)` is the OO approach. Use it for anything beyond a single throwaway plot.
+
+    The key distinction: `plt.xlabel(...)` implicitly acts on "the current axes." `ax.set_xlabel(...)` explicitly targets a specific axes object. When you have multiple subplots, explicit is better than implicit. The implicit API becomes ambiguous and error-prone with multiple subplots -- you'll set a label and it'll end up on the wrong plot.
     """)
     return
 
@@ -843,7 +1088,12 @@ def _():
 @app.cell
 def _(mo):
     mo.md(r"""
-    The key distinction: `plt.xlabel(...)` implicitly acts on "the current axes." `ax.set_xlabel(...)` explicitly targets a specific axes object. When you have multiple subplots, explicit is better than implicit.
+    A few practical tips for matplotlib in ML work:
+
+    - **Always label your axes and add a title.** When you come back to a plot three weeks later, you won't remember what axis 1 was.
+    - **Use `tight_layout()`** or `constrained_layout=True` to prevent labels from getting cut off.
+    - **Save figures with `fig.savefig("plot.png", dpi=150, bbox_inches="tight")`** for publications and reports. The `bbox_inches="tight"` prevents clipping.
+    - **Use consistent color schemes** across related plots. Matplotlib's default colors are fine for exploration; for papers, consider colorblind-friendly palettes like `tab10` or `Set2`.
 
     ---
 
@@ -933,6 +1183,23 @@ def _(mo):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    This exercise is designed to test your broadcasting skills. The hint gives you the key identity:
+
+    $$\|x_i - x_j\|^2 = \|x_i\|^2 + \|x_j\|^2 - 2 x_i^T x_j$$
+
+    Think about the shapes:
+    - $\|x_i\|^2$ for all $i$ is a vector of shape $(n,)$ -- you'll want to reshape it to $(n, 1)$ for broadcasting
+    - $\|x_j\|^2$ for all $j$ is a vector of shape $(n,)$ -- reshape to $(1, n)$
+    - $x_i^T x_j$ for all pairs is the matrix $X X^T$, which has shape $(n, n)$
+
+    Broadcasting handles the rest. This is exactly the outer-product-via-broadcasting pattern from earlier, applied to a real ML problem (pairwise distances appear in k-NN, kernel methods, and t-SNE).
+    """)
+    return
+
+
+@app.cell
 def _():
     import numpy as np
 
@@ -988,6 +1255,21 @@ def _(mo):
 
 
 @app.cell
+def _(mo):
+    mo.md(r"""
+    Before you run the cell below, try to work out each shape on paper using the broadcasting rules:
+
+    - `A` is `(3, 4, 5)` and `B` is `(4, 1)`. Rule 1: pad B to `(1, 4, 1)`. Then broadcast: `(3, 4, 5)`.
+    - `A` is `(3, 4, 5)` and `C` is `(5,)`. Rule 1: pad C to `(1, 1, 5)`. Then broadcast: `(3, 4, 5)`.
+    - `A` is `(3, 4, 5)` and `D` is `(3, 1, 1)`. Already 3D, broadcast: `(3, 4, 5)`.
+    - `A * B * C` chains the broadcasts: `(3, 4, 5)`.
+
+    Being able to do this in your head is a skill worth developing -- shape errors are the most common bug in ML code, and the fastest debuggers are the ones who can trace shapes mentally.
+    """)
+    return
+
+
+@app.cell
 def _():
     import numpy as np
 
@@ -1037,7 +1319,7 @@ def _(mo):
 
     In the next module, we'll start building on this foundation with the mathematical prerequisites: linear algebra, calculus, and probability -- the three pillars that everything in ML rests on.
 
-    For a comprehensive reference on the mathematical foundations ahead, see [MML -- Mathematics for Machine Learning, full text](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) and [Bishop PRML -- Introduction](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) for the probabilistic perspective we'll be developing throughout the course.
+    For a comprehensive reference on the mathematical foundations ahead, see [MML -- Mathematics for Machine Learning, full text](../textbooks/MML.pdf) and [Bishop PRML -- Introduction](../textbooks/Bishop-PRML.pdf) for the probabilistic perspective we'll be developing throughout the course.
     """)
     return
 
