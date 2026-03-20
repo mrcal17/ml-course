@@ -4,159 +4,143 @@ import numpy as np
 
 class BackpropFlow(Scene):
     def construct(self):
-        title = Text("Backpropagation", color=WHITE).scale(0.55)
-        title.to_edge(UP, buff=0.3)
-        self.play(FadeIn(title), run_time=0.5)
+        # Title
+        phase_label = Text("Forward Pass", font_size=28, color=BLUE)
+        phase_label.to_edge(UP, buff=0.4)
+        self.play(FadeIn(phase_label), run_time=0.5)
 
-        # Network layout: 2 input -> 3 hidden -> 1 output
+        # Network: 2 input -> 3 hidden -> 1 output
         layer_sizes = [2, 3, 1]
-        layer_x = [-4, 0, 4]
-        spacing_y = 1.5
+        layer_x = [-4.5, 0, 4.5]
+        layer_names = ["Input", "Hidden", "Output"]
 
-        neurons = []  # list of lists of Circle mobjects
-        neuron_labels = []  # parallel structure for value labels
+        # Compute neuron positions
+        neuron_pos = []  # neuron_pos[layer][index] = np.array
+        neurons = []     # Circle mobjects
+        spacing_y = 1.4
 
         for li, (size, x) in enumerate(zip(layer_sizes, layer_x)):
-            layer = []
-            labels = []
-            y_start = -(size - 1) * spacing_y / 2
+            positions = []
+            circles = []
+            y_start = (size - 1) * spacing_y / 2
             for ni in range(size):
-                y = y_start + ni * spacing_y
-                circle = Circle(
-                    radius=0.35, color=WHITE, stroke_width=2
-                ).move_to([x, y, 0])
-                layer.append(circle)
-                labels.append(None)  # placeholder
-            neurons.append(layer)
-            neuron_labels.append(labels)
+                y = y_start - ni * spacing_y
+                pos = np.array([x, y, 0])
+                positions.append(pos)
+                circ = Circle(
+                    radius=0.38, color=WHITE, stroke_width=2,
+                    fill_color=BLACK, fill_opacity=1,
+                ).move_to(pos)
+                circles.append(circ)
+            neuron_pos.append(positions)
+            neurons.append(circles)
 
-        # Draw neurons
         all_circles = VGroup(*[c for layer in neurons for c in layer])
         self.play(Create(all_circles), run_time=1)
 
-        # Layer labels
-        input_label = Text("Input", color=WHITE).scale(0.35)
-        input_label.next_to(VGroup(*neurons[0]), DOWN, buff=0.4)
-        hidden_label = Text("Hidden", color=WHITE).scale(0.35)
-        hidden_label.next_to(VGroup(*neurons[1]), DOWN, buff=0.4)
-        output_label = Text("Output", color=WHITE).scale(0.35)
-        output_label.next_to(VGroup(*neurons[2]), DOWN, buff=0.4)
-        self.play(
-            FadeIn(input_label), FadeIn(hidden_label), FadeIn(output_label),
-            run_time=0.5,
-        )
+        # Layer labels below
+        layer_labels = VGroup()
+        for li, name in enumerate(layer_names):
+            lbl = Text(name, font_size=16, color=GREY_B)
+            # Position below the lowest neuron in the layer
+            bottom_y = min(p[1] for p in neuron_pos[li])
+            lbl.move_to([layer_x[li], bottom_y - 0.7, 0])
+            layer_labels.add(lbl)
+        self.play(FadeIn(layer_labels), run_time=0.5)
 
-        # Draw connections (lines between layers)
-        connections = []  # list of (line, from_layer, from_idx, to_layer, to_idx)
+        # Connections (grey lines)
+        conn_lines = []  # conn_lines[layer_gap] = list of Lines
         all_lines = VGroup()
         for li in range(len(layer_sizes) - 1):
-            layer_conns = []
+            gap_lines = []
             for fi in range(layer_sizes[li]):
                 for ti in range(layer_sizes[li + 1]):
                     line = Line(
                         neurons[li][fi].get_right(),
                         neurons[li + 1][ti].get_left(),
-                        color=GREY,
-                        stroke_width=1.5,
-                        stroke_opacity=0.6,
+                        color=GREY_D, stroke_width=1.2, stroke_opacity=0.5,
                     )
                     all_lines.add(line)
-                    layer_conns.append((line, li, fi, li + 1, ti))
-            connections.append(layer_conns)
+                    gap_lines.append(line)
+            conn_lines.append(gap_lines)
+        self.play(Create(all_lines), run_time=0.8)
 
-        self.play(Create(all_lines), run_time=1)
-
-        # ---- FORWARD PASS ----
-        fwd_label = Text("Forward Pass", color=BLUE).scale(0.45)
-        fwd_label.to_edge(LEFT, buff=0.3).shift(UP * 2.5)
-        self.play(FadeIn(fwd_label), run_time=0.5)
-
-        # Input values
-        input_vals = [1, 2]
-        hidden_vals = [3, 1, 4]
-        output_val = [5]
-        all_vals = [input_vals, hidden_vals, output_val]
-
-        # Animate forward layer by layer
-        for li, vals in enumerate(all_vals):
-            val_texts = []
-            for ni, val in enumerate(vals):
-                txt = Text(str(val), color=BLUE).scale(0.4)
-                txt.move_to(neurons[li][ni].get_center())
-                val_texts.append(txt)
-
-            if li > 0:
-                # Animate blue pulses along connections from previous layer
-                pulses = []
-                for line, fl, fi, tl, ti in connections[li - 1]:
-                    pulse = Dot(color=BLUE, radius=0.06)
-                    pulse.move_to(line.get_start())
-                    pulses.append((pulse, line))
-
-                pulse_dots = VGroup(*[p for p, _ in pulses])
-                self.play(FadeIn(pulse_dots), run_time=0.2)
-                self.play(
-                    *[
-                        p.animate.move_to(l.get_end())
-                        for p, l in pulses
-                    ],
-                    run_time=0.8,
-                )
-                self.play(FadeOut(pulse_dots), run_time=0.2)
-
-            self.play(*[FadeIn(t) for t in val_texts], run_time=0.5)
-            # Store for later removal
-            for ni, txt in enumerate(val_texts):
-                neuron_labels[li][ni] = txt
-
-        self.wait(0.5)
-
-        # ---- BACKWARD PASS ----
-        self.play(FadeOut(fwd_label), run_time=0.3)
-        bwd_label = Text("Backward Pass", color=RED).scale(0.45)
-        bwd_label.to_edge(LEFT, buff=0.3).shift(UP * 2.5)
-        self.play(FadeIn(bwd_label), run_time=0.5)
-
-        # Remove forward values
-        all_val_mobs = VGroup(
-            *[t for layer in neuron_labels for t in layer if t is not None]
-        )
-        self.play(FadeOut(all_val_mobs), run_time=0.5)
-
-        # Gradient values (simplified)
-        grad_vals = [
-            [0.2, 0.1],   # input gradients
-            [0.5, 0.3, 0.8],  # hidden gradients
-            [1.0],             # output gradient (dL/dL = 1)
+        # ===================== FORWARD PASS =====================
+        fwd_values = [
+            ["1", "2"],
+            ["0.8", "0.3", "1.2"],
+            ["0.7"],
         ]
 
-        # Animate backward: output -> hidden -> input
-        for li in reversed(range(len(layer_sizes))):
-            val_texts = []
-            for ni, val in enumerate(grad_vals[li]):
-                txt = Text(str(val), color=RED).scale(0.4)
-                txt.move_to(neurons[li][ni].get_center())
-                val_texts.append(txt)
+        fwd_texts = []  # store for later removal
 
-            if li < len(layer_sizes) - 1:
-                # Red pulses flowing right to left
-                pulses = []
-                for line, fl, fi, tl, ti in connections[li]:
-                    pulse = Dot(color=RED, radius=0.06)
-                    pulse.move_to(line.get_end())
-                    pulses.append((pulse, line))
+        for li, vals in enumerate(fwd_values):
+            # Pulse dots along connections from previous layer
+            if li > 0:
+                pulses = VGroup()
+                pulse_targets = []
+                for line in conn_lines[li - 1]:
+                    dot = Dot(color=BLUE, radius=0.05).move_to(line.get_start())
+                    pulses.add(dot)
+                    pulse_targets.append(line.get_end())
 
-                pulse_dots = VGroup(*[p for p, _ in pulses])
-                self.play(FadeIn(pulse_dots), run_time=0.2)
+                self.play(FadeIn(pulses), run_time=0.15)
                 self.play(
-                    *[
-                        p.animate.move_to(l.get_start())
-                        for p, l in pulses
-                    ],
-                    run_time=0.8,
+                    *[pulses[j].animate.move_to(pulse_targets[j]) for j in range(len(pulses))],
+                    run_time=0.6,
                 )
-                self.play(FadeOut(pulse_dots), run_time=0.2)
+                self.play(FadeOut(pulses), run_time=0.15)
 
-            self.play(*[FadeIn(t) for t in val_texts], run_time=0.5)
+            # Show values inside circles
+            layer_texts = []
+            for ni, val in enumerate(vals):
+                txt = Text(val, font_size=16, color=BLUE)
+                txt.move_to(neurons[li][ni].get_center())
+                layer_texts.append(txt)
+            fwd_texts.extend(layer_texts)
+            self.play(*[FadeIn(t) for t in layer_texts], run_time=0.4)
 
-        self.wait(1.5)
+        self.wait(1)
+
+        # ===================== BACKWARD PASS =====================
+        # Fade forward values
+        self.play(*[FadeOut(t) for t in fwd_texts], run_time=0.5)
+
+        # Update phase label
+        bwd_label = Text("Backward Pass", font_size=28, color=RED)
+        bwd_label.to_edge(UP, buff=0.4)
+        self.play(ReplacementTransform(phase_label, bwd_label), run_time=0.5)
+
+        bwd_values = [
+            ["0.2", "0.1"],
+            ["0.5", "0.3", "0.8"],
+            ["1.0"],
+        ]
+
+        # Go right to left: output, hidden, input
+        for li in reversed(range(len(layer_sizes))):
+            # Red pulses from next layer back
+            if li < len(layer_sizes) - 1:
+                pulses = VGroup()
+                pulse_targets = []
+                for line in conn_lines[li]:
+                    dot = Dot(color=RED, radius=0.05).move_to(line.get_end())
+                    pulses.add(dot)
+                    pulse_targets.append(line.get_start())
+
+                self.play(FadeIn(pulses), run_time=0.15)
+                self.play(
+                    *[pulses[j].animate.move_to(pulse_targets[j]) for j in range(len(pulses))],
+                    run_time=0.6,
+                )
+                self.play(FadeOut(pulses), run_time=0.15)
+
+            # Show gradient values
+            layer_texts = []
+            for ni, val in enumerate(bwd_values[li]):
+                txt = Text(val, font_size=16, color=RED)
+                txt.move_to(neurons[li][ni].get_center())
+                layer_texts.append(txt)
+            self.play(*[FadeIn(t) for t in layer_texts], run_time=0.4)
+
+        self.wait(2)

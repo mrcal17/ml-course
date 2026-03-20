@@ -23,8 +23,8 @@ class GradientVector2D(Scene):
             axis_config={"include_numbers": False, "stroke_width": 1.5},
         )
         axes.shift(DOWN * 0.5)
-        x_lab = axes.get_x_axis_label("x", font_size=20, direction=RIGHT)
-        y_lab = axes.get_y_axis_label("y", font_size=20, direction=UP)
+        x_lab = MathTex("x", font_size=20).next_to(axes.x_axis, RIGHT, buff=0.1)
+        y_lab = MathTex("y", font_size=20).next_to(axes.y_axis, UP, buff=0.1)
         self.play(Create(axes), Write(x_lab), Write(y_lab), run_time=0.8)
 
         # Contour ellipses for f(x,y) = x^2 + 2y^2 = c
