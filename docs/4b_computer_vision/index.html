@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="../assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="../assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="../assets/Lora-VariableFont_wght-B2ootaw-.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/PTSans-Regular-CxL0S8W7.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/PTSans-Bold-D9fedIX3.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Regular-BTCkDNvf.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Medium-DU3aDxX5.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Bold-CLVRCuM9.ttf" as="font" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>4b computer vision</title>
+    <script type="module" crossorigin src="../assets/index-0n92c_W7.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/preload-helper-BW0IMuFq.js">
+    <link rel="modulepreload" crossorigin href="../assets/clsx-BDxNtGmi.js">
+    <link rel="modulepreload" crossorigin href="../assets/cn-BoaCR37F.js">
+    <link rel="modulepreload" crossorigin href="../assets/chunk-LvLJmgfZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-Bj1aDYRI.js">
+    <link rel="modulepreload" crossorigin href="../assets/compiler-runtime-B3qBwwSJ.js">
+    <link rel="modulepreload" crossorigin href="../assets/jsx-runtime-icT_Ltz2.js">
+    <link rel="modulepreload" crossorigin href="../assets/badge-hTpPIsMT.js">
+    <link rel="modulepreload" crossorigin href="../assets/useEventListener-Dy81QR4n.js">
+    <link rel="modulepreload" crossorigin href="../assets/button-Ej3vmCIF.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-dom-CSu739Rf.js">
+    <link rel="modulepreload" crossorigin href="../assets/Combination-Cs9nbinQ.js">
+    <link rel="modulepreload" crossorigin href="../assets/menu-items-UxKrm8hS.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-DJBpXGro.js">
+    <link rel="modulepreload" crossorigin href="../assets/createLucideIcon-Cm-Z7dYr.js">
+    <link rel="modulepreload" crossorigin href="../assets/check-BE0hEwVo.js">
+    <link rel="modulepreload" crossorigin href="../assets/x-BI1M8X_v.js">
+    <link rel="modulepreload" crossorigin href="../assets/select-CxT2Geqr.js">
+    <link rel="modulepreload" crossorigin href="../assets/tooltip-D9723Brr.js">
+    <link rel="modulepreload" crossorigin href="../assets/use-toast-Hc8CXlvz.js">
+    <link rel="modulepreload" crossorigin href="../assets/_Uint8Array-C0aUZfE0.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseIsEqual-EYp9AUJI.js">
+    <link rel="modulepreload" crossorigin href="../assets/useEvent-O0nX5vok.js">
+    <link rel="modulepreload" crossorigin href="../assets/invariant-CQUIhlu2.js">
+    <link rel="modulepreload" crossorigin href="../assets/isArrayLikeObject-Dx6-QZGQ.js">
+    <link rel="modulepreload" crossorigin href="../assets/merge-CfcLlFFp.js">
+    <link rel="modulepreload" crossorigin href="../assets/zod-H_cgTO0M.js">
+    <link rel="modulepreload" crossorigin href="../assets/utils-tNbLd14P.js">
+    <link rel="modulepreload" crossorigin href="../assets/Deferred-BMfCOLaw.js">
+    <link rel="modulepreload" crossorigin href="../assets/uuid-ClFZlR7U.js">
+    <link rel="modulepreload" crossorigin href="../assets/DeferredRequestRegistry-O6RDJKs0.js">
+    <link rel="modulepreload" crossorigin href="../assets/constants-Rz_lD4HK.js">
+    <link rel="modulepreload" crossorigin href="../assets/session-BrEm7qNv.js">
+    <link rel="modulepreload" crossorigin href="../assets/config-3Aq84phF.js">
+    <link rel="modulepreload" crossorigin href="../assets/requests-Bgjtqo_1.js">
+    <link rel="modulepreload" crossorigin href="../assets/isSymbol-CiGN2w5X.js">
+    <link rel="modulepreload" crossorigin href="../assets/toString-lmrYznmk.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseSlice-39dTX4Wi.js">
+    <link rel="modulepreload" crossorigin href="../assets/_hasUnicode-QS_pSfjY.js">
+    <link rel="modulepreload" crossorigin href="../assets/assertNever-DWSyoPEi.js">
+    <link rel="modulepreload" crossorigin href="../assets/_arrayReduce-BKEr35uH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useLifecycle-DA9DjSPo.js">
+    <link rel="modulepreload" crossorigin href="../assets/useNonce-BtW-rR_1.js">
+    <link rel="modulepreload" crossorigin href="../assets/useTheme-BYXBU1of.js">
+    <link rel="modulepreload" crossorigin href="../assets/once-CJOnx12W.js">
+    <link rel="modulepreload" crossorigin href="../assets/capabilities-D3x_db9Y.js">
+    <link rel="modulepreload" crossorigin href="../assets/createReducer-Drh7NmIR.js">
+    <link rel="modulepreload" crossorigin href="../assets/paths-D2lG83Oh.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-B_cxg-E4.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-D0Vj4Kqc.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CtXb4bUU.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CQqv2gQL.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-8UD0A5sU.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CXLJUPFl.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-BNC_tnlW.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-apDpadc4.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CEeVCRd_.js">
+    <link rel="modulepreload" crossorigin href="../assets/stex-0ac7Aukl.js">
+    <link rel="modulepreload" crossorigin href="../assets/toDate-BqKH-Jd9.js">
+    <link rel="modulepreload" crossorigin href="../assets/purify.es-BBn8CPhf.js">
+    <link rel="modulepreload" crossorigin href="../assets/cjs-BU2qXMKx.js">
+    <link rel="modulepreload" crossorigin href="../assets/toNumber-OnFQK5Wu.js">
+    <link rel="modulepreload" crossorigin href="../assets/now-8AYn-wiF.js">
+    <link rel="modulepreload" crossorigin href="../assets/debounce-DS_VtWMt.js">
+    <link rel="modulepreload" crossorigin href="../assets/toInteger-CO3ppIfA.js">
+    <link rel="modulepreload" crossorigin href="../assets/database-zap-DTWCDKdn.js">
+    <link rel="modulepreload" crossorigin href="../assets/main-DrBRErTM.js">
+    <link rel="modulepreload" crossorigin href="../assets/cells-fq1RMGX_.js">
+    <link rel="modulepreload" crossorigin href="../assets/spinner-C5JoisA7.js">
+    <link rel="modulepreload" crossorigin href="../assets/chevron-right-D0GQBpTb.js">
+    <link rel="modulepreload" crossorigin href="../assets/dropdown-menu-DdPu5Kfu.js">
+    <link rel="modulepreload" crossorigin href="../assets/kbd-DvKpAc6K.js">
+    <link rel="modulepreload" crossorigin href="../assets/renderShortcut-CnD1Dah5.js">
+    <link rel="modulepreload" crossorigin href="../assets/multi-map-Pp1P2DOX.js">
+    <link rel="modulepreload" crossorigin href="../assets/alert-OQZHipbB.js">
+    <link rel="modulepreload" crossorigin href="../assets/card-C-c-4jyF.js">
+    <link rel="modulepreload" crossorigin href="../assets/alert-dialog-9WfvUF7e.js">
+    <link rel="modulepreload" crossorigin href="../assets/dialog-CVN1lcMF.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-BhNN2V5a.js">
+    <link rel="modulepreload" crossorigin href="../assets/label-TNNaT1M9.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDebounce-B0dx2Gp0.js">
+    <link rel="modulepreload" crossorigin href="../assets/azure-BTXHztTw.js">
+    <link rel="modulepreload" crossorigin href="../assets/numbers-CYnquDho.js">
+    <link rel="modulepreload" crossorigin href="../assets/SSRProvider-DC7ElCZZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/context-CIAP2NOh.js">
+    <link rel="modulepreload" crossorigin href="../assets/useNumberFormatter-DbDKSvEd.js">
+    <link rel="modulepreload" crossorigin href="../assets/usePress-BHGkpw8X.js">
+    <link rel="modulepreload" crossorigin href="../assets/input-CUwqpKjd.js">
+    <link rel="modulepreload" crossorigin href="../assets/links-DzgPOFJ-.js">
+    <link rel="modulepreload" crossorigin href="../assets/popover-BPGG2gPG.js">
+    <link rel="modulepreload" crossorigin href="../assets/switch-CVKxYu_0.js">
+    <link rel="modulepreload" crossorigin href="../assets/table-BhH-Mm8O.js">
+    <link rel="modulepreload" crossorigin href="../assets/mode-AcL8c6qH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useAsyncData-D-4ifFXh.js">
+    <link rel="modulepreload" crossorigin href="../assets/errors-Bfogio62.js">
+    <link rel="modulepreload" crossorigin href="../assets/error-banner-BRG6IPhC.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-YwM0Pd7v.js">
+    <link rel="modulepreload" crossorigin href="../assets/memoize-Bw1ifb7c.js">
+    <link rel="modulepreload" crossorigin href="../assets/get-DBdMgUNq.js">
+    <link rel="modulepreload" crossorigin href="../assets/capitalize-BfkXNxmI.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-CkudG0Ej.js">
+    <link rel="modulepreload" crossorigin href="../assets/plus-dVmh0yTy.js">
+    <link rel="modulepreload" crossorigin href="../assets/refresh-cw-CHAHPgkx.js">
+    <link rel="modulepreload" crossorigin href="../assets/trash-2-CAoNMkjq.js">
+    <link rel="modulepreload" crossorigin href="../assets/triangle-alert-qZo1ox6x.js">
+    <link rel="modulepreload" crossorigin href="../assets/ai-model-dropdown-DPTa_EpU.js">
+    <link rel="modulepreload" crossorigin href="../assets/defaultLocale-OkOxlkkM.js">
+    <link rel="modulepreload" crossorigin href="../assets/precisionRound-BOmLQIKI.js">
+    <link rel="modulepreload" crossorigin href="../assets/defaultLocale-DK1MWd7f.js">
+    <link rel="modulepreload" crossorigin href="../assets/vega-loader.browser-CZV6_g2i.js">
+    <link rel="modulepreload" crossorigin href="../assets/utils-CdjCA1J8.js">
+    <link rel="modulepreload" crossorigin href="../assets/ErrorBoundary-Ba0LbbH4.js">
+    <link rel="modulepreload" crossorigin href="../assets/useInstallPackage-C9V-on2J.js">
+    <link rel="modulepreload" crossorigin href="../assets/ImperativeModal-qEtcJ95s.js">
+    <link rel="modulepreload" crossorigin href="../assets/cell-link-Q_UEP94Z.js">
+    <link rel="modulepreload" crossorigin href="../assets/datasource-F9sJtuof.js">
+    <link rel="modulepreload" crossorigin href="../assets/state-3V5UxC3B.js">
+    <link rel="modulepreload" crossorigin href="../assets/MarimoErrorOutput-az74f3Mp.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-icon-BgmMM9Zg.js">
+    <link rel="modulepreload" crossorigin href="../assets/html-to-image-BnSc-Wa0.js">
+    <link rel="modulepreload" crossorigin href="../assets/focus-DYwTiH9-.js">
+    <link rel="modulepreload" crossorigin href="../assets/LazyAnyLanguageCodeMirror-m8w66E4s.js">
+    <link rel="modulepreload" crossorigin href="../assets/chunk-5FQGJX7Z-CM1a_K7I.js">
+    <link rel="modulepreload" crossorigin href="../assets/katex-rvFxOCU-.js">
+    <link rel="modulepreload" crossorigin href="../assets/markdown-renderer-MR9df58W.js">
+    <link rel="modulepreload" crossorigin href="../assets/command-rfxSsiHU.js">
+    <link rel="modulepreload" crossorigin href="../assets/download-B9_ToVd4.js">
+    <link rel="modulepreload" crossorigin href="../assets/useRunCells-5m6jCnyo.js">
+    <link rel="modulepreload" crossorigin href="../assets/RenderHTML-DJ8khuob.js">
+    <link rel="modulepreload" crossorigin href="../assets/useIframeCapabilities-DTN9kFDq.js">
+    <link rel="modulepreload" crossorigin href="../assets/formats-rhOJovGE.js">
+    <link rel="modulepreload" crossorigin href="../assets/en-US-BO8E69bZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/isValid-BGe7pJXT.js">
+    <link rel="modulepreload" crossorigin href="../assets/dates-CHaNfieI.js">
+    <link rel="modulepreload" crossorigin href="../assets/maps-OKerBHH8.js">
+    <link rel="modulepreload" crossorigin href="../assets/extends-DRbCSry7.js">
+    <link rel="modulepreload" crossorigin href="../assets/emotion-is-prop-valid.esm-D1keIaYa.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDateFormatter-CpE7XQLs.js">
+    <link rel="modulepreload" crossorigin href="../assets/range-CJeRXUtp.js">
+    <link rel="modulepreload" crossorigin href="../assets/table-BCnp9gKC.js">
+    <link rel="modulepreload" crossorigin href="../assets/JsonOutput-DKXKGKvX.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDeleteCell-DRUDRiy0.js">
+    <link rel="modulepreload" crossorigin href="../assets/icons-CrUXojcA.js">
+    <link rel="modulepreload" crossorigin href="../assets/process-output-CTVsT--B.js">
+    <link rel="modulepreload" crossorigin href="../assets/blob-CObhN-9g.js">
+    <link rel="modulepreload" crossorigin href="../assets/objectWithoutPropertiesLoose-DP4vAkvg.js">
+    <link rel="modulepreload" crossorigin href="../assets/esm-CBkHtTOV.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-DzHkbIdO.js">
+    <link rel="modulepreload" crossorigin href="../assets/image-DXfkah9d.js">
+    <link rel="modulepreload" crossorigin href="../assets/play-DKSqmedg.js">
+    <link rel="modulepreload" crossorigin href="../assets/add-cell-with-ai-DUn4LN4W.js">
+    <link rel="modulepreload" crossorigin href="../assets/isEmpty-CfmnKtgL.js">
+    <link rel="modulepreload" crossorigin href="../assets/bot-message-square-CK6eoGWy.js">
+    <link rel="modulepreload" crossorigin href="../assets/chat-display-D_Fuuy6r.js">
+    <link rel="modulepreload" crossorigin href="../assets/chart-no-axes-column-DV8gdCvH.js">
+    <link rel="modulepreload" crossorigin href="../assets/square-function-B006EYFX.js">
+    <link rel="modulepreload" crossorigin href="../assets/spec-DbmSqx09.js">
+    <link rel="modulepreload" crossorigin href="../assets/ellipsis-vertical-CAB7tdza.js">
+    <link rel="modulepreload" crossorigin href="../assets/components-Bpgzv_5_.js">
+    <link rel="modulepreload" crossorigin href="../assets/column-preview-WsubyItX.js">
+    <link rel="modulepreload" crossorigin href="../assets/toggle-RCwU-rnE.js">
+    <link rel="modulepreload" crossorigin href="../assets/globals-BsV5fVR-.js">
+    <link rel="modulepreload" crossorigin href="../assets/share-BdH_5I58.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseSet-D5BgdrnX.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-resizable-panels.browser.esm-DDRqG5ui.js">
+    <link rel="modulepreload" crossorigin href="../assets/context-aware-panel-CfsfBlhO.js">
+    <link rel="modulepreload" crossorigin href="../assets/floating-outline-BvQKiC0F.js">
+    <link rel="modulepreload" crossorigin href="../assets/useAddCell-YC7rpcmD.js">
+    <link rel="modulepreload" crossorigin href="../assets/eye-off-vwi9L975.js">
+    <link rel="modulepreload" crossorigin href="../assets/readonly-python-code-DH-1xZGq.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-headphone-B5q2Ow55.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-icons-CWLHDa1J.js">
+    <link rel="modulepreload" crossorigin href="../assets/refresh-ccw-DLpfIr8v.js">
+    <link rel="modulepreload" crossorigin href="../assets/form-CrQYrsUC.js">
+    <link rel="modulepreload" crossorigin href="../assets/field-B1jGbQlH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useBoolean-m1e6E3Ao.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDeepCompareMemoize-yyiB9aJX.js">
+    <link rel="modulepreload" crossorigin href="../assets/types-C1RN112u.js">
+    <link rel="modulepreload" crossorigin href="../assets/prop-types-RrUi-pOT.js">
+    <link rel="modulepreload" crossorigin href="../assets/es-CzkousWe.js">
+    <link rel="modulepreload" crossorigin href="../assets/hasIn-Bx4-SO9M.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseFlatten-Be7p_si8.js">
+    <link rel="modulepreload" crossorigin href="../assets/_basePickBy-Ck7z0-tq.js">
+    <link rel="modulepreload" crossorigin href="../assets/pick-BYA9UDHe.js">
+    <link rel="modulepreload" crossorigin href="../assets/code-xml-DwHPF_nL.js">
+    <link rel="modulepreload" crossorigin href="../assets/download-DBW9RXtT.js">
+    <link rel="modulepreload" crossorigin href="../assets/square-CxAsQQ77.js">
+    <link rel="modulepreload" crossorigin href="../assets/settings-CzQUw9rV.js">
+    <link rel="modulepreload" crossorigin href="../assets/bundle.esm-idScn0w0.js">
+    <link rel="stylesheet" crossorigin href="../assets/cells-jmgGt1lS.css">
+    <link rel="stylesheet" crossorigin href="../assets/markdown-renderer-DdDKmWlR.css">
+    <link rel="stylesheet" crossorigin href="../assets/JsonOutput-B7vuddcd.css">
+    <link rel="stylesheet" crossorigin href="../assets/index-GjXovVsl.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    <marimo-code hidden="">import%20marimo%0A%0A__generated_with%20%3D%20%220.21.1%22%0Aapp%20%3D%20marimo.App()%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20marimo%20as%20mo%0A%0A%20%20%20%20return%20(mo%2C)%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20Path%20B%20---%20Computer%20Vision%0A%0A%20%20%20%20Computer%20vision%20asks%20machines%20to%20derive%20meaningful%20information%20from%20images%20and%20video.%20It%20is%20one%20of%20the%20oldest%20subfields%20of%20AI%20and%20the%20one%20where%20deep%20learning%20first%20proved%20its%20dominance%20---%20AlexNet's%20victory%20in%20the%202012%20ImageNet%20challenge%20is%20often%20cited%20as%20the%20moment%20that%20reignited%20the%20entire%20field.%20This%20guide%20maps%20the%20modern%20landscape%2C%20from%20classical%20detection%20and%20segmentation%20to%20Vision%20Transformers%20and%20multimodal%20models.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%201.%20The%20CV%20Landscape%3A%20Three%20Eras%0A%0A%20%20%20%20**Hand-crafted%20features%20(1960s--2012).**%20Edge%20detectors%20(Sobel%2C%20Canny)%2C%20SIFT%2C%20HOG%2C%20SURF%20---%20all%20designed%20by%20humans%20to%20capture%20local%20image%20structure.%20Classifiers%20like%20SVMs%20sat%20on%20top%20of%20these%20features.%20Performance%20was%20limited%20and%20domain-specific.%0A%0A%20%20%20%20**CNNs%20(2012--2020).**%20AlexNet%20(2012)%20showed%20that%20end-to-end%20learned%20features%20crush%20hand-crafted%20ones%20on%20ImageNet.%20VGGNet%20went%20deeper.%20GoogLeNet%20introduced%20inception%20modules.%20ResNet%20(2015)%20solved%20the%20degradation%20problem%20with%20skip%20connections%2C%20enabling%20networks%20with%20100%2B%20layers.%20For%20about%20eight%20years%2C%20CNNs%20were%20the%20undisputed%20backbone%20of%20all%20vision%20systems.%20See%20%5BGoodfellow%20Ch.%209%3A%20Convolutional%20Networks%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FDLBook.pdf)%20for%20the%20theoretical%20foundations.%0A%0A%20%20%20%20**Vision%20Transformers%20and%20hybrids%20(2020--present).**%20ViT%20(Dosovitskiy%20et%20al.%2C%202020)%20demonstrated%20that%20pure%20transformers%2C%20applied%20to%20sequences%20of%20image%20patches%2C%20can%20match%20or%20exceed%20CNN%20performance%20---%20given%20enough%20data.%20The%20field%20has%20since%20oscillated%20between%20transformer-based%20and%20CNN-based%20architectures%2C%20with%20each%20camp%20borrowing%20ideas%20from%20the%20other.%0A%0A%20%20%20%20Understanding%20all%20three%20eras%20matters.%20Many%20production%20systems%20still%20use%20CNNs%20(they%20are%20fast%2C%20well-understood%2C%20and%20data-efficient).%20Transformers%20dominate%20research%20benchmarks.%20The%20best%20practitioners%20can%20pick%20the%20right%20tool%20for%20the%20constraint%20set.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%202.%20Object%20Detection%0A%0A%20%20%20%20Object%20detection%20%3D%20classification%20%2B%20localization.%20The%20model%20must%20identify%20*what*%20objects%20are%20in%20an%20image%20and%20*where*%20they%20are%20(bounding%20boxes).%0A%0A%20%20%20%20%23%23%23%20The%20Evolution%0A%0A%20%20%20%20**R-CNN**%20(Girshick%20et%20al.%2C%202014)%3A%20Use%20selective%20search%20to%20propose%20~2000%20region%20candidates.%20Run%20each%20through%20a%20CNN.%20Classify%20each%20region%20with%20SVMs.%20Painfully%20slow%20---%20each%20image%20took%20~47%20seconds.%0A%0A%20%20%20%20**Fast%20R-CNN**%20(Girshick%2C%202015)%3A%20Run%20the%20CNN%20*once*%20on%20the%20entire%20image%20to%20produce%20a%20feature%20map.%20Project%20region%20proposals%20onto%20this%20feature%20map.%20Use%20RoI%20pooling%20to%20extract%20fixed-size%20features%20per%20region.%20End-to-end%20training%20with%20a%20multi-task%20loss%20(classification%20%2B%20bounding%20box%20regression).%20~20x%20faster.%0A%0A%20%20%20%20**Faster%20R-CNN**%20(Ren%20et%20al.%2C%202015)%3A%20Replace%20selective%20search%20with%20a%20*Region%20Proposal%20Network*%20(RPN)%20---%20a%20small%20CNN%20that%20proposes%20regions%20directly%20from%20the%20feature%20map.%20Now%20the%20entire%20pipeline%20is%20a%20single%20neural%20network.%20This%20architecture%20introduced%20**anchor%20boxes**%3A%20pre-defined%20boxes%20at%20each%20spatial%20location%20with%20different%20aspect%20ratios%20and%20scales%20that%20serve%20as%20reference%20templates.%0A%0A%20%20%20%20**YOLO**%20(Redmon%20et%20al.%2C%202016)%3A%20%22You%20Only%20Look%20Once.%22%20A%20completely%20different%20philosophy%20---%20divide%20the%20image%20into%20a%20grid%2C%20predict%20bounding%20boxes%20and%20class%20probabilities%20directly%20from%20each%20cell%20in%20a%20single%20forward%20pass.%20Real-time%20detection%20(45%2B%20FPS%20on%20a%20GPU).%20The%20YOLO%20family%20has%20gone%20through%20many%20iterations%20(YOLOv2%20through%20YOLOv8%2B%2C%20now%20maintained%20by%20Ultralytics)%2C%20each%20improving%20speed%20and%20accuracy.%20YOLO%20trades%20some%20accuracy%20for%20massive%20speed%20gains%20and%20remains%20the%20default%20choice%20for%20real-time%20applications.%0A%0A%20%20%20%20**DETR**%20(Carion%20et%20al.%2C%202020)%3A%20Detection%20Transformer.%20Treats%20object%20detection%20as%20a%20set%20prediction%20problem.%20Uses%20a%20CNN%20backbone%20to%20extract%20features%2C%20then%20a%20transformer%20encoder-decoder%20to%20predict%20a%20fixed%20set%20of%20detections.%20Hungarian%20matching%20loss%20for%20training.%20Eliminates%20the%20need%20for%20anchor%20boxes%2C%20NMS%2C%20and%20most%20hand-designed%20components.%20Elegant%20but%20initially%20slow%20to%20converge%20---%20follow-up%20work%20(Deformable%20DETR%2C%20DINO)%20addressed%20this.%0A%0A%20%20%20%20%23%23%23%20Key%20Concepts%0A%0A%20%20%20%20-%20**Intersection%20over%20Union%20(IoU)%3A**%20The%20ratio%20of%20the%20area%20of%20overlap%20between%20predicted%20and%20ground-truth%20boxes%20to%20the%20area%20of%20their%20union.%20An%20IoU%20threshold%20(commonly%200.5)%20determines%20whether%20a%20detection%20is%20a%20true%20positive.%0A%20%20%20%20-%20**Non-Maximum%20Suppression%20(NMS)%3A**%20When%20multiple%20overlapping%20boxes%20detect%20the%20same%20object%2C%20NMS%20keeps%20only%20the%20highest-confidence%20one.%20Simple%20but%20effective.%20DETR%20eliminates%20the%20need%20for%20this.%0A%20%20%20%20-%20**Anchor%20boxes%3A**%20Pre-defined%20reference%20boxes%20at%20multiple%20scales%20and%20aspect%20ratios%20placed%20at%20each%20spatial%20location.%20The%20model%20predicts%20offsets%20relative%20to%20these%20anchors%20rather%20than%20absolute%20coordinates.%20Used%20by%20Faster%20R-CNN%2C%20SSD%2C%20and%20YOLO%20(through%20v5).%20Anchor-free%20methods%20(FCOS%2C%20CenterNet)%20predict%20locations%20directly%20and%20have%20become%20increasingly%20popular.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%203.%20Semantic%20Segmentation%0A%0A%20%20%20%20Semantic%20segmentation%20assigns%20a%20class%20label%20to%20*every%20pixel*%20in%20an%20image.%20Unlike%20detection%2C%20there%20are%20no%20bounding%20boxes%20---%20the%20output%20is%20a%20dense%20label%20map%20the%20same%20size%20as%20the%20input.%0A%0A%20%20%20%20**Fully%20Convolutional%20Networks%20(FCN)**%20(Long%20et%20al.%2C%202015)%3A%20Replace%20the%20final%20fully%20connected%20layers%20of%20a%20classification%20CNN%20with%20convolutional%20layers.%20Upsample%20the%20low-resolution%20feature%20maps%20back%20to%20the%20input%20resolution%20using%20transposed%20convolutions.%20First%20end-to-end%20approach.%0A%0A%20%20%20%20**U-Net**%20(Ronneberger%20et%20al.%2C%202015)%3A%20An%20encoder-decoder%20architecture%20with%20**skip%20connections**%20between%20corresponding%20encoder%20and%20decoder%20layers.%20The%20encoder%20contracts%20(downsamples)%2C%20the%20decoder%20expands%20(upsamples)%2C%20and%20skip%20connections%20pass%20high-resolution%20features%20from%20early%20layers%20to%20later%20layers%2C%20preserving%20fine-grained%20spatial%20detail.%20Originally%20designed%20for%20biomedical%20image%20segmentation%20but%20has%20become%20a%20universal%20architecture%20---%20it%20also%20forms%20the%20backbone%20of%20most%20diffusion%20models%20(callback%20to%203B%20---%20Generative%20Models).%0A%0A%20%20%20%20**DeepLab**%20(Chen%20et%20al.%2C%202017--2018)%3A%20Introduced%20**dilated%20(atrous)%20convolutions**%20---%20convolutions%20with%20gaps%20between%20kernel%20elements%20that%20expand%20the%20receptive%20field%20without%20reducing%20spatial%20resolution%20or%20increasing%20parameters.%20DeepLabv3%2B%20combines%20atrous%20spatial%20pyramid%20pooling%20(ASPP)%20at%20multiple%20dilation%20rates%20with%20an%20encoder-decoder%20structure.%20Excels%20at%20capturing%20multi-scale%20context.%0A%0A%20%20%20%20**Key%20concepts%3A**%0A%20%20%20%20-%20**Dilated%20convolutions%3A**%20A%20standard%203x3%20convolution%20with%20dilation%20rate%20*d*%20has%20an%20effective%20receptive%20field%20of%20%24(2d%2B1)%20%5Ctimes%20(2d%2B1)%24.%20This%20lets%20you%20see%20more%20context%20without%20downsampling.%0A%20%20%20%20-%20**Skip%20connections%20in%20segmentation%3A**%20Unlike%20ResNet's%20skip%20connections%20(which%20add%20features)%2C%20U-Net's%20skip%20connections%20*concatenate*%20encoder%20features%20with%20decoder%20features%2C%20giving%20the%20decoder%20access%20to%20both%20high-level%20semantics%20and%20low-level%20spatial%20details.%0A%20%20%20%20-%20**Pixel-wise%20cross-entropy%3A**%20The%20standard%20loss%20function%20---%20just%20cross-entropy%20computed%20independently%20at%20each%20pixel%2C%20then%20averaged.%20Class%20imbalance%20is%20common%20(background%20dominates)%2C%20so%20weighted%20cross-entropy%20or%20focal%20loss%20is%20often%20used.%0A%0A%20%20%20%20See%20%5BGoodfellow%20Ch.%209%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FDLBook.pdf)%20for%20the%20convolution%20operations%20underlying%20these%20architectures.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%204.%20Instance%20and%20Panoptic%20Segmentation%0A%0A%20%20%20%20**Semantic%20segmentation**%20labels%20every%20pixel%20with%20a%20class%20but%20does%20not%20distinguish%20between%20individual%20instances%20of%20the%20same%20class%20(two%20adjacent%20people%20are%20both%20labeled%20%22person%22).%0A%0A%20%20%20%20**Instance%20segmentation**%20detects%20each%20object%20instance%20and%20produces%20a%20pixel-level%20mask%20for%20each.%20**Mask%20R-CNN**%20(He%20et%20al.%2C%202017)%20extends%20Faster%20R-CNN%20by%20adding%20a%20mask%20prediction%20branch%20---%20for%20each%20detected%20region%2C%20it%20predicts%20a%20binary%20mask%20in%20parallel%20with%20the%20class%20and%20box.%20Uses%20RoI%20Align%20(bilinear%20interpolation%20instead%20of%20quantized%20RoI%20pooling)%20for%20pixel-accurate%20alignment.%0A%0A%20%20%20%20**Panoptic%20segmentation**%20unifies%20semantic%20and%20instance%20segmentation%3A%20every%20pixel%20gets%20a%20class%20label%20(semantic)%20*and*%20an%20instance%20ID%20for%20countable%20objects%20(instance).%20This%20gives%20a%20complete%20scene%20understanding%20---%20both%20%22stuff%22%20(sky%2C%20road%2C%20grass)%20and%20%22things%22%20(cars%2C%20people%2C%20dogs).%0A%0A%20%20%20%20**Segment%20Anything%20Model%20(SAM)**%20(Kirillov%20et%20al.%2C%202023)%3A%20A%20foundation%20model%20for%20segmentation.%20Trained%20on%201%20billion%20masks%20from%2011%20million%20images.%20Given%20any%20prompt%20(point%2C%20box%2C%20text)%2C%20it%20produces%20high-quality%20segmentation%20masks.%20SAM%20is%20a%20promptable%20segmentation%20model%20---%20it%20generalizes%20to%20unseen%20objects%20and%20domains%20without%20fine-tuning.%20This%20is%20the%20%22GPT-3%20moment%22%20for%20segmentation.%20SAM%202%20extends%20this%20to%20video.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%205.%20Vision%20Transformers%20(ViT)%0A%0A%20%20%20%20**ViT**%20(Dosovitskiy%20et%20al.%2C%202020)%20applies%20the%20transformer%20architecture%20directly%20to%20images%3A%0A%0A%20%20%20%201.%20Split%20the%20image%20into%20fixed-size%20patches%20(typically%2016x16%20pixels).%0A%20%20%20%202.%20Flatten%20each%20patch%20and%20project%20it%20through%20a%20linear%20layer%20to%20get%20a%20patch%20embedding.%0A%20%20%20%203.%20Add%20learnable%20position%20embeddings.%0A%20%20%20%204.%20Prepend%20a%20learnable%20%60%5BCLS%5D%60%20token.%0A%20%20%20%205.%20Feed%20the%20sequence%20of%20patch%20embeddings%20through%20a%20standard%20transformer%20encoder.%0A%20%20%20%206.%20Use%20the%20%60%5BCLS%5D%60%20token's%20output%20for%20classification.%0A%0A%20%20%20%20**Why%20ViTs%20need%20more%20data%20than%20CNNs%3A**%20CNNs%20have%20strong%20**inductive%20biases**%20built%20into%20their%20architecture%20---%20translation%20equivariance%20(a%20filter%20detects%20the%20same%20feature%20anywhere%20in%20the%20image)%20and%20locality%20(each%20layer%20only%20looks%20at%20a%20small%20spatial%20neighborhood).%20ViTs%20lack%20these%20biases.%20Self-attention%20is%20global%20from%20the%20first%20layer%2C%20and%20there%20is%20no%20built-in%20notion%20that%20nearby%20pixels%20are%20more%20related%20than%20distant%20ones.%20This%20means%20ViTs%20must%20*learn*%20these%20spatial%20relationships%20from%20data%2C%20which%20requires%20much%20larger%20datasets%20(ImageNet-21k%20or%20JFT-300M%2C%20not%20just%20ImageNet-1k).%0A%0A%20%20%20%20%23%23%23%20Key%20Variants%0A%0A%20%20%20%20-%20**DeiT**%20(Touvron%20et%20al.%2C%202021)%3A%20%22Data-efficient%20Image%20Transformers.%22%20Showed%20that%20with%20strong%20data%20augmentation%2C%20regularization%2C%20and%20knowledge%20distillation%20from%20a%20CNN%20teacher%2C%20ViTs%20can%20be%20trained%20effectively%20on%20ImageNet-1k%20alone.%20Made%20ViTs%20practical%20for%20researchers%20without%20Google-scale%20compute.%0A%20%20%20%20-%20**Swin%20Transformer**%20(Liu%20et%20al.%2C%202021)%3A%20Introduces%20**shifted%20windows**%20---%20self-attention%20is%20computed%20within%20local%20windows%2C%20and%20windows%20shift%20between%20layers%20to%20enable%20cross-window%20connections.%20This%20creates%20a%20hierarchical%20feature%20map%20(like%20a%20CNN)%20and%20reduces%20the%20quadratic%20cost%20of%20global%20self-attention%20to%20linear%20in%20image%20size.%20Became%20the%20dominant%20backbone%20for%20detection%20and%20segmentation.%0A%20%20%20%20-%20**ConvNeXt**%20(Liu%20et%20al.%2C%202022)%3A%20%22A%20ConvNet%20for%20the%202020s.%22%20Takes%20a%20standard%20ResNet%20and%20modernizes%20it%20with%20design%20choices%20borrowed%20from%20transformers%20---%20larger%20kernels%20(7x7)%2C%20fewer%20activation%20functions%2C%20LayerNorm%20instead%20of%20BatchNorm%2C%20inverted%20bottleneck%20blocks.%20The%20result%20matches%20or%20exceeds%20Swin%20Transformer%20performance.%20The%20takeaway%3A%20the%20architectural%20innovations%20of%20transformers%20matter%20more%20than%20self-attention%20itself.%0A%0A%20%20%20%20See%20%5BGoodfellow%20Ch.%209%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FDLBook.pdf)%20and%20%5BMurphy%20PML2%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML2.pdf)%20for%20the%20theoretical%20backdrop%20connecting%20CNNs%20and%20attention%20mechanisms.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%206.%20Multimodal%20Vision-Language%20Models%0A%0A%20%20%20%20The%20most%20exciting%20recent%20development%20in%20CV%20is%20the%20convergence%20with%20NLP%20through%20multimodal%20models%3A%0A%0A%20%20%20%20**CLIP**%20(Radford%20et%20al.%2C%202021)%3A%20Contrastive%20Language-Image%20Pre-training.%20Trains%20an%20image%20encoder%20and%20a%20text%20encoder%20jointly%20on%20400M%20image-text%20pairs%20scraped%20from%20the%20internet.%20The%20training%20objective%20is%20simple%3A%20maximize%20the%20cosine%20similarity%20between%20matching%20image-text%20pairs%20and%20minimize%20it%20for%20non-matching%20pairs.%20The%20result%20is%20a%20shared%20embedding%20space%20where%20images%20and%20text%20can%20be%20directly%20compared.%20CLIP%20enables%20zero-shot%20image%20classification%20---%20describe%20any%20category%20in%20text%2C%20and%20CLIP%20matches%20images%20to%20it%20without%20any%20task-specific%20training.%0A%0A%20%20%20%20**DALL-E%2C%20Stable%20Diffusion%2C%20and%20text-to-image%20generation%3A**%20These%20models%20generate%20images%20from%20text%20descriptions.%20Stable%20Diffusion%20(Rombach%20et%20al.%2C%202022)%20uses%20a%20U-Net%20in%20a%20latent%20diffusion%20framework%2C%20conditioned%20on%20CLIP%20text%20embeddings.%20This%20is%20covered%20in%20depth%20in%203B%20---%20Generative%20Models%20if%20you%20have%20taken%20that%20path.%0A%0A%20%20%20%20**GPT-4V%2C%20LLaVA%2C%20and%20vision-language%20LLMs%3A**%20Multimodal%20LLMs%20that%20can%20reason%20about%20images.%20Typically%2C%20a%20vision%20encoder%20(often%20a%20ViT%20variant)%20produces%20image%20embeddings%20that%20are%20projected%20into%20the%20LLM's%20embedding%20space%2C%20allowing%20the%20language%20model%20to%20%22see%22%20and%20reason%20about%20visual%20content%20alongside%20text.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%207.%203D%20Vision%20(Brief)%0A%0A%20%20%20%20A%20rapidly%20growing%20area%20that%20extends%20CV%20beyond%202D%20images%3A%0A%0A%20%20%20%20-%20**Neural%20Radiance%20Fields%20(NeRFs)**%20(Mildenhall%20et%20al.%2C%202020)%3A%20Represent%20a%203D%20scene%20as%20a%20continuous%20function%20mapping%203D%20coordinates%20%2B%20viewing%20direction%20to%20color%20%2B%20density.%20Trained%20from%20a%20set%20of%202D%20images%20with%20known%20camera%20poses.%20Produces%20stunning%20novel%20view%20synthesis.%20Subsequent%20work%20(Instant-NGP%2C%203D%20Gaussian%20Splatting)%20dramatically%20improved%20training%20and%20rendering%20speed.%0A%20%20%20%20-%20**Monocular%20depth%20estimation%3A**%20Predict%20a%20depth%20map%20from%20a%20single%20RGB%20image.%20Models%20like%20MiDaS%20and%20Depth%20Anything%20use%20large-scale%20pre-training%20to%20achieve%20impressive%20zero-shot%20depth%20estimation.%0A%20%20%20%20-%20**Point%20clouds%3A**%203D%20data%20represented%20as%20unordered%20sets%20of%20points.%20PointNet%20(Qi%20et%20al.%2C%202017)%20processes%20point%20clouds%20directly%20using%20shared%20MLPs%20and%20global%20pooling%2C%20respecting%20the%20permutation%20invariance%20of%20point%20sets.%20Important%20for%20autonomous%20driving%20(LiDAR%20data)%20and%20robotics.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%208.%20Video%20Understanding%20(Brief)%0A%0A%20%20%20%20Video%20adds%20a%20temporal%20dimension%20to%20vision%3A%0A%0A%20%20%20%20-%20**Temporal%20modeling%20approaches%3A**%203D%20convolutions%20(C3D%2C%20I3D)%20extend%202D%20convolutions%20along%20the%20time%20axis.%20Two-stream%20networks%20process%20appearance%20(RGB)%20and%20motion%20(optical%20flow)%20separately.%20Video%20transformers%20(TimeSformer%2C%20ViViT)%20apply%20attention%20across%20spatial%20and%20temporal%20dimensions.%0A%20%20%20%20-%20**Action%20recognition%3A**%20Classify%20what%20action%20is%20being%20performed%20in%20a%20video%20clip.%20Kinetics-400%2F700%20is%20the%20standard%20benchmark.%20Modern%20approaches%20use%20video%20foundation%20models%20pre-trained%20on%20large-scale%20data.%0A%20%20%20%20-%20**Video%20object%20segmentation%20and%20tracking%3A**%20Follow%20objects%20across%20frames.%20SAM%202%20extends%20the%20Segment%20Anything%20model%20to%20video%20with%20memory-based%20temporal%20propagation.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%209.%20Evaluation%20Metrics%0A%0A%20%20%20%20Different%20tasks%20require%20different%20metrics%3A%0A%0A%20%20%20%20**Object%20Detection%3A**%0A%20%20%20%20-%20**mAP%20(mean%20Average%20Precision)%3A**%20The%20standard%20metric.%20Compute%20the%20precision-recall%20curve%20for%20each%20class%20at%20a%20given%20IoU%20threshold%20(mAP%400.5%20uses%20IoU%20%3E%200.5).%20Average%20the%20area%20under%20this%20curve%20across%20all%20classes.%20COCO%20uses%20mAP%20averaged%20over%20multiple%20IoU%20thresholds%20from%200.5%20to%200.95%20in%20steps%20of%200.05%20(denoted%20mAP%40%5B0.5%3A0.95%5D).%0A%0A%20%20%20%20**Segmentation%3A**%0A%20%20%20%20-%20**mIoU%20(mean%20Intersection%20over%20Union)%3A**%20For%20each%20class%2C%20compute%20the%20IoU%20between%20predicted%20and%20ground-truth%20pixel%20masks%2C%20then%20average%20across%20classes.%20The%20standard%20metric%20for%20semantic%20segmentation.%0A%20%20%20%20-%20**AP%20(Average%20Precision)%20for%20masks%3A**%20Instance%20segmentation%20uses%20the%20same%20mAP%20framework%20as%20detection%2C%20but%20IoU%20is%20computed%20on%20masks%20rather%20than%20bounding%20boxes.%0A%0A%20%20%20%20**Image%20Generation%3A**%0A%20%20%20%20-%20**FID%20(Frechet%20Inception%20Distance)%3A**%20Measures%20the%20distance%20between%20the%20distribution%20of%20generated%20images%20and%20real%20images%20in%20the%20feature%20space%20of%20an%20Inception%20network.%20Lower%20is%20better.%20The%20most%20widely%20used%20metric%20for%20generative%20models%2C%20though%20it%20has%20known%20limitations%20(insensitive%20to%20certain%20artifacts%2C%20dependent%20on%20sample%20size).%0A%20%20%20%20-%20**IS%20(Inception%20Score)%3A**%20Measures%20both%20quality%20(confident%20classifications)%20and%20diversity%20(uniform%20class%20distribution)%20of%20generated%20images.%20Less%20reliable%20than%20FID.%0A%0A%20%20%20%20See%20%5BISLR%20Ch.%204%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FISLR.pdf)%20for%20the%20fundamentals%20of%20classification%20evaluation%20that%20underpin%20these%20metrics.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%2010.%20Recommended%20Reading%20and%20Resources%0A%0A%20%20%20%20**Textbooks%3A**%0A%20%20%20%20-%20%5BGoodfellow%20et%20al.%2C%20Deep%20Learning%20---%20Ch.%209%3A%20Convolutional%20Networks%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FDLBook.pdf)%0A%20%20%20%20-%20%5BMurphy%2C%20Probabilistic%20Machine%20Learning%3A%20Advanced%20Topics%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML2.pdf)%20---%20vision%20models%2C%20attention%2C%20generative%20models%0A%20%20%20%20-%20%5BBishop%2C%20PRML%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20---%20foundational%20probabilistic%20perspective%0A%0A%20%20%20%20**Courses%3A**%0A%20%20%20%20-%20**Stanford%20CS231n%3A%20CNNs%20for%20Visual%20Recognition.**%20The%20definitive%20computer%20vision%20course.%20Lectures%20on%20YouTube%2C%20comprehensive%20notes%20at%20%5Bcs231n.stanford.edu%5D(https%3A%2F%2Fcs231n.stanford.edu).%0A%20%20%20%20-%20**Michigan%20EECS%20498-007%2F598-005%20(Justin%20Johnson)%3A**%20A%20more%20modern%20version%20of%20CS231n.%20Excellent%20lectures%20freely%20available.%0A%0A%20%20%20%20**Key%20Papers%20(read%20in%20this%20order)%3A**%0A%0A%20%20%20%201.%20Krizhevsky%20et%20al.%2C%20%22ImageNet%20Classification%20with%20Deep%20Convolutional%20Neural%20Networks%22%20(AlexNet)%2C%202012.%0A%20%20%20%202.%20He%20et%20al.%2C%20%22Deep%20Residual%20Learning%20for%20Image%20Recognition%22%20(ResNet)%2C%202015.%20%5BarXiv%3A1512.03385%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1512.03385)%0A%20%20%20%203.%20Ren%20et%20al.%2C%20%22Faster%20R-CNN%3A%20Towards%20Real-Time%20Object%20Detection%20with%20Region%20Proposal%20Networks%2C%22%202015.%20%5BarXiv%3A1506.01497%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1506.01497)%0A%20%20%20%204.%20Ronneberger%20et%20al.%2C%20%22U-Net%3A%20Convolutional%20Networks%20for%20Biomedical%20Image%20Segmentation%2C%22%202015.%20%5BarXiv%3A1505.04597%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1505.04597)%0A%20%20%20%205.%20Redmon%20et%20al.%2C%20%22You%20Only%20Look%20Once%3A%20Unified%2C%20Real-Time%20Object%20Detection%22%20(YOLO)%2C%202016.%20%5BarXiv%3A1506.02640%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1506.02640)%0A%20%20%20%206.%20He%20et%20al.%2C%20%22Mask%20R-CNN%2C%22%202017.%20%5BarXiv%3A1703.06870%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1703.06870)%0A%20%20%20%207.%20Dosovitskiy%20et%20al.%2C%20%22An%20Image%20is%20Worth%2016x16%20Words%3A%20Transformers%20for%20Image%20Recognition%20at%20Scale%22%20(ViT)%2C%202020.%20%5BarXiv%3A2010.11929%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2010.11929)%0A%20%20%20%208.%20Radford%20et%20al.%2C%20%22Learning%20Transferable%20Visual%20Models%20From%20Natural%20Language%20Supervision%22%20(CLIP)%2C%202021.%20%5BarXiv%3A2103.00020%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2103.00020)%0A%20%20%20%209.%20Liu%20et%20al.%2C%20%22Swin%20Transformer%3A%20Hierarchical%20Vision%20Transformer%20using%20Shifted%20Windows%2C%22%202021.%20%5BarXiv%3A2103.14030%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2103.14030)%0A%20%20%20%2010.%20Liu%20et%20al.%2C%20%22A%20ConvNet%20for%20the%202020s%22%20(ConvNeXt)%2C%202022.%20%5BarXiv%3A2201.03545%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2201.03545)%0A%20%20%20%2011.%20Kirillov%20et%20al.%2C%20%22Segment%20Anything%22%20(SAM)%2C%202023.%20%5BarXiv%3A2304.02643%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2304.02643)%0A%20%20%20%2012.%20Carion%20et%20al.%2C%20%22End-to-End%20Object%20Detection%20with%20Transformers%22%20(DETR)%2C%202020.%20%5BarXiv%3A2005.12872%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2005.12872)%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%2011.%20Project%20Ideas%0A%0A%20%20%20%20**Beginner--Intermediate%3A**%0A%20%20%20%20-%20**Object%20detection%20system.**%20Train%20YOLOv8%20on%20a%20custom%20dataset%20(collect%20and%20annotate%20images%20using%20Roboflow%20or%20CVAT).%20Deploy%20the%20model%20and%20measure%20mAP%20and%20inference%20latency.%0A%20%20%20%20-%20**Image%20segmentation.**%20Train%20a%20U-Net%20on%20a%20medical%20imaging%20dataset%20(cell%20segmentation%2C%20retinal%20vessel%20segmentation).%20Evaluate%20with%20mIoU%20and%20visualize%20predictions%20overlaid%20on%20inputs.%0A%0A%20%20%20%20**Intermediate%3A**%0A%20%20%20%20-%20**Style%20transfer.**%20Implement%20neural%20style%20transfer%20(Gatys%20et%20al.%2C%202015)%20from%20scratch%20using%20a%20pre-trained%20VGG%20network.%20Extend%20to%20fast%20style%20transfer%20with%20a%20feed-forward%20network.%0A%20%20%20%20-%20**Visual%20search%20engine.**%20Use%20a%20pre-trained%20CLIP%20model%20to%20encode%20a%20dataset%20of%20images.%20Build%20a%20search%20interface%20where%20users%20type%20text%20queries%20and%20retrieve%20the%20most%20relevant%20images.%20Compare%20CLIP-based%20retrieval%20with%20CNN%20feature-based%20retrieval.%0A%0A%20%20%20%20**Advanced%3A**%0A%20%20%20%20-%20**Train%20a%20small%20Vision%20Transformer.**%20Implement%20ViT%20from%20scratch%20in%20PyTorch.%20Train%20on%20CIFAR-100%20with%20and%20without%20data%20augmentation.%20Compare%20to%20a%20ResNet%20baseline.%20Investigate%20how%20performance%20scales%20with%20dataset%20size.%0A%20%20%20%20-%20**Multimodal%20image%20captioning.**%20Fine-tune%20a%20vision-language%20model%20(e.g.%2C%20BLIP-2%2C%20LLaVA)%20on%20a%20custom%20captioning%20dataset.%20Evaluate%20with%20BLEU%2C%20CIDEr%2C%20and%20human%20judgment.%20Analyze%20failure%20modes.%0A%20%20%20%20-%20**Real-time%20panoptic%20segmentation.**%20Build%20a%20system%20that%20takes%20webcam%20input%20and%20produces%20real-time%20panoptic%20segmentation.%20Combine%20a%20detection%20model%20with%20a%20segmentation%20model%2C%20or%20use%20a%20unified%20architecture%20like%20Mask2Former.%0A%0A%20%20%20%20---%0A%0A%20%20%20%20*Next%20steps%3A%20If%20you%20have%20not%20covered%202D%20---%20Convolutional%20Neural%20Networks%2C%20start%20there%20for%20the%20foundational%20mechanics.%20For%20the%20generative%20side%20of%20vision%20(diffusion%20models%2C%20GANs%20for%20images)%2C%20see%203B%20---%20Generative%20Models.%20To%20understand%20how%20vision%20and%20language%20converge%2C%20explore%20Path%20A%20---%20NLP%20for%20the%20language%20side%20of%20multimodal%20models.*%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <!-- This is a portal for the data editor to render in -->
+    <div id="portal" data-testid="glide-portal" style="position: fixed; left: 0; top: 0; z-index: 9999"></div>
+    <script data-marimo="true">
+      window.__MARIMO_MOUNT_CONFIG__ = {
+            "filename": "notebook.py",
+            "cwd": "",
+            "mode": "read",
+            "version": "0.21.1",
+            "serverToken": "unused",
+            "config": {"ai": {"custom_providers": {}, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "light"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "pip"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"sql_output": "auto", "width": "compact"},
+            "view": {"showAppCode": true},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null,
+        };
+    </script>
+  </body>
+</html>

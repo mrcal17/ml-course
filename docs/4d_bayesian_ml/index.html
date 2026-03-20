@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="../assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="../assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="../assets/Lora-VariableFont_wght-B2ootaw-.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/PTSans-Regular-CxL0S8W7.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/PTSans-Bold-D9fedIX3.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Regular-BTCkDNvf.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Medium-DU3aDxX5.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Bold-CLVRCuM9.ttf" as="font" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>4d bayesian ml</title>
+    <script type="module" crossorigin src="../assets/index-0n92c_W7.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/preload-helper-BW0IMuFq.js">
+    <link rel="modulepreload" crossorigin href="../assets/clsx-BDxNtGmi.js">
+    <link rel="modulepreload" crossorigin href="../assets/cn-BoaCR37F.js">
+    <link rel="modulepreload" crossorigin href="../assets/chunk-LvLJmgfZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-Bj1aDYRI.js">
+    <link rel="modulepreload" crossorigin href="../assets/compiler-runtime-B3qBwwSJ.js">
+    <link rel="modulepreload" crossorigin href="../assets/jsx-runtime-icT_Ltz2.js">
+    <link rel="modulepreload" crossorigin href="../assets/badge-hTpPIsMT.js">
+    <link rel="modulepreload" crossorigin href="../assets/useEventListener-Dy81QR4n.js">
+    <link rel="modulepreload" crossorigin href="../assets/button-Ej3vmCIF.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-dom-CSu739Rf.js">
+    <link rel="modulepreload" crossorigin href="../assets/Combination-Cs9nbinQ.js">
+    <link rel="modulepreload" crossorigin href="../assets/menu-items-UxKrm8hS.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-DJBpXGro.js">
+    <link rel="modulepreload" crossorigin href="../assets/createLucideIcon-Cm-Z7dYr.js">
+    <link rel="modulepreload" crossorigin href="../assets/check-BE0hEwVo.js">
+    <link rel="modulepreload" crossorigin href="../assets/x-BI1M8X_v.js">
+    <link rel="modulepreload" crossorigin href="../assets/select-CxT2Geqr.js">
+    <link rel="modulepreload" crossorigin href="../assets/tooltip-D9723Brr.js">
+    <link rel="modulepreload" crossorigin href="../assets/use-toast-Hc8CXlvz.js">
+    <link rel="modulepreload" crossorigin href="../assets/_Uint8Array-C0aUZfE0.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseIsEqual-EYp9AUJI.js">
+    <link rel="modulepreload" crossorigin href="../assets/useEvent-O0nX5vok.js">
+    <link rel="modulepreload" crossorigin href="../assets/invariant-CQUIhlu2.js">
+    <link rel="modulepreload" crossorigin href="../assets/isArrayLikeObject-Dx6-QZGQ.js">
+    <link rel="modulepreload" crossorigin href="../assets/merge-CfcLlFFp.js">
+    <link rel="modulepreload" crossorigin href="../assets/zod-H_cgTO0M.js">
+    <link rel="modulepreload" crossorigin href="../assets/utils-tNbLd14P.js">
+    <link rel="modulepreload" crossorigin href="../assets/Deferred-BMfCOLaw.js">
+    <link rel="modulepreload" crossorigin href="../assets/uuid-ClFZlR7U.js">
+    <link rel="modulepreload" crossorigin href="../assets/DeferredRequestRegistry-O6RDJKs0.js">
+    <link rel="modulepreload" crossorigin href="../assets/constants-Rz_lD4HK.js">
+    <link rel="modulepreload" crossorigin href="../assets/session-BrEm7qNv.js">
+    <link rel="modulepreload" crossorigin href="../assets/config-3Aq84phF.js">
+    <link rel="modulepreload" crossorigin href="../assets/requests-Bgjtqo_1.js">
+    <link rel="modulepreload" crossorigin href="../assets/isSymbol-CiGN2w5X.js">
+    <link rel="modulepreload" crossorigin href="../assets/toString-lmrYznmk.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseSlice-39dTX4Wi.js">
+    <link rel="modulepreload" crossorigin href="../assets/_hasUnicode-QS_pSfjY.js">
+    <link rel="modulepreload" crossorigin href="../assets/assertNever-DWSyoPEi.js">
+    <link rel="modulepreload" crossorigin href="../assets/_arrayReduce-BKEr35uH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useLifecycle-DA9DjSPo.js">
+    <link rel="modulepreload" crossorigin href="../assets/useNonce-BtW-rR_1.js">
+    <link rel="modulepreload" crossorigin href="../assets/useTheme-BYXBU1of.js">
+    <link rel="modulepreload" crossorigin href="../assets/once-CJOnx12W.js">
+    <link rel="modulepreload" crossorigin href="../assets/capabilities-D3x_db9Y.js">
+    <link rel="modulepreload" crossorigin href="../assets/createReducer-Drh7NmIR.js">
+    <link rel="modulepreload" crossorigin href="../assets/paths-D2lG83Oh.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-B_cxg-E4.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-D0Vj4Kqc.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CtXb4bUU.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CQqv2gQL.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-8UD0A5sU.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CXLJUPFl.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-BNC_tnlW.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-apDpadc4.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CEeVCRd_.js">
+    <link rel="modulepreload" crossorigin href="../assets/stex-0ac7Aukl.js">
+    <link rel="modulepreload" crossorigin href="../assets/toDate-BqKH-Jd9.js">
+    <link rel="modulepreload" crossorigin href="../assets/purify.es-BBn8CPhf.js">
+    <link rel="modulepreload" crossorigin href="../assets/cjs-BU2qXMKx.js">
+    <link rel="modulepreload" crossorigin href="../assets/toNumber-OnFQK5Wu.js">
+    <link rel="modulepreload" crossorigin href="../assets/now-8AYn-wiF.js">
+    <link rel="modulepreload" crossorigin href="../assets/debounce-DS_VtWMt.js">
+    <link rel="modulepreload" crossorigin href="../assets/toInteger-CO3ppIfA.js">
+    <link rel="modulepreload" crossorigin href="../assets/database-zap-DTWCDKdn.js">
+    <link rel="modulepreload" crossorigin href="../assets/main-DrBRErTM.js">
+    <link rel="modulepreload" crossorigin href="../assets/cells-fq1RMGX_.js">
+    <link rel="modulepreload" crossorigin href="../assets/spinner-C5JoisA7.js">
+    <link rel="modulepreload" crossorigin href="../assets/chevron-right-D0GQBpTb.js">
+    <link rel="modulepreload" crossorigin href="../assets/dropdown-menu-DdPu5Kfu.js">
+    <link rel="modulepreload" crossorigin href="../assets/kbd-DvKpAc6K.js">
+    <link rel="modulepreload" crossorigin href="../assets/renderShortcut-CnD1Dah5.js">
+    <link rel="modulepreload" crossorigin href="../assets/multi-map-Pp1P2DOX.js">
+    <link rel="modulepreload" crossorigin href="../assets/alert-OQZHipbB.js">
+    <link rel="modulepreload" crossorigin href="../assets/card-C-c-4jyF.js">
+    <link rel="modulepreload" crossorigin href="../assets/alert-dialog-9WfvUF7e.js">
+    <link rel="modulepreload" crossorigin href="../assets/dialog-CVN1lcMF.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-BhNN2V5a.js">
+    <link rel="modulepreload" crossorigin href="../assets/label-TNNaT1M9.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDebounce-B0dx2Gp0.js">
+    <link rel="modulepreload" crossorigin href="../assets/azure-BTXHztTw.js">
+    <link rel="modulepreload" crossorigin href="../assets/numbers-CYnquDho.js">
+    <link rel="modulepreload" crossorigin href="../assets/SSRProvider-DC7ElCZZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/context-CIAP2NOh.js">
+    <link rel="modulepreload" crossorigin href="../assets/useNumberFormatter-DbDKSvEd.js">
+    <link rel="modulepreload" crossorigin href="../assets/usePress-BHGkpw8X.js">
+    <link rel="modulepreload" crossorigin href="../assets/input-CUwqpKjd.js">
+    <link rel="modulepreload" crossorigin href="../assets/links-DzgPOFJ-.js">
+    <link rel="modulepreload" crossorigin href="../assets/popover-BPGG2gPG.js">
+    <link rel="modulepreload" crossorigin href="../assets/switch-CVKxYu_0.js">
+    <link rel="modulepreload" crossorigin href="../assets/table-BhH-Mm8O.js">
+    <link rel="modulepreload" crossorigin href="../assets/mode-AcL8c6qH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useAsyncData-D-4ifFXh.js">
+    <link rel="modulepreload" crossorigin href="../assets/errors-Bfogio62.js">
+    <link rel="modulepreload" crossorigin href="../assets/error-banner-BRG6IPhC.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-YwM0Pd7v.js">
+    <link rel="modulepreload" crossorigin href="../assets/memoize-Bw1ifb7c.js">
+    <link rel="modulepreload" crossorigin href="../assets/get-DBdMgUNq.js">
+    <link rel="modulepreload" crossorigin href="../assets/capitalize-BfkXNxmI.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-CkudG0Ej.js">
+    <link rel="modulepreload" crossorigin href="../assets/plus-dVmh0yTy.js">
+    <link rel="modulepreload" crossorigin href="../assets/refresh-cw-CHAHPgkx.js">
+    <link rel="modulepreload" crossorigin href="../assets/trash-2-CAoNMkjq.js">
+    <link rel="modulepreload" crossorigin href="../assets/triangle-alert-qZo1ox6x.js">
+    <link rel="modulepreload" crossorigin href="../assets/ai-model-dropdown-DPTa_EpU.js">
+    <link rel="modulepreload" crossorigin href="../assets/defaultLocale-OkOxlkkM.js">
+    <link rel="modulepreload" crossorigin href="../assets/precisionRound-BOmLQIKI.js">
+    <link rel="modulepreload" crossorigin href="../assets/defaultLocale-DK1MWd7f.js">
+    <link rel="modulepreload" crossorigin href="../assets/vega-loader.browser-CZV6_g2i.js">
+    <link rel="modulepreload" crossorigin href="../assets/utils-CdjCA1J8.js">
+    <link rel="modulepreload" crossorigin href="../assets/ErrorBoundary-Ba0LbbH4.js">
+    <link rel="modulepreload" crossorigin href="../assets/useInstallPackage-C9V-on2J.js">
+    <link rel="modulepreload" crossorigin href="../assets/ImperativeModal-qEtcJ95s.js">
+    <link rel="modulepreload" crossorigin href="../assets/cell-link-Q_UEP94Z.js">
+    <link rel="modulepreload" crossorigin href="../assets/datasource-F9sJtuof.js">
+    <link rel="modulepreload" crossorigin href="../assets/state-3V5UxC3B.js">
+    <link rel="modulepreload" crossorigin href="../assets/MarimoErrorOutput-az74f3Mp.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-icon-BgmMM9Zg.js">
+    <link rel="modulepreload" crossorigin href="../assets/html-to-image-BnSc-Wa0.js">
+    <link rel="modulepreload" crossorigin href="../assets/focus-DYwTiH9-.js">
+    <link rel="modulepreload" crossorigin href="../assets/LazyAnyLanguageCodeMirror-m8w66E4s.js">
+    <link rel="modulepreload" crossorigin href="../assets/chunk-5FQGJX7Z-CM1a_K7I.js">
+    <link rel="modulepreload" crossorigin href="../assets/katex-rvFxOCU-.js">
+    <link rel="modulepreload" crossorigin href="../assets/markdown-renderer-MR9df58W.js">
+    <link rel="modulepreload" crossorigin href="../assets/command-rfxSsiHU.js">
+    <link rel="modulepreload" crossorigin href="../assets/download-B9_ToVd4.js">
+    <link rel="modulepreload" crossorigin href="../assets/useRunCells-5m6jCnyo.js">
+    <link rel="modulepreload" crossorigin href="../assets/RenderHTML-DJ8khuob.js">
+    <link rel="modulepreload" crossorigin href="../assets/useIframeCapabilities-DTN9kFDq.js">
+    <link rel="modulepreload" crossorigin href="../assets/formats-rhOJovGE.js">
+    <link rel="modulepreload" crossorigin href="../assets/en-US-BO8E69bZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/isValid-BGe7pJXT.js">
+    <link rel="modulepreload" crossorigin href="../assets/dates-CHaNfieI.js">
+    <link rel="modulepreload" crossorigin href="../assets/maps-OKerBHH8.js">
+    <link rel="modulepreload" crossorigin href="../assets/extends-DRbCSry7.js">
+    <link rel="modulepreload" crossorigin href="../assets/emotion-is-prop-valid.esm-D1keIaYa.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDateFormatter-CpE7XQLs.js">
+    <link rel="modulepreload" crossorigin href="../assets/range-CJeRXUtp.js">
+    <link rel="modulepreload" crossorigin href="../assets/table-BCnp9gKC.js">
+    <link rel="modulepreload" crossorigin href="../assets/JsonOutput-DKXKGKvX.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDeleteCell-DRUDRiy0.js">
+    <link rel="modulepreload" crossorigin href="../assets/icons-CrUXojcA.js">
+    <link rel="modulepreload" crossorigin href="../assets/process-output-CTVsT--B.js">
+    <link rel="modulepreload" crossorigin href="../assets/blob-CObhN-9g.js">
+    <link rel="modulepreload" crossorigin href="../assets/objectWithoutPropertiesLoose-DP4vAkvg.js">
+    <link rel="modulepreload" crossorigin href="../assets/esm-CBkHtTOV.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-DzHkbIdO.js">
+    <link rel="modulepreload" crossorigin href="../assets/image-DXfkah9d.js">
+    <link rel="modulepreload" crossorigin href="../assets/play-DKSqmedg.js">
+    <link rel="modulepreload" crossorigin href="../assets/add-cell-with-ai-DUn4LN4W.js">
+    <link rel="modulepreload" crossorigin href="../assets/isEmpty-CfmnKtgL.js">
+    <link rel="modulepreload" crossorigin href="../assets/bot-message-square-CK6eoGWy.js">
+    <link rel="modulepreload" crossorigin href="../assets/chat-display-D_Fuuy6r.js">
+    <link rel="modulepreload" crossorigin href="../assets/chart-no-axes-column-DV8gdCvH.js">
+    <link rel="modulepreload" crossorigin href="../assets/square-function-B006EYFX.js">
+    <link rel="modulepreload" crossorigin href="../assets/spec-DbmSqx09.js">
+    <link rel="modulepreload" crossorigin href="../assets/ellipsis-vertical-CAB7tdza.js">
+    <link rel="modulepreload" crossorigin href="../assets/components-Bpgzv_5_.js">
+    <link rel="modulepreload" crossorigin href="../assets/column-preview-WsubyItX.js">
+    <link rel="modulepreload" crossorigin href="../assets/toggle-RCwU-rnE.js">
+    <link rel="modulepreload" crossorigin href="../assets/globals-BsV5fVR-.js">
+    <link rel="modulepreload" crossorigin href="../assets/share-BdH_5I58.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseSet-D5BgdrnX.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-resizable-panels.browser.esm-DDRqG5ui.js">
+    <link rel="modulepreload" crossorigin href="../assets/context-aware-panel-CfsfBlhO.js">
+    <link rel="modulepreload" crossorigin href="../assets/floating-outline-BvQKiC0F.js">
+    <link rel="modulepreload" crossorigin href="../assets/useAddCell-YC7rpcmD.js">
+    <link rel="modulepreload" crossorigin href="../assets/eye-off-vwi9L975.js">
+    <link rel="modulepreload" crossorigin href="../assets/readonly-python-code-DH-1xZGq.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-headphone-B5q2Ow55.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-icons-CWLHDa1J.js">
+    <link rel="modulepreload" crossorigin href="../assets/refresh-ccw-DLpfIr8v.js">
+    <link rel="modulepreload" crossorigin href="../assets/form-CrQYrsUC.js">
+    <link rel="modulepreload" crossorigin href="../assets/field-B1jGbQlH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useBoolean-m1e6E3Ao.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDeepCompareMemoize-yyiB9aJX.js">
+    <link rel="modulepreload" crossorigin href="../assets/types-C1RN112u.js">
+    <link rel="modulepreload" crossorigin href="../assets/prop-types-RrUi-pOT.js">
+    <link rel="modulepreload" crossorigin href="../assets/es-CzkousWe.js">
+    <link rel="modulepreload" crossorigin href="../assets/hasIn-Bx4-SO9M.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseFlatten-Be7p_si8.js">
+    <link rel="modulepreload" crossorigin href="../assets/_basePickBy-Ck7z0-tq.js">
+    <link rel="modulepreload" crossorigin href="../assets/pick-BYA9UDHe.js">
+    <link rel="modulepreload" crossorigin href="../assets/code-xml-DwHPF_nL.js">
+    <link rel="modulepreload" crossorigin href="../assets/download-DBW9RXtT.js">
+    <link rel="modulepreload" crossorigin href="../assets/square-CxAsQQ77.js">
+    <link rel="modulepreload" crossorigin href="../assets/settings-CzQUw9rV.js">
+    <link rel="modulepreload" crossorigin href="../assets/bundle.esm-idScn0w0.js">
+    <link rel="stylesheet" crossorigin href="../assets/cells-jmgGt1lS.css">
+    <link rel="stylesheet" crossorigin href="../assets/markdown-renderer-DdDKmWlR.css">
+    <link rel="stylesheet" crossorigin href="../assets/JsonOutput-B7vuddcd.css">
+    <link rel="stylesheet" crossorigin href="../assets/index-GjXovVsl.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    <marimo-code hidden="">import%20marimo%0A%0A__generated_with%20%3D%20%220.21.1%22%0Aapp%20%3D%20marimo.App()%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20marimo%20as%20mo%0A%0A%20%20%20%20return%20(mo%2C)%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20Path%20D%20---%20Bayesian%20Machine%20Learning%0A%0A%20%20%20%20Most%20of%20the%20ML%20you've%20learned%20so%20far%20is%20frequentist%20in%20spirit%3A%20you%20find%20a%20single%20best%20parameter%20vector%20%24%5Chat%7B%5Ctheta%7D%24%20(via%20MLE%20or%20MAP)%2C%20make%20predictions%20using%20that%20point%20estimate%2C%20and%20call%20it%20a%20day.%20Bayesian%20ML%20takes%20a%20fundamentally%20different%20stance.%20Instead%20of%20asking%20%22what%20is%20the%20best%20%24%5Ctheta%24%3F%22%2C%20it%20asks%20%22given%20the%20data%20I've%20seen%2C%20what%20is%20the%20full%20probability%20distribution%20over%20%24%5Ctheta%24%3F%22%0A%0A%20%20%20%20This%20isn't%20just%20philosophical%20navel-gazing.%20The%20posterior%20distribution%20%24p(%5Ctheta%20%5Cmid%20%5Cmathcal%7BD%7D)%24%20tells%20you%20not%20only%20what%20the%20model%20thinks%2C%20but%20also%20**how%20uncertain%20it%20is**%20---%20and%20that%20uncertainty%20information%20turns%20out%20to%20be%20enormously%20useful.%20It%20gives%20you%20calibrated%20predictions%2C%20principled%20model%20comparison%2C%20and%20automatic%20regularization.%20The%20cost%3F%20Computation.%20Computing%20the%20posterior%20is%20usually%20intractable%2C%20and%20the%20entire%20field%20of%20Bayesian%20ML%20is%20essentially%20a%20catalog%20of%20clever%20approximations.%0A%0A%20%20%20%20This%20guide%20maps%20out%20the%20territory.%20You%20should%20already%20be%20comfortable%20with%20Bayes'%20theorem%2C%20priors%2C%20posteriors%2C%20and%20likelihoods%20from%200D%20---%20Probability%20Foundations%20and%200E%20---%20Statistical%20Estimation.%20Here%20we%20go%20much%20further.%0A%0A%20%20%20%20%3E%20**Primary%20references%3A**%20%5BMurphy%20PML1%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML1.pdf)%20is%20the%20best%20single%20reference%20for%20this%20entire%20guide.%20%5BBishop%20PRML%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20Chapters%203%2C%206%2C%20and%208-13%20cover%20most%20of%20these%20topics%20with%20exceptional%20clarity.%20Rasmussen%20%26%20Williams%2C%20*Gaussian%20Processes%20for%20Machine%20Learning*%20(2006)%2C%20is%20freely%20available%20at%20%5Bgaussianprocess.org%5D(http%3A%2F%2Fwww.gaussianprocess.org%2Fgpml%2F)%20and%20is%20the%20definitive%20GP%20reference.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%201.%20The%20Bayesian%20Philosophy%0A%0A%20%20%20%20Recall%20Bayes'%20rule%20applied%20to%20model%20parameters%3A%0A%0A%20%20%20%20%24%24p(%5Ctheta%20%5Cmid%20%5Cmathcal%7BD%7D)%20%3D%20%5Cfrac%7Bp(%5Cmathcal%7BD%7D%20%5Cmid%20%5Ctheta)%20%5C%2C%20p(%5Ctheta)%7D%7Bp(%5Cmathcal%7BD%7D)%7D%24%24%0A%0A%20%20%20%20-%20%24p(%5Ctheta)%24%20---%20the%20**prior**%3A%20what%20you%20believe%20about%20%24%5Ctheta%24%20before%20seeing%20data.%0A%20%20%20%20-%20%24p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Ctheta)%24%20---%20the%20**likelihood**%3A%20how%20probable%20the%20data%20is%20under%20each%20%24%5Ctheta%24.%0A%20%20%20%20-%20%24p(%5Ctheta%20%5Cmid%20%5Cmathcal%7BD%7D)%24%20---%20the%20**posterior**%3A%20your%20updated%20beliefs%20after%20seeing%20data.%0A%20%20%20%20-%20%24p(%5Cmathcal%7BD%7D)%20%3D%20%5Cint%20p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Ctheta)%20p(%5Ctheta)%20%5C%2C%20d%5Ctheta%24%20---%20the%20**marginal%20likelihood**%20(or%20model%20evidence)%3A%20a%20normalizing%20constant%20that%20plays%20a%20starring%20role%20in%20model%20comparison.%0A%0A%20%20%20%20The%20MLE%20and%20MAP%20estimates%20that%20you%20already%20know%20are%20special%20cases.%20MLE%20maximizes%20%24p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Ctheta)%24%2C%20which%20is%20equivalent%20to%20Bayesian%20inference%20with%20a%20flat%20(uniform)%20prior%2C%20keeping%20only%20the%20mode.%20MAP%20maximizes%20%24p(%5Ctheta%20%5Cmid%20%5Cmathcal%7BD%7D)%24%2C%20which%20includes%20the%20prior%20but%20again%20keeps%20only%20the%20mode.%20Full%20Bayesian%20inference%20keeps%20the%20entire%20distribution.%0A%0A%20%20%20%20**Why%20keep%20the%20whole%20distribution%3F**%20Because%20for%20prediction%2C%20you%20should%20average%20over%20all%20plausible%20parameters%3A%0A%0A%20%20%20%20%24%24p(y%5E*%20%5Cmid%20x%5E*%2C%20%5Cmathcal%7BD%7D)%20%3D%20%5Cint%20p(y%5E*%20%5Cmid%20x%5E*%2C%20%5Ctheta)%20%5C%2C%20p(%5Ctheta%20%5Cmid%20%5Cmathcal%7BD%7D)%20%5C%2C%20d%5Ctheta%24%24%0A%0A%20%20%20%20This%20**posterior%20predictive%20distribution**%20automatically%20accounts%20for%20parameter%20uncertainty.%20Where%20the%20posterior%20is%20spread%20out%20(you're%20unsure%20about%20%24%5Ctheta%24)%2C%20the%20predictive%20distribution%20is%20wide%20(you're%20unsure%20about%20your%20prediction).%20This%20is%20uncertainty%20quantification%2C%20and%20it%20comes%20for%20free%20from%20the%20Bayesian%20framework.%0A%0A%20%20%20%20See%20%5BBishop%20S1.2.3--1.2.6%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20and%20%5BMurphy%20PML1%20Ch%204%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML1.pdf)%20for%20thorough%20treatments.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%202.%20Gaussian%20Processes%0A%0A%20%20%20%20Gaussian%20Processes%20are%20the%20jewel%20of%20Bayesian%20nonparametrics.%20Instead%20of%20putting%20a%20prior%20on%20a%20finite%20set%20of%20parameters%2C%20you%20put%20a%20prior%20directly%20on%20**functions**.%20This%20is%20not%20just%20a%20metaphor%20---%20a%20GP%20defines%20a%20probability%20distribution%20over%20the%20space%20of%20all%20functions%20%24f%3A%20%5Cmathcal%7BX%7D%20%5Cto%20%5Cmathbb%7BR%7D%24.%0A%0A%20%20%20%20%23%23%23%20Definition%0A%0A%20%20%20%20A%20GP%20is%20fully%20specified%20by%20a%20mean%20function%20%24m(x)%24%20and%20a%20covariance%20(kernel)%20function%20%24k(x%2C%20x')%24%3A%0A%0A%20%20%20%20%24%24f%20%5Csim%20%5Cmathcal%7BGP%7D(m(x)%2C%20k(x%2C%20x'))%24%24%0A%0A%20%20%20%20For%20any%20finite%20set%20of%20inputs%20%24%5C%7Bx_1%2C%20%5Cldots%2C%20x_n%5C%7D%24%2C%20the%20function%20values%20%24%5Bf(x_1)%2C%20%5Cldots%2C%20f(x_n)%5D%24%20are%20jointly%20Gaussian%20with%20mean%20vector%20%24%5Cmu_i%20%3D%20m(x_i)%24%20and%20covariance%20matrix%20%24K_%7Bij%7D%20%3D%20k(x_i%2C%20x_j)%24.%0A%0A%20%20%20%20%23%23%23%20The%20Kernel%20Determines%20Everything%0A%0A%20%20%20%20The%20kernel%20function%20%24k(x%2C%20x')%24%20controls%20what%20kinds%20of%20functions%20the%20GP%20considers%20plausible.%20Common%20choices%3A%0A%0A%20%20%20%20-%20**Squared%20exponential%20(RBF)%3A**%20%24k(x%2C%20x')%20%3D%20%5Csigma%5E2%20%5Cexp%5Cleft(-%5Cfrac%7B%5C%7Cx%20-%20x'%5C%7C%5E2%7D%7B2%5Cell%5E2%7D%5Cright)%24.%20Produces%20infinitely%20smooth%20functions.%20The%20lengthscale%20%24%5Cell%24%20controls%20wiggliness%3B%20the%20signal%20variance%20%24%5Csigma%5E2%24%20controls%20amplitude.%0A%20%20%20%20-%20**Matern%20class%3A**%20A%20family%20parameterized%20by%20a%20smoothness%20parameter%20%24%5Cnu%24.%20Matern-3%2F2%20and%20Matern-5%2F2%20are%20the%20most%20common.%20Less%20smooth%20than%20the%20RBF%2C%20and%20often%20more%20realistic%20for%20physical%20processes.%0A%20%20%20%20-%20**Periodic%20kernel%3A**%20For%20data%20with%20periodic%20structure.%0A%0A%20%20%20%20Choosing%20and%20combining%20kernels%20is%20the%20primary%20modeling%20decision%20in%20GP%20work.%20You%20can%20add%20kernels%20(sum%20of%20patterns)%2C%20multiply%20them%20(interaction%20of%20patterns)%2C%20and%20compose%20them%20to%20express%20rich%20structural%20assumptions.%20See%20Rasmussen%20%26%20Williams%20Ch%204%20for%20a%20comprehensive%20catalog.%0A%0A%20%20%20%20%23%23%23%20GP%20Regression%0A%0A%20%20%20%20Given%20training%20data%20%24(X%2C%20y)%24%20where%20%24y%20%3D%20f(X)%20%2B%20%5Cepsilon%24%20with%20%24%5Cepsilon%20%5Csim%20%5Cmathcal%7BN%7D(0%2C%20%5Csigma_n%5E2)%24%2C%20the%20posterior%20over%20%24f%24%20at%20test%20points%20%24X_*%24%20is%20available%20in%20**closed%20form**%3A%0A%0A%20%20%20%20%24%24f_*%20%5Cmid%20X%2C%20y%2C%20X_*%20%5Csim%20%5Cmathcal%7BN%7D(%5Cbar%7Bf%7D_*%2C%20%5Ctext%7Bcov%7D(f_*))%24%24%0A%0A%20%20%20%20where%3A%0A%0A%20%20%20%20%24%24%5Cbar%7Bf%7D_*%20%3D%20K(X_*%2C%20X)%5BK(X%2C%20X)%20%2B%20%5Csigma_n%5E2%20I%5D%5E%7B-1%7D%20y%24%24%0A%20%20%20%20%24%24%5Ctext%7Bcov%7D(f_*)%20%3D%20K(X_*%2C%20X_*)%20-%20K(X_*%2C%20X)%5BK(X%2C%20X)%20%2B%20%5Csigma_n%5E2%20I%5D%5E%7B-1%7D%20K(X%2C%20X_*)%24%24%0A%0A%20%20%20%20You%20get%20a%20full%20predictive%20distribution%20---%20mean%20and%20variance%20at%20every%20test%20point.%20The%20variance%20is%20small%20near%20training%20data%20(where%20you%20have%20information)%20and%20grows%20as%20you%20move%20away%20(where%20you're%20uncertain).%20This%20is%20not%20a%20post-hoc%20calibration%20trick%3B%20it's%20a%20direct%20consequence%20of%20Bayesian%20inference.%0A%0A%20%20%20%20See%20%5BBishop%20S6.4%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20and%20%5BMurphy%20PML2%20Ch%2018%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML2.pdf)%20for%20derivations.%0A%0A%20%20%20%20%23%23%23%20Hyperparameter%20Selection%20via%20Marginal%20Likelihood%0A%0A%20%20%20%20The%20kernel%20has%20hyperparameters%20(lengthscale%2C%20signal%20variance%2C%20noise%20variance).%20Instead%20of%20cross-validation%2C%20GPs%20use%20the%20**log%20marginal%20likelihood**%3A%0A%0A%20%20%20%20%24%24%5Clog%20p(y%20%5Cmid%20X)%20%3D%20-%5Cfrac%7B1%7D%7B2%7D%20y%5E%5Ctop%20(K%20%2B%20%5Csigma_n%5E2%20I)%5E%7B-1%7D%20y%20-%20%5Cfrac%7B1%7D%7B2%7D%20%5Clog%20%7CK%20%2B%20%5Csigma_n%5E2%20I%7C%20-%20%5Cfrac%7Bn%7D%7B2%7D%20%5Clog%202%5Cpi%24%24%0A%0A%20%20%20%20This%20decomposes%20into%20a%20data%20fit%20term%20and%20a%20complexity%20penalty%20term%20(the%20log%20determinant).%20You%20maximize%20it%20with%20gradient-based%20optimization%20---%20no%20validation%20set%20needed.%20This%20is%20one%20of%20the%20most%20elegant%20aspects%20of%20the%20GP%20framework.%0A%0A%20%20%20%20%23%23%23%20The%20Computational%20Bottleneck%0A%0A%20%20%20%20The%20main%20limitation%3A%20GP%20regression%20requires%20inverting%20an%20%24n%20%5Ctimes%20n%24%20matrix%2C%20costing%20%24O(n%5E3)%24%20time%20and%20%24O(n%5E2)%24%20memory.%20For%20%24n%20%3E%2010%7B%2C%7D000%24%20or%20so%2C%20this%20becomes%20prohibitive.%0A%0A%20%20%20%20**Sparse%20GP%20methods**%20approximate%20the%20full%20GP%20using%20%24m%20%5Cll%20n%24%20**inducing%20points**%20---%20a%20small%20set%20of%20pseudo-data%20points%20that%20summarize%20the%20training%20data.%20The%20cost%20drops%20to%20%24O(nm%5E2)%24.%20Key%20methods%20include%20FITC%2C%20VFE%20(Titsias%2C%202009%3B%20%5BJMLR%20paper%5D(http%3A%2F%2Fproceedings.mlr.press%2Fv5%2Ftitsias09a.html))%2C%20and%20the%20variational%20sparse%20GP%20framework.%20The%20GPyTorch%20library%20makes%20these%20practical%20for%20datasets%20in%20the%20hundreds%20of%20thousands.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%203.%20Bayesian%20Neural%20Networks%0A%0A%20%20%20%20Can%20we%20apply%20Bayesian%20inference%20to%20deep%20networks%3F%20In%20principle%2C%20yes%3A%20put%20a%20prior%20%24p(W)%24%20over%20the%20weights%2C%20observe%20data%2C%20compute%20the%20posterior%20%24p(W%20%5Cmid%20%5Cmathcal%7BD%7D)%24.%20In%20practice%2C%20this%20is%20incredibly%20hard%20because%20neural%20networks%20are%20high-dimensional%2C%20non-linear%2C%20and%20multi-modal%20---%20the%20posterior%20is%20nothing%20like%20a%20Gaussian.%0A%0A%20%20%20%20%23%23%23%20The%20Intractability%20Problem%0A%0A%20%20%20%20For%20a%20neural%20network%20with%20%24d%24%20parameters%2C%20the%20posterior%20%24p(W%20%5Cmid%20%5Cmathcal%7BD%7D)%24%20lives%20in%20%24%5Cmathbb%7BR%7D%5Ed%24%2C%20where%20%24d%24%20can%20be%20millions%20or%20billions.%20The%20marginal%20likelihood%20integral%20%24p(%5Cmathcal%7BD%7D)%20%3D%20%5Cint%20p(%5Cmathcal%7BD%7D%20%5Cmid%20W)%20p(W)%20%5C%2C%20dW%24%20is%20utterly%20intractable.%20We%20need%20approximations.%0A%0A%20%20%20%20%23%23%23%20Variational%20Inference%20(VI)%0A%0A%20%20%20%20The%20most%20popular%20approach%3A%20approximate%20the%20intractable%20posterior%20%24p(W%20%5Cmid%20%5Cmathcal%7BD%7D)%24%20with%20a%20simpler%20distribution%20%24q_%5Cphi(W)%24%20from%20a%20tractable%20family%20(typically%20a%20diagonal%20Gaussian%20---%20meaning%20each%20weight%20has%20its%20own%20independent%20mean%20and%20variance).%20You%20then%20minimize%20the%20KL%20divergence%20%24D_%5Ctext%7BKL%7D(q_%5Cphi%20%5C%7C%20p(W%20%5Cmid%20%5Cmathcal%7BD%7D))%24%2C%20which%20is%20equivalent%20to%20maximizing%20the%20**Evidence%20Lower%20Bound%20(ELBO)**%3A%0A%0A%20%20%20%20%24%24%5Ctext%7BELBO%7D(%5Cphi)%20%3D%20%5Cmathbb%7BE%7D_%7Bq_%5Cphi(W)%7D%5B%5Clog%20p(%5Cmathcal%7BD%7D%20%5Cmid%20W)%5D%20-%20D_%5Ctext%7BKL%7D(q_%5Cphi(W)%20%5C%7C%20p(W))%24%24%0A%0A%20%20%20%20The%20first%20term%20is%20the%20expected%20data%20fit%3B%20the%20second%20is%20a%20regularizer%20pulling%20the%20approximate%20posterior%20toward%20the%20prior.%20The%20reparameterization%20trick%20(same%20one%20used%20in%20VAEs)%20makes%20this%20differentiable.%0A%0A%20%20%20%20**Bayes%20by%20Backprop**%20(Blundell%20et%20al.%2C%202015%3B%20%5BarXiv%3A1505.05424%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1505.05424))%20implements%20this%20for%20neural%20networks.%20Each%20forward%20pass%20samples%20weights%20from%20%24q_%5Cphi%24%2C%20making%20the%20network%20stochastic.%20Uncertainty%20estimates%20come%20from%20running%20multiple%20forward%20passes%20and%20measuring%20the%20spread%20of%20predictions.%0A%0A%20%20%20%20See%20%5BMurphy%20PML2%20Ch%2012%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML2.pdf)%20and%20%5BBishop%20Ch%2010%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20for%20variational%20inference%20foundations.%0A%0A%20%20%20%20%23%23%23%20Monte%20Carlo%20Dropout%0A%0A%20%20%20%20Gal%20%26%20Ghahramani%20(2016%3B%20%5BarXiv%3A1506.02142%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1506.02142))%20showed%20that%20a%20network%20trained%20with%20dropout%2C%20when%20dropout%20is%20also%20applied%20at%20test%20time%2C%20is%20mathematically%20equivalent%20to%20an%20approximate%20variational%20inference%20scheme.%20This%20means%20**any%20dropout%20network%20is%20already%20a%20Bayesian%20approximation**%20---%20you%20just%20need%20to%20run%20multiple%20forward%20passes%20with%20dropout%20enabled%20and%20look%20at%20the%20variance%20across%20predictions.%0A%0A%20%20%20%20This%20is%20the%20cheapest%20way%20to%20get%20uncertainty%20estimates%20from%20a%20neural%20network.%20The%20quality%20of%20the%20uncertainty%20estimates%20is%20debated%2C%20but%20for%20practical%20purposes%20it's%20often%20surprisingly%20useful.%0A%0A%20%20%20%20%23%23%23%20Laplace%20Approximation%0A%0A%20%20%20%20Fit%20a%20Gaussian%20centered%20at%20the%20MAP%20estimate%20%24%5Chat%7BW%7D%24%2C%20with%20covariance%20equal%20to%20the%20inverse%20Hessian%20of%20the%20loss%20at%20%24%5Chat%7BW%7D%24%3A%0A%0A%20%20%20%20%24%24q(W)%20%3D%20%5Cmathcal%7BN%7D(%5Chat%7BW%7D%2C%20%5C%2C%20%5B%5Cnabla%5E2%20%5Cmathcal%7BL%7D(%5Chat%7BW%7D)%5D%5E%7B-1%7D)%24%24%0A%0A%20%20%20%20You%20train%20the%20network%20normally%2C%20then%20compute%20the%20Hessian%20post-hoc.%20For%20modern%20networks%2C%20the%20full%20Hessian%20is%20too%20large%2C%20so%20you%20use%20approximations%3A%20diagonal%2C%20KFAC%2C%20or%20last-layer-only%20Laplace.%20The%20%60laplace-torch%60%20library%20makes%20this%20easy.%20See%20Daxberger%20et%20al.%2C%202021%20(%5BarXiv%3A2106.14806%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2106.14806))%20for%20a%20practical%20guide.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%204.%20Markov%20Chain%20Monte%20Carlo%20(MCMC)%0A%0A%20%20%20%20Variational%20inference%20is%20fast%20but%20biased%20---%20it%20only%20finds%20the%20best%20approximation%20within%20its%20chosen%20family.%20MCMC%20is%20asymptotically%20exact%3A%20given%20enough%20time%2C%20it%20produces%20samples%20from%20the%20true%20posterior.%20The%20tradeoff%20is%20speed.%0A%0A%20%20%20%20%23%23%23%20Metropolis-Hastings%0A%0A%20%20%20%20The%20foundational%20MCMC%20algorithm.%20Propose%20a%20new%20point%20%24%5Ctheta'%24%20from%20a%20proposal%20distribution%20%24q(%5Ctheta'%20%7C%20%5Ctheta)%24.%20Accept%20it%20with%20probability%20%24%5Cmin(1%2C%20%5Cfrac%7Bp(%5Ctheta'%7C%5Cmathcal%7BD%7D)%20q(%5Ctheta%7C%5Ctheta')%7D%7Bp(%5Ctheta%7C%5Cmathcal%7BD%7D)%20q(%5Ctheta'%7C%5Ctheta)%7D)%24.%20Repeat.%20The%20resulting%20chain%20of%20samples%20converges%20to%20the%20posterior%20distribution.%20The%20problem%3A%20in%20high%20dimensions%2C%20random%20proposals%20are%20almost%20always%20rejected%20because%20they%20move%20in%20the%20wrong%20direction.%20Mixing%20is%20painfully%20slow.%0A%0A%20%20%20%20%23%23%23%20Hamiltonian%20Monte%20Carlo%20(HMC)%0A%0A%20%20%20%20HMC%20(Neal%2C%202011%3B%20%5BarXiv%3A1206.1901%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1206.1901))%20fixes%20this%20by%20using%20gradient%20information.%20It%20treats%20the%20parameter%20space%20as%20a%20physical%20system%3A%20%24%5Ctheta%24%20is%20position%2C%20and%20it%20introduces%20a%20momentum%20variable%20%24p%24.%20The%20system%20evolves%20according%20to%20Hamiltonian%20dynamics%2C%20which%20naturally%20follows%20the%20contours%20of%20the%20posterior.%20The%20result%3A%20proposals%20that%20are%20far%20away%20in%20parameter%20space%20but%20still%20have%20high%20acceptance%20probability.%0A%0A%20%20%20%20**NUTS**%20(No-U-Turn%20Sampler%3B%20Hoffman%20%26%20Gelman%2C%202014%3B%20%5BarXiv%3A1111.4246%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1111.4246))%20automatically%20tunes%20the%20trajectory%20length%20in%20HMC%2C%20removing%20the%20most%20sensitive%20hyperparameter.%20NUTS%20is%20the%20default%20sampler%20in%20Stan%20and%20PyMC.%0A%0A%20%20%20%20%23%23%23%20When%20MCMC%20is%20Practical%0A%0A%20%20%20%20MCMC%20works%20well%20for%20models%20with%20tens%20to%20thousands%20of%20parameters%3A%20Bayesian%20regression%2C%20hierarchical%20models%2C%20Gaussian%20mixture%20models%2C%20small%20Bayesian%20neural%20networks.%20For%20models%20with%20millions%20of%20parameters%20(modern%20deep%20networks)%2C%20MCMC%20is%20generally%20too%20slow.%20This%20is%20the%20regime%20where%20variational%20methods%20dominate%20despite%20their%20bias.%0A%0A%20%20%20%20%23%23%23%20Probabilistic%20Programming%0A%0A%20%20%20%20Modern%20probabilistic%20programming%20languages%20let%20you%20specify%20Bayesian%20models%20and%20run%20inference%20automatically%3A%0A%0A%20%20%20%20-%20**PyMC**%20---%20Python-native%2C%20uses%20NUTS%20by%20default%2C%20excellent%20for%20applied%20work%0A%20%20%20%20-%20**Stan**%20---%20its%20own%20language%2C%20highly%20optimized%20HMC%2FNUTS%2C%20the%20gold%20standard%20for%20statistical%20modeling%0A%20%20%20%20-%20**NumPyro**%20---%20JAX-based%2C%20very%20fast%2C%20supports%20both%20HMC%20and%20VI%0A%0A%20%20%20%20These%20tools%20have%20democratized%20Bayesian%20inference.%20You%20specify%20the%20model%20(priors%2C%20likelihood)%2C%20and%20the%20framework%20handles%20the%20inference%20machinery.%0A%0A%20%20%20%20See%20%5BMurphy%20PML1%20Ch%2011--12%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML1.pdf)%20for%20a%20comprehensive%20treatment%20of%20MCMC%20and%20VI.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%205.%20Bayesian%20Model%20Comparison%0A%0A%20%20%20%20One%20of%20the%20most%20powerful%20(and%20underappreciated)%20features%20of%20the%20Bayesian%20framework%3A%20principled%20model%20comparison%20without%20a%20held-out%20test%20set.%0A%0A%20%20%20%20%23%23%23%20Marginal%20Likelihood%0A%0A%20%20%20%20Given%20two%20models%20%24%5Cmathcal%7BM%7D_1%24%20and%20%24%5Cmathcal%7BM%7D_2%24%2C%20Bayes%20says%3A%0A%0A%20%20%20%20%24%24%5Cfrac%7Bp(%5Cmathcal%7BM%7D_1%20%5Cmid%20%5Cmathcal%7BD%7D)%7D%7Bp(%5Cmathcal%7BM%7D_2%20%5Cmid%20%5Cmathcal%7BD%7D)%7D%20%3D%20%5Cfrac%7Bp(%5Cmathcal%7BD%7D%20%5Cmid%20%5Cmathcal%7BM%7D_1)%7D%7Bp(%5Cmathcal%7BD%7D%20%5Cmid%20%5Cmathcal%7BM%7D_2)%7D%20%5Ccdot%20%5Cfrac%7Bp(%5Cmathcal%7BM%7D_1)%7D%7Bp(%5Cmathcal%7BM%7D_2)%7D%24%24%0A%0A%20%20%20%20The%20ratio%20%24p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Cmathcal%7BM%7D_1)%20%2F%20p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Cmathcal%7BM%7D_2)%24%20is%20the%20**Bayes%20factor**.%20Each%20marginal%20likelihood%20is%3A%0A%0A%20%20%20%20%24%24p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Cmathcal%7BM%7D)%20%3D%20%5Cint%20p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Ctheta%2C%20%5Cmathcal%7BM%7D)%20%5C%2C%20p(%5Ctheta%20%5Cmid%20%5Cmathcal%7BM%7D)%20%5C%2C%20d%5Ctheta%24%24%0A%0A%20%20%20%20This%20integral%20naturally%20penalizes%20complexity.%20A%20complex%20model%20spreads%20its%20prior%20probability%20thinly%20across%20many%20possible%20datasets%2C%20so%20%24p(%5Cmathcal%7BD%7D%20%5Cmid%20%5Cmathcal%7BM%7D)%24%20is%20low%20unless%20the%20data%20strongly%20supports%20the%20extra%20complexity.%20A%20simple%20model%20concentrates%20its%20prior%20on%20fewer%20datasets%20---%20if%20the%20data%20matches%2C%20the%20marginal%20likelihood%20is%20high.%20This%20is%20**Bayesian%20Occam's%20razor**%3A%20the%20automatic%20preference%20for%20simpler%20models%2C%20with%20no%20need%20for%20explicit%20regularization%20or%20a%20validation%20set.%0A%0A%20%20%20%20See%20%5BBishop%20S3.4%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20and%20%5BMurphy%20PML1%20S5.2%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML1.pdf)%20for%20detailed%20discussion.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%206.%20Bayesian%20Optimization%0A%0A%20%20%20%20Here's%20a%20beautiful%20application%20where%20everything%20comes%20together%3A%20GPs%2C%20uncertainty%20quantification%2C%20and%20the%20explore-exploit%20tradeoff.%0A%0A%20%20%20%20**Problem%3A**%20you%20have%20an%20expensive%20black-box%20function%20%24f(x)%24%20(e.g.%2C%20the%20validation%20loss%20of%20a%20neural%20network%20as%20a%20function%20of%20its%20hyperparameters).%20Each%20evaluation%20costs%20minutes%20to%20hours.%20You%20want%20to%20find%20the%20minimum%20using%20as%20few%20evaluations%20as%20possible.%0A%0A%20%20%20%20**Solution%3A**%20Fit%20a%20GP%20surrogate%20model%20to%20the%20evaluations%20you've%20done%20so%20far.%20The%20GP%20gives%20you%20both%20a%20prediction%20and%20an%20uncertainty%20estimate%20at%20every%20point.%20Use%20an%20**acquisition%20function**%20to%20decide%20where%20to%20evaluate%20next%3A%0A%0A%20%20%20%20-%20**Expected%20Improvement%20(EI)%3A**%20How%20much%20improvement%20over%20the%20current%20best%20do%20we%20expect%20at%20this%20point%3F%20Balances%20exploitation%20(high%20predicted%20value)%20with%20exploration%20(high%20uncertainty).%0A%20%20%20%20-%20**Upper%20Confidence%20Bound%20(UCB)%3A**%20%24%5Cmu(x)%20-%20%5Ckappa%20%5Csigma(x)%24%20for%20minimization.%20The%20parameter%20%24%5Ckappa%24%20controls%20the%20explore-exploit%20tradeoff.%0A%0A%20%20%20%20Evaluate%20%24f%24%20at%20the%20point%20that%20maximizes%20the%20acquisition%20function%2C%20update%20the%20GP%2C%20repeat.%0A%0A%20%20%20%20This%20is%20exactly%20the%20hyperparameter%20tuning%20strategy%20hinted%20at%20in%201D%20---%20Model%20Selection%20%26%20Evaluation.%20Libraries%20like%20BoTorch%20(built%20on%20GPyTorch)%20and%20Optuna%20implement%20Bayesian%20optimization.%20It%20consistently%20outperforms%20grid%20search%20and%20random%20search%20when%20evaluations%20are%20expensive.%0A%0A%20%20%20%20See%20%5BMurphy%20PML2%20S6.6%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML2.pdf)%20and%20Snoek%20et%20al.%2C%202012%20(%5BarXiv%3A1206.2944%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1206.2944))%20for%20the%20foundational%20paper%20on%20Bayesian%20optimization%20for%20hyperparameters.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%20Recommended%20Resources%0A%0A%20%20%20%20**Textbooks%3A**%0A%20%20%20%20-%20%5BMurphy%2C%20Probabilistic%20Machine%20Learning%3A%20An%20Introduction%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML1.pdf)%20---%20Chapters%204%2C%205%2C%2011%2C%2012%2C%2015%2C%2018%0A%20%20%20%20-%20%5BMurphy%2C%20Probabilistic%20Machine%20Learning%3A%20Advanced%20Topics%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FMurphy-PML2.pdf)%20---%20Chapters%206%2C%2012%2C%2017%2C%2018%2C%2030%0A%20%20%20%20-%20%5BBishop%2C%20PRML%5D(file%3A%2F%2F%2FC%3A%2FUsers%2Flanda%2Fml-course%2Ftextbooks%2FBishop-PRML.pdf)%20---%20Chapters%203%2C%206%2C%208%2C%209%2C%2010%2C%2013%0A%20%20%20%20-%20Rasmussen%20%26%20Williams%2C%20*Gaussian%20Processes%20for%20Machine%20Learning*%20---%20free%20at%20%5Bgaussianprocess.org%5D(http%3A%2F%2Fwww.gaussianprocess.org%2Fgpml%2F)%0A%0A%20%20%20%20**Key%20papers%3A**%0A%20%20%20%20-%20Rasmussen%20%26%20Williams%2C%202006%20---%20GP%20textbook%20(the%20canonical%20reference)%0A%20%20%20%20-%20Blundell%20et%20al.%2C%202015%20---%20Bayes%20by%20Backprop%20(%5BarXiv%3A1505.05424%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1505.05424))%0A%20%20%20%20-%20Gal%20%26%20Ghahramani%2C%202016%20---%20MC%20Dropout%20as%20Bayesian%20approximation%20(%5BarXiv%3A1506.02142%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1506.02142))%0A%20%20%20%20-%20Snoek%20et%20al.%2C%202012%20---%20Practical%20Bayesian%20Optimization%20(%5BarXiv%3A1206.2944%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1206.2944))%0A%20%20%20%20-%20Hoffman%20%26%20Gelman%2C%202014%20---%20NUTS%20(%5BarXiv%3A1111.4246%5D(https%3A%2F%2Farxiv.org%2Fabs%2F1111.4246))%0A%20%20%20%20-%20Daxberger%20et%20al.%2C%202021%20---%20Laplace%20Redux%20(%5BarXiv%3A2106.14806%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2106.14806))%0A%20%20%20%20-%20Wilson%20%26%20Izmailov%2C%202020%20---%20Bayesian%20Deep%20Learning%20and%20a%20Probabilistic%20Perspective%20of%20Generalization%20(%5BarXiv%3A2002.08791%5D(https%3A%2F%2Farxiv.org%2Fabs%2F2002.08791))%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%20Project%20Ideas%0A%0A%20%20%20%201.%20**GP%20regression%20from%20scratch.**%20Implement%20GP%20regression%20in%20NumPy%3A%20prior%20sampling%2C%20posterior%20computation%2C%20marginal%20likelihood%20optimization.%20Visualize%20the%20prior%20and%20posterior%20distributions%20over%20functions%20for%20different%20kernels%20(RBF%2C%20Matern%2C%20periodic).%20This%20builds%20deep%20intuition%20for%20what%20GPs%20actually%20do.%0A%0A%20%20%20%202.%20**Bayesian%20neural%20network%20with%20uncertainty.**%20Use%20either%20Bayes%20by%20Backprop%20(via%20%60torchbnn%60%20or%20manual%20implementation)%20or%20MC%20Dropout%20to%20train%20a%20network%20on%20a%20regression%20task.%20Plot%20the%20predictive%20mean%20and%20uncertainty%20bands.%20Show%20that%20uncertainty%20grows%20in%20regions%20with%20no%20training%20data%20---%20and%20that%20a%20standard%20(non-Bayesian)%20network%20gives%20overconfident%20predictions%20in%20those%20same%20regions.%0A%0A%20%20%20%203.%20**Bayesian%20optimization%20for%20hyperparameter%20tuning.**%20Use%20BoTorch%20or%20Optuna%20to%20tune%20the%20hyperparameters%20of%20a%20model%20from%20an%20earlier%20module%20(e.g.%2C%20the%20random%20forest%20from%201E%20---%20Trees%20%26%20Ensembles%20or%20the%20CNN%20from%202D%20---%20Convolutional%20Neural%20Networks).%20Compare%20the%20number%20of%20evaluations%20needed%20versus%20random%20search.%20Visualize%20the%20surrogate%20GP%20model%20and%20the%20acquisition%20function.%0A%0A%20%20%20%204.%20**Probabilistic%20programming%20with%20PyMC.**%20Build%20a%20Bayesian%20hierarchical%20model%20for%20a%20real%20dataset%20---%20student%20test%20scores%20across%20schools%2C%20batting%20averages%20across%20baseball%20players%2C%20or%20medical%20trial%20results%20across%20hospitals.%20Use%20partial%20pooling%20and%20visualize%20how%20the%20hierarchical%20structure%20shares%20information%20between%20groups.%0A%0A%20%20%20%205.%20**Bayesian%20model%20comparison.**%20Take%20a%20dataset%20and%20fit%20models%20of%20varying%20complexity%20(e.g.%2C%20polynomial%20regression%20of%20degrees%201%20through%2010).%20Compute%20the%20marginal%20likelihood%20for%20each%20and%20show%20that%20Bayesian%20model%20comparison%20automatically%20selects%20the%20right%20complexity%20---%20without%20cross-validation.%20Compare%20the%20result%20to%20AIC%2FBIC%20and%20cross-validation.%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <!-- This is a portal for the data editor to render in -->
+    <div id="portal" data-testid="glide-portal" style="position: fixed; left: 0; top: 0; z-index: 9999"></div>
+    <script data-marimo="true">
+      window.__MARIMO_MOUNT_CONFIG__ = {
+            "filename": "notebook.py",
+            "cwd": "",
+            "mode": "read",
+            "version": "0.21.1",
+            "serverToken": "unused",
+            "config": {"ai": {"custom_providers": {}, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "light"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "pip"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"sql_output": "auto", "width": "compact"},
+            "view": {"showAppCode": true},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null,
+        };
+    </script>
+  </body>
+</html>

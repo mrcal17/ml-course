@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="./favicon.ico" />
+    <!-- Preload is necessary because we show these images when we disconnect from the server,
+    but at that point we cannot load these images from the server -->
+    <link rel="preload" href="../assets/gradient-yHQUC_QB.png" as="image" />
+    <link rel="preload" href="../assets/noise-60BoTA8O.png" as="image" />
+    <!-- Preload the fonts -->
+    <link rel="preload" href="../assets/Lora-VariableFont_wght-B2ootaw-.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/PTSans-Regular-CxL0S8W7.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/PTSans-Bold-D9fedIX3.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Regular-BTCkDNvf.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Medium-DU3aDxX5.ttf" as="font" crossorigin="anonymous" />
+    <link rel="preload" href="../assets/FiraMono-Bold-CLVRCuM9.ttf" as="font" crossorigin="anonymous" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="a marimo app" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.json" />
+
+    <script data-marimo="true">
+      function __resizeIframe(obj) {
+        const scrollbarHeight = 20; // Max between windows, mac, and linux
+
+        function setHeight() {
+          // Guard against race condition where iframe isn't ready
+          if (!obj.contentWindow?.document?.documentElement) {
+            return;
+          }
+          const element = obj.contentWindow.document.documentElement;
+          // If there is no vertical scrollbar, we don't need to resize the iframe
+          if (element.scrollHeight === element.clientHeight) {
+            return;
+          }
+
+          // Create a new height that includes the scrollbar height if it's visible
+          const hasHorizontalScrollbar = element.scrollWidth > element.clientWidth;
+          const newHeight = element.scrollHeight + (hasHorizontalScrollbar ? scrollbarHeight : 0);
+
+          // Only update the height if it's different from the current height
+          if (obj.style.height !== `${newHeight}px`) {
+            obj.style.height = `${newHeight}px`;
+          }
+        }
+
+        // Resize the iframe to the height of the content and bottom scrollbar height
+        setHeight();
+
+        // Resize the iframe when the content changes
+        const resizeObserver = new ResizeObserver((_entries) => {
+          setHeight();
+        });
+        // Only observe if iframe content is ready
+        if (obj.contentWindow?.document?.body) {
+          resizeObserver.observe(obj.contentWindow.document.body);
+        }
+      }
+    </script>
+    <marimo-filename hidden>notebook.py</marimo-filename>
+    <!-- TODO(Trevor): Legacy, required by VS Code plugin. Remove when plugin is updated (see marimo/server/_templates/template.py) -->
+    <marimo-version data-version="{{ version }}" hidden></marimo-version>
+    <marimo-user-config data-config="{{ user_config }}" hidden></marimo-user-config>
+    <marimo-server-token data-token="{{ server_token }}" hidden></marimo-server-token>
+    <!-- /TODO -->
+    <title>home</title>
+    <script type="module" crossorigin src="../assets/index-0n92c_W7.js"></script>
+    <link rel="modulepreload" crossorigin href="../assets/preload-helper-BW0IMuFq.js">
+    <link rel="modulepreload" crossorigin href="../assets/clsx-BDxNtGmi.js">
+    <link rel="modulepreload" crossorigin href="../assets/cn-BoaCR37F.js">
+    <link rel="modulepreload" crossorigin href="../assets/chunk-LvLJmgfZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-Bj1aDYRI.js">
+    <link rel="modulepreload" crossorigin href="../assets/compiler-runtime-B3qBwwSJ.js">
+    <link rel="modulepreload" crossorigin href="../assets/jsx-runtime-icT_Ltz2.js">
+    <link rel="modulepreload" crossorigin href="../assets/badge-hTpPIsMT.js">
+    <link rel="modulepreload" crossorigin href="../assets/useEventListener-Dy81QR4n.js">
+    <link rel="modulepreload" crossorigin href="../assets/button-Ej3vmCIF.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-dom-CSu739Rf.js">
+    <link rel="modulepreload" crossorigin href="../assets/Combination-Cs9nbinQ.js">
+    <link rel="modulepreload" crossorigin href="../assets/menu-items-UxKrm8hS.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-DJBpXGro.js">
+    <link rel="modulepreload" crossorigin href="../assets/createLucideIcon-Cm-Z7dYr.js">
+    <link rel="modulepreload" crossorigin href="../assets/check-BE0hEwVo.js">
+    <link rel="modulepreload" crossorigin href="../assets/x-BI1M8X_v.js">
+    <link rel="modulepreload" crossorigin href="../assets/select-CxT2Geqr.js">
+    <link rel="modulepreload" crossorigin href="../assets/tooltip-D9723Brr.js">
+    <link rel="modulepreload" crossorigin href="../assets/use-toast-Hc8CXlvz.js">
+    <link rel="modulepreload" crossorigin href="../assets/_Uint8Array-C0aUZfE0.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseIsEqual-EYp9AUJI.js">
+    <link rel="modulepreload" crossorigin href="../assets/useEvent-O0nX5vok.js">
+    <link rel="modulepreload" crossorigin href="../assets/invariant-CQUIhlu2.js">
+    <link rel="modulepreload" crossorigin href="../assets/isArrayLikeObject-Dx6-QZGQ.js">
+    <link rel="modulepreload" crossorigin href="../assets/merge-CfcLlFFp.js">
+    <link rel="modulepreload" crossorigin href="../assets/zod-H_cgTO0M.js">
+    <link rel="modulepreload" crossorigin href="../assets/utils-tNbLd14P.js">
+    <link rel="modulepreload" crossorigin href="../assets/Deferred-BMfCOLaw.js">
+    <link rel="modulepreload" crossorigin href="../assets/uuid-ClFZlR7U.js">
+    <link rel="modulepreload" crossorigin href="../assets/DeferredRequestRegistry-O6RDJKs0.js">
+    <link rel="modulepreload" crossorigin href="../assets/constants-Rz_lD4HK.js">
+    <link rel="modulepreload" crossorigin href="../assets/session-BrEm7qNv.js">
+    <link rel="modulepreload" crossorigin href="../assets/config-3Aq84phF.js">
+    <link rel="modulepreload" crossorigin href="../assets/requests-Bgjtqo_1.js">
+    <link rel="modulepreload" crossorigin href="../assets/isSymbol-CiGN2w5X.js">
+    <link rel="modulepreload" crossorigin href="../assets/toString-lmrYznmk.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseSlice-39dTX4Wi.js">
+    <link rel="modulepreload" crossorigin href="../assets/_hasUnicode-QS_pSfjY.js">
+    <link rel="modulepreload" crossorigin href="../assets/assertNever-DWSyoPEi.js">
+    <link rel="modulepreload" crossorigin href="../assets/_arrayReduce-BKEr35uH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useLifecycle-DA9DjSPo.js">
+    <link rel="modulepreload" crossorigin href="../assets/useNonce-BtW-rR_1.js">
+    <link rel="modulepreload" crossorigin href="../assets/useTheme-BYXBU1of.js">
+    <link rel="modulepreload" crossorigin href="../assets/once-CJOnx12W.js">
+    <link rel="modulepreload" crossorigin href="../assets/capabilities-D3x_db9Y.js">
+    <link rel="modulepreload" crossorigin href="../assets/createReducer-Drh7NmIR.js">
+    <link rel="modulepreload" crossorigin href="../assets/paths-D2lG83Oh.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-B_cxg-E4.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-D0Vj4Kqc.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CtXb4bUU.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CQqv2gQL.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-8UD0A5sU.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CXLJUPFl.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-BNC_tnlW.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-apDpadc4.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-CEeVCRd_.js">
+    <link rel="modulepreload" crossorigin href="../assets/stex-0ac7Aukl.js">
+    <link rel="modulepreload" crossorigin href="../assets/toDate-BqKH-Jd9.js">
+    <link rel="modulepreload" crossorigin href="../assets/purify.es-BBn8CPhf.js">
+    <link rel="modulepreload" crossorigin href="../assets/cjs-BU2qXMKx.js">
+    <link rel="modulepreload" crossorigin href="../assets/toNumber-OnFQK5Wu.js">
+    <link rel="modulepreload" crossorigin href="../assets/now-8AYn-wiF.js">
+    <link rel="modulepreload" crossorigin href="../assets/debounce-DS_VtWMt.js">
+    <link rel="modulepreload" crossorigin href="../assets/toInteger-CO3ppIfA.js">
+    <link rel="modulepreload" crossorigin href="../assets/database-zap-DTWCDKdn.js">
+    <link rel="modulepreload" crossorigin href="../assets/main-DrBRErTM.js">
+    <link rel="modulepreload" crossorigin href="../assets/cells-fq1RMGX_.js">
+    <link rel="modulepreload" crossorigin href="../assets/spinner-C5JoisA7.js">
+    <link rel="modulepreload" crossorigin href="../assets/chevron-right-D0GQBpTb.js">
+    <link rel="modulepreload" crossorigin href="../assets/dropdown-menu-DdPu5Kfu.js">
+    <link rel="modulepreload" crossorigin href="../assets/kbd-DvKpAc6K.js">
+    <link rel="modulepreload" crossorigin href="../assets/renderShortcut-CnD1Dah5.js">
+    <link rel="modulepreload" crossorigin href="../assets/multi-map-Pp1P2DOX.js">
+    <link rel="modulepreload" crossorigin href="../assets/alert-OQZHipbB.js">
+    <link rel="modulepreload" crossorigin href="../assets/card-C-c-4jyF.js">
+    <link rel="modulepreload" crossorigin href="../assets/alert-dialog-9WfvUF7e.js">
+    <link rel="modulepreload" crossorigin href="../assets/dialog-CVN1lcMF.js">
+    <link rel="modulepreload" crossorigin href="../assets/dist-BhNN2V5a.js">
+    <link rel="modulepreload" crossorigin href="../assets/label-TNNaT1M9.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDebounce-B0dx2Gp0.js">
+    <link rel="modulepreload" crossorigin href="../assets/azure-BTXHztTw.js">
+    <link rel="modulepreload" crossorigin href="../assets/numbers-CYnquDho.js">
+    <link rel="modulepreload" crossorigin href="../assets/SSRProvider-DC7ElCZZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/context-CIAP2NOh.js">
+    <link rel="modulepreload" crossorigin href="../assets/useNumberFormatter-DbDKSvEd.js">
+    <link rel="modulepreload" crossorigin href="../assets/usePress-BHGkpw8X.js">
+    <link rel="modulepreload" crossorigin href="../assets/input-CUwqpKjd.js">
+    <link rel="modulepreload" crossorigin href="../assets/links-DzgPOFJ-.js">
+    <link rel="modulepreload" crossorigin href="../assets/popover-BPGG2gPG.js">
+    <link rel="modulepreload" crossorigin href="../assets/switch-CVKxYu_0.js">
+    <link rel="modulepreload" crossorigin href="../assets/table-BhH-Mm8O.js">
+    <link rel="modulepreload" crossorigin href="../assets/mode-AcL8c6qH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useAsyncData-D-4ifFXh.js">
+    <link rel="modulepreload" crossorigin href="../assets/errors-Bfogio62.js">
+    <link rel="modulepreload" crossorigin href="../assets/error-banner-BRG6IPhC.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-YwM0Pd7v.js">
+    <link rel="modulepreload" crossorigin href="../assets/memoize-Bw1ifb7c.js">
+    <link rel="modulepreload" crossorigin href="../assets/get-DBdMgUNq.js">
+    <link rel="modulepreload" crossorigin href="../assets/capitalize-BfkXNxmI.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-CkudG0Ej.js">
+    <link rel="modulepreload" crossorigin href="../assets/plus-dVmh0yTy.js">
+    <link rel="modulepreload" crossorigin href="../assets/refresh-cw-CHAHPgkx.js">
+    <link rel="modulepreload" crossorigin href="../assets/trash-2-CAoNMkjq.js">
+    <link rel="modulepreload" crossorigin href="../assets/triangle-alert-qZo1ox6x.js">
+    <link rel="modulepreload" crossorigin href="../assets/ai-model-dropdown-DPTa_EpU.js">
+    <link rel="modulepreload" crossorigin href="../assets/defaultLocale-OkOxlkkM.js">
+    <link rel="modulepreload" crossorigin href="../assets/precisionRound-BOmLQIKI.js">
+    <link rel="modulepreload" crossorigin href="../assets/defaultLocale-DK1MWd7f.js">
+    <link rel="modulepreload" crossorigin href="../assets/vega-loader.browser-CZV6_g2i.js">
+    <link rel="modulepreload" crossorigin href="../assets/utils-CdjCA1J8.js">
+    <link rel="modulepreload" crossorigin href="../assets/ErrorBoundary-Ba0LbbH4.js">
+    <link rel="modulepreload" crossorigin href="../assets/useInstallPackage-C9V-on2J.js">
+    <link rel="modulepreload" crossorigin href="../assets/ImperativeModal-qEtcJ95s.js">
+    <link rel="modulepreload" crossorigin href="../assets/cell-link-Q_UEP94Z.js">
+    <link rel="modulepreload" crossorigin href="../assets/datasource-F9sJtuof.js">
+    <link rel="modulepreload" crossorigin href="../assets/state-3V5UxC3B.js">
+    <link rel="modulepreload" crossorigin href="../assets/MarimoErrorOutput-az74f3Mp.js">
+    <link rel="modulepreload" crossorigin href="../assets/copy-icon-BgmMM9Zg.js">
+    <link rel="modulepreload" crossorigin href="../assets/html-to-image-BnSc-Wa0.js">
+    <link rel="modulepreload" crossorigin href="../assets/focus-DYwTiH9-.js">
+    <link rel="modulepreload" crossorigin href="../assets/LazyAnyLanguageCodeMirror-m8w66E4s.js">
+    <link rel="modulepreload" crossorigin href="../assets/chunk-5FQGJX7Z-CM1a_K7I.js">
+    <link rel="modulepreload" crossorigin href="../assets/katex-rvFxOCU-.js">
+    <link rel="modulepreload" crossorigin href="../assets/markdown-renderer-MR9df58W.js">
+    <link rel="modulepreload" crossorigin href="../assets/command-rfxSsiHU.js">
+    <link rel="modulepreload" crossorigin href="../assets/download-B9_ToVd4.js">
+    <link rel="modulepreload" crossorigin href="../assets/useRunCells-5m6jCnyo.js">
+    <link rel="modulepreload" crossorigin href="../assets/RenderHTML-DJ8khuob.js">
+    <link rel="modulepreload" crossorigin href="../assets/useIframeCapabilities-DTN9kFDq.js">
+    <link rel="modulepreload" crossorigin href="../assets/formats-rhOJovGE.js">
+    <link rel="modulepreload" crossorigin href="../assets/en-US-BO8E69bZ.js">
+    <link rel="modulepreload" crossorigin href="../assets/isValid-BGe7pJXT.js">
+    <link rel="modulepreload" crossorigin href="../assets/dates-CHaNfieI.js">
+    <link rel="modulepreload" crossorigin href="../assets/maps-OKerBHH8.js">
+    <link rel="modulepreload" crossorigin href="../assets/extends-DRbCSry7.js">
+    <link rel="modulepreload" crossorigin href="../assets/emotion-is-prop-valid.esm-D1keIaYa.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDateFormatter-CpE7XQLs.js">
+    <link rel="modulepreload" crossorigin href="../assets/range-CJeRXUtp.js">
+    <link rel="modulepreload" crossorigin href="../assets/table-BCnp9gKC.js">
+    <link rel="modulepreload" crossorigin href="../assets/JsonOutput-DKXKGKvX.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDeleteCell-DRUDRiy0.js">
+    <link rel="modulepreload" crossorigin href="../assets/icons-CrUXojcA.js">
+    <link rel="modulepreload" crossorigin href="../assets/process-output-CTVsT--B.js">
+    <link rel="modulepreload" crossorigin href="../assets/blob-CObhN-9g.js">
+    <link rel="modulepreload" crossorigin href="../assets/objectWithoutPropertiesLoose-DP4vAkvg.js">
+    <link rel="modulepreload" crossorigin href="../assets/esm-CBkHtTOV.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-DzHkbIdO.js">
+    <link rel="modulepreload" crossorigin href="../assets/image-DXfkah9d.js">
+    <link rel="modulepreload" crossorigin href="../assets/play-DKSqmedg.js">
+    <link rel="modulepreload" crossorigin href="../assets/add-cell-with-ai-DUn4LN4W.js">
+    <link rel="modulepreload" crossorigin href="../assets/isEmpty-CfmnKtgL.js">
+    <link rel="modulepreload" crossorigin href="../assets/bot-message-square-CK6eoGWy.js">
+    <link rel="modulepreload" crossorigin href="../assets/chat-display-D_Fuuy6r.js">
+    <link rel="modulepreload" crossorigin href="../assets/chart-no-axes-column-DV8gdCvH.js">
+    <link rel="modulepreload" crossorigin href="../assets/square-function-B006EYFX.js">
+    <link rel="modulepreload" crossorigin href="../assets/spec-DbmSqx09.js">
+    <link rel="modulepreload" crossorigin href="../assets/ellipsis-vertical-CAB7tdza.js">
+    <link rel="modulepreload" crossorigin href="../assets/components-Bpgzv_5_.js">
+    <link rel="modulepreload" crossorigin href="../assets/column-preview-WsubyItX.js">
+    <link rel="modulepreload" crossorigin href="../assets/toggle-RCwU-rnE.js">
+    <link rel="modulepreload" crossorigin href="../assets/globals-BsV5fVR-.js">
+    <link rel="modulepreload" crossorigin href="../assets/share-BdH_5I58.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseSet-D5BgdrnX.js">
+    <link rel="modulepreload" crossorigin href="../assets/react-resizable-panels.browser.esm-DDRqG5ui.js">
+    <link rel="modulepreload" crossorigin href="../assets/context-aware-panel-CfsfBlhO.js">
+    <link rel="modulepreload" crossorigin href="../assets/floating-outline-BvQKiC0F.js">
+    <link rel="modulepreload" crossorigin href="../assets/useAddCell-YC7rpcmD.js">
+    <link rel="modulepreload" crossorigin href="../assets/eye-off-vwi9L975.js">
+    <link rel="modulepreload" crossorigin href="../assets/readonly-python-code-DH-1xZGq.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-headphone-B5q2Ow55.js">
+    <link rel="modulepreload" crossorigin href="../assets/file-icons-CWLHDa1J.js">
+    <link rel="modulepreload" crossorigin href="../assets/refresh-ccw-DLpfIr8v.js">
+    <link rel="modulepreload" crossorigin href="../assets/form-CrQYrsUC.js">
+    <link rel="modulepreload" crossorigin href="../assets/field-B1jGbQlH.js">
+    <link rel="modulepreload" crossorigin href="../assets/useBoolean-m1e6E3Ao.js">
+    <link rel="modulepreload" crossorigin href="../assets/useDeepCompareMemoize-yyiB9aJX.js">
+    <link rel="modulepreload" crossorigin href="../assets/types-C1RN112u.js">
+    <link rel="modulepreload" crossorigin href="../assets/prop-types-RrUi-pOT.js">
+    <link rel="modulepreload" crossorigin href="../assets/es-CzkousWe.js">
+    <link rel="modulepreload" crossorigin href="../assets/hasIn-Bx4-SO9M.js">
+    <link rel="modulepreload" crossorigin href="../assets/_baseFlatten-Be7p_si8.js">
+    <link rel="modulepreload" crossorigin href="../assets/_basePickBy-Ck7z0-tq.js">
+    <link rel="modulepreload" crossorigin href="../assets/pick-BYA9UDHe.js">
+    <link rel="modulepreload" crossorigin href="../assets/code-xml-DwHPF_nL.js">
+    <link rel="modulepreload" crossorigin href="../assets/download-DBW9RXtT.js">
+    <link rel="modulepreload" crossorigin href="../assets/square-CxAsQQ77.js">
+    <link rel="modulepreload" crossorigin href="../assets/settings-CzQUw9rV.js">
+    <link rel="modulepreload" crossorigin href="../assets/bundle.esm-idScn0w0.js">
+    <link rel="stylesheet" crossorigin href="../assets/cells-jmgGt1lS.css">
+    <link rel="stylesheet" crossorigin href="../assets/markdown-renderer-DdDKmWlR.css">
+    <link rel="stylesheet" crossorigin href="../assets/JsonOutput-B7vuddcd.css">
+    <link rel="stylesheet" crossorigin href="../assets/index-GjXovVsl.css">
+  <marimo-wasm hidden=""></marimo-wasm>
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert('Warning: This file must be served by an HTTP server to function correctly.');
+        }
+    </script>
+    
+    <style>
+        #save-button {
+            display: none !important;
+        }
+        #filename-input {
+            display: none !important;
+        }
+    </style>
+    <marimo-code hidden="">import%20marimo%0A%0A__generated_with%20%3D%20%220.21.1%22%0Aapp%20%3D%20marimo.App(width%3D%22medium%22)%0A%0A%0A%40app.cell%0Adef%20_()%3A%0A%20%20%20%20import%20marimo%20as%20mo%0A%0A%20%20%20%20return%20(mo%2C)%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%20Machine%20Learning%20%E2%80%94%20Complete%20Course%0A%0A%20%20%20%20A%20self-paced%2C%20interactive%20course%20from%20mathematical%20foundations%20to%20modern%20deep%20learning.%0A%20%20%20%20Every%20module%20is%20a%20reactive%20notebook%20%E2%80%94%20read%20the%20lectures%2C%20run%20the%20code%2C%20tweak%20the%20parameters%2C%20and%20build%20real%20understanding.%0A%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%20How%20to%20Use%20This%20Course%0A%0A%20%20%20%20-%20**Follow%20the%20modules%20in%20order%20within%20each%20Part**%20%E2%80%94%20the%20dependency%20graph%20below%20shows%20what%20feeds%20into%20what%0A%20%20%20%20-%20**Run%20the%20code%20cells**%20%E2%80%94%20don't%20just%20read%2C%20experiment.%20Change%20values%2C%20break%20things%2C%20rebuild%0A%20%20%20%20-%20**Interactive%20widgets**%20(sliders%2C%20dropdowns)%20let%20you%20explore%20concepts%20in%20real-time%20%E2%80%94%20this%20is%20where%20the%20deep%20learning%20happens%0A%20%20%20%20-%20**Animations**%20visualize%20key%20mathematical%20concepts%20%E2%80%94%20watch%20them%2C%20then%20try%20to%20explain%20what's%20happening%20in%20your%20own%20words%0A%20%20%20%20-%20**Textbook%20links**%20open%20the%20relevant%20PDF%20pages%20for%20deeper%20reading%0A%20%20%20%20-%20**Practice%20exercises**%20are%20at%20the%20end%20of%20each%20module%20%E2%80%94%20do%20them%0A%0A%20%20%20%20To%20open%20any%20module%2C%20run%3A%20%60marimo%20edit%20notebooks%2F%3Cfilename%3E.py%60%0A%20%20%20%20Or%20use%3A%20%60bash%20launch.sh%200b%60%20(opens%20Module%200B)%0A%0A%20%20%20%20---%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%23%20Part%200%20%E2%80%94%20Foundations%0A%0A%20%20%20%20%3E%20*Fix%20your%20gaps%20before%20touching%20ML.%20Probability%20is%20the%20weakest%20link%20%E2%80%94%20spend%20real%20time%20on%200D.*%0A%0A%20%20%20%20%7C%20%23%20%7C%20Module%20%7C%20Topics%20%7C%20Interactive%20Elements%20%7C%0A%20%20%20%20%7C---%7C--------%7C--------%7C---------------------%7C%0A%20%20%20%20%7C%200A%20%7C%20%5BPython%20%26%20Data%20Science%20Stack%5D(%2F%3Ffile%3D0a_python.py)%20%7C%20NumPy%2C%20Pandas%2C%20Matplotlib%2C%20Jupyter%20%7C%20Executable%20code%20throughout%20%7C%0A%20%20%20%20%7C%200B%20%7C%20%5BCalculus%20Refresh%5D(%2F%3Ffile%3D0b_calculus.py)%20%7C%20Gradients%2C%20chain%20rule%2C%20Jacobians%2C%20Hessians%20%7C%20Finite%20differences%20explorer%2C%202%20animations%20%7C%0A%20%20%20%20%7C%200C%20%7C%20%5BLinear%20Algebra%20Refresh%5D(%2F%3Ffile%3D0c_linear_algebra.py)%20%7C%20Eigendecomposition%2C%20SVD%2C%20projections%20%7C%202%20animations%20%7C%0A%20%20%20%20%7C%200D%20%7C%20%5BProbability%20Foundations%5D(%2F%3Ffile%3D0d_probability.py)%20%7C%20Bayes%2C%20distributions%2C%20expectation%2C%20CLT%20%7C%20Distribution%20explorer%2C%20Bayesian%20updater%2C%202%20animations%20%7C%0A%20%20%20%20%7C%200E%20%7C%20%5BStatistical%20Estimation%5D(%2F%3Ffile%3D0e_estimation.py)%20%7C%20MLE%2C%20MAP%2C%20confidence%20intervals%2C%20bootstrap%20%7C%20Executable%20derivations%20%7C%0A%20%20%20%20%7C%200F%20%7C%20%5BOptimization%5D(%2F%3Ffile%3D0f_optimization.py)%20%7C%20Gradient%20descent%2C%20SGD%2C%20momentum%2C%20Adam%20%7C%20Learning%20rate%20explorer%2C%20optimizer%20comparison%2C%202%20animations%20%7C%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%23%20Part%201%20%E2%80%94%20Core%20Machine%20Learning%0A%0A%20%20%20%20%3E%20*Classical%20ML%20%E2%80%94%20the%20models%2C%20the%20math%2C%20and%20how%20to%20evaluate%20them.*%0A%0A%20%20%20%20%7C%20%23%20%7C%20Module%20%7C%20Topics%20%7C%20Interactive%20Elements%20%7C%0A%20%20%20%20%7C---%7C--------%7C--------%7C---------------------%7C%0A%20%20%20%20%7C%201A%20%7C%20%5BThe%20ML%20Landscape%5D(%2F%3Ffile%3D1a_ml_landscape.py)%20%7C%20Types%20of%20learning%2C%20bias-variance%2C%20curse%20of%20dimensionality%20%7C%20Conceptual%20%7C%0A%20%20%20%20%7C%201B%20%7C%20%5BLinear%20Regression%5D(%2F%3Ffile%3D1b_linear_regression.py)%20%7C%20OLS%2C%20regularization%20(Ridge%2FLasso)%2C%20probabilistic%20view%20%7C%20Polynomial%20degree%20slider%2C%20%CE%BB%20slider%2C%202%20animations%20%7C%0A%20%20%20%20%7C%201C%20%7C%20%5BClassification%5D(%2F%3Ffile%3D1c_classification.py)%20%7C%20Logistic%20regression%2C%20SVMs%2C%20Naive%20Bayes%2C%20metrics%20%7C%20SVM%20C%2Fkernel%20explorer%2C%201%20animation%20%7C%0A%20%20%20%20%7C%201D%20%7C%20%5BModel%20Selection%20%26%20Evaluation%5D(%2F%3Ffile%3D1d_model_selection.py)%20%7C%20Cross-validation%2C%20bootstrap%2C%20hyperparameter%20tuning%20%7C%20Executable%20pipelines%20%7C%0A%20%20%20%20%7C%201E%20%7C%20%5BTrees%20%26%20Ensembles%5D(%2F%3Ffile%3D1e_trees_ensembles.py)%20%7C%20Decision%20trees%2C%20random%20forests%2C%20gradient%20boosting%20%7C%20Tree%20depth%20slider%2C%20ensemble%20size%20slider%2C%201%20animation%20%7C%0A%20%20%20%20%7C%201F%20%7C%20%5BUnsupervised%20Learning%5D(%2F%3Ffile%3D1f_unsupervised.py)%20%7C%20PCA%2C%20K-means%2C%20GMMs%2C%20t-SNE%20%7C%20K%20slider%2C%20PCA%20components%20slider%2C%201%20animation%20%7C%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%23%20Part%202%20%E2%80%94%20Deep%20Learning%20Foundations%0A%0A%20%20%20%20%3E%20*Neural%20networks%2C%20backprop%2C%20CNNs%2C%20RNNs%20%E2%80%94%20the%20deep%20learning%20revolution.*%0A%0A%20%20%20%20%7C%20%23%20%7C%20Module%20%7C%20Topics%20%7C%20Interactive%20Elements%20%7C%0A%20%20%20%20%7C---%7C--------%7C--------%7C---------------------%7C%0A%20%20%20%20%7C%202A%20%7C%20%5BNeural%20Networks%20%26%20Backpropagation%5D(%2F%3Ffile%3D2a_neural_networks.py)%20%7C%20MLPs%2C%20activation%20functions%2C%20backprop%2C%20autograd%20%7C%20Hidden%20neurons%20slider%2C%201%20animation%20%7C%0A%20%20%20%20%7C%202B%20%7C%20%5BOptimization%20for%20Deep%20Learning%5D(%2F%3Ffile%3D2b_dl_optimization.py)%20%7C%20Loss%20landscapes%2C%20batch%20norm%2C%20learning%20rate%20schedules%20%7C%20Executable%20code%20%7C%0A%20%20%20%20%7C%202C%20%7C%20%5BRegularization%5D(%2F%3Ffile%3D2c_regularization.py)%20%7C%20Dropout%2C%20early%20stopping%2C%20data%20augmentation%2C%20double%20descent%20%7C%20Dropout%20rate%20slider%20%7C%0A%20%20%20%20%7C%202D%20%7C%20%5BConvolutional%20Neural%20Networks%5D(%2F%3Ffile%3D2d_cnn.py)%20%7C%20Convolution%2C%20pooling%2C%20ResNet%2C%20transfer%20learning%20%7C%201%20animation%20%7C%0A%20%20%20%20%7C%202E%20%7C%20%5BSequence%20Models%5D(%2F%3Ffile%3D2e_sequence_models.py)%20%7C%20RNNs%2C%20LSTMs%2C%20GRUs%2C%20seq2seq%20%7C%201%20animation%20%7C%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%23%20Part%203%20%E2%80%94%20Modern%20Deep%20Learning%0A%0A%20%20%20%20%3E%20*Transformers%2C%20generative%20models%2C%20and%20the%20frontier.*%0A%0A%20%20%20%20%7C%20%23%20%7C%20Module%20%7C%20Topics%20%7C%20Interactive%20Elements%20%7C%0A%20%20%20%20%7C---%7C--------%7C--------%7C---------------------%7C%0A%20%20%20%20%7C%203A%20%7C%20%5BAttention%20%26%20Transformers%5D(%2F%3Ffile%3D3a_transformers.py)%20%7C%20Self-attention%2C%20multi-head%2C%20positional%20encoding%2C%20scaling%20laws%20%7C%201%20animation%20%7C%0A%20%20%20%20%7C%203B%20%7C%20%5BGenerative%20Models%5D(%2F%3Ffile%3D3b_generative_models.py)%20%7C%20VAEs%2C%20GANs%2C%20diffusion%20models%2C%20normalizing%20flows%20%7C%201%20animation%20%7C%0A%20%20%20%20%7C%203C%20%7C%20%5BSelf-Supervised%20Learning%5D(%2F%3Ffile%3D3c_self_supervised.py)%20%7C%20BERT%2C%20GPT%2C%20contrastive%20learning%2C%20CLIP%2C%20LoRA%20%7C%20Conceptual%20%7C%0A%20%20%20%20%7C%203D%20%7C%20%5BReinforcement%20Learning%5D(%2F%3Ffile%3D3d_reinforcement_learning.py)%20%7C%20MDPs%2C%20Q-learning%2C%20policy%20gradients%2C%20PPO%2C%20RLHF%20%7C%201%20animation%20%7C%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20%23%23%20Part%204%20%E2%80%94%20Specialization%0A%0A%20%20%20%20%3E%20*Choose%20your%20path.*%0A%0A%20%20%20%20%7C%20Path%20%7C%20Module%20%7C%20Focus%20%7C%0A%20%20%20%20%7C------%7C--------%7C-------%7C%0A%20%20%20%20%7C%20A%20%7C%20%5BNatural%20Language%20Processing%5D(%2F%3Ffile%3D4a_nlp.py)%20%7C%20Tokenization%2C%20LLMs%2C%20RAG%2C%20evaluation%20%7C%0A%20%20%20%20%7C%20B%20%7C%20%5BComputer%20Vision%5D(%2F%3Ffile%3D4b_computer_vision.py)%20%7C%20Detection%2C%20segmentation%2C%20ViT%2C%20multimodal%20%7C%0A%20%20%20%20%7C%20C%20%7C%20%5BAdvanced%20RL%5D(%2F%3Ffile%3D4c_advanced_rl.py)%20%7C%20Model-based%20RL%2C%20SAC%2C%20multi-agent%2C%20offline%20RL%20%7C%0A%20%20%20%20%7C%20D%20%7C%20%5BBayesian%20ML%5D(%2F%3Ffile%3D4d_bayesian_ml.py)%20%7C%20Gaussian%20processes%2C%20BNNs%2C%20MCMC%2C%20Bayesian%20optimization%20%7C%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0A%40app.cell%0Adef%20_(mo)%3A%0A%20%20%20%20mo.md(r%22%22%22%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%20Dependency%20Graph%0A%0A%20%20%20%20%60%60%60%0A%20%20%20%200A%20(Python)%20%E2%86%92%200B%20(Calculus)%20%E2%86%92%200C%20(Linear%20Algebra)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200D%20(Probability)%20%E2%86%90%E2%94%80%E2%94%80%E2%94%80%E2%94%98%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200E%20(Estimation)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%200F%20(Optimization)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%201A%20(ML%20Landscape)%20%E2%86%92%201B%20(Regression)%20%E2%86%92%201C%20(Classification)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%201D%20(Model%20Selection)%20%E2%86%90%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%98%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%201E%20(Trees%2FEnsembles)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%201F%20(Unsupervised)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%202A%20(Neural%20Nets)%20%E2%86%92%202B%20(DL%20Optimization)%20%E2%86%92%202C%20(Regularization)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%202D%20(CNNs)%20%E2%86%90%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%80%E2%94%98%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%202E%20(Sequences)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%203A%20(Transformers)%20%E2%86%92%203B%20(Generative)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%203D%20(RL)%20%20%20%20%20%20%20%20%20%20%20%20%20%203C%20(Self-Supervised)%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%E2%94%82%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20Part%204%20(Specialize)%0A%20%20%20%20%60%60%60%0A%0A%20%20%20%20---%0A%0A%20%20%20%20%23%23%20Textbooks%0A%0A%20%20%20%20All%20textbook%20PDFs%20are%20in%20the%20%60textbooks%2F%60%20folder.%20Click%20to%20open%3A%0A%0A%20%20%20%20%7C%20Abbrev.%20%7C%20Title%20%7C%20Authors%20%7C%0A%20%20%20%20%7C---------%7C-------%7C---------%7C%0A%20%20%20%20%7C%20MML%20%7C%20Mathematics%20for%20Machine%20Learning%20%7C%20Deisenroth%2C%20Faisal%2C%20Ong%20%7C%0A%20%20%20%20%7C%20ISLR%20%7C%20An%20Introduction%20to%20Statistical%20Learning%20%7C%20James%2C%20Witten%2C%20Hastie%2C%20Tibshirani%20%7C%0A%20%20%20%20%7C%20ESL%20%7C%20The%20Elements%20of%20Statistical%20Learning%20%7C%20Hastie%2C%20Tibshirani%2C%20Friedman%20%7C%0A%20%20%20%20%7C%20Boyd%20%7C%20Convex%20Optimization%20%7C%20Boyd%2C%20Vandenberghe%20%7C%0A%20%20%20%20%7C%20DLBook%20%7C%20Deep%20Learning%20%7C%20Goodfellow%2C%20Bengio%2C%20Courville%20%7C%0A%20%20%20%20%7C%20Bishop%20%7C%20Pattern%20Recognition%20and%20Machine%20Learning%20%7C%20Christopher%20Bishop%20%7C%0A%20%20%20%20%7C%20Sutton%20%7C%20Reinforcement%20Learning%20%7C%20Sutton%2C%20Barto%20%7C%0A%20%20%20%20%7C%20Murphy%201%20%7C%20Probabilistic%20ML%3A%20An%20Introduction%20%7C%20Kevin%20Murphy%20%7C%0A%20%20%20%20%7C%20Murphy%202%20%7C%20Probabilistic%20ML%3A%20Advanced%20Topics%20%7C%20Kevin%20Murphy%20%7C%0A%20%20%20%20%7C%20Chan%20%7C%20Introduction%20to%20Probability%20for%20Data%20Science%20%7C%20Stanley%20Chan%20%7C%0A%20%20%20%20%7C%20G%C3%A9ron%20%7C%20Hands-On%20ML%20with%20Scikit-Learn%2C%20Keras%20%26%20TF%20%7C%20Aur%C3%A9lien%20G%C3%A9ron%20%7C%0A%20%20%20%20%7C%20Wasserman%20%7C%20All%20of%20Statistics%20%7C%20Larry%20Wasserman%20%7C%0A%20%20%20%20%22%22%22)%0A%20%20%20%20return%0A%0A%0Aif%20__name__%20%3D%3D%20%22__main__%22%3A%0A%20%20%20%20app.run()%0A</marimo-code></head>
+  <body>
+    <div id="root"></div>
+    <!-- This is a portal for the data editor to render in -->
+    <div id="portal" data-testid="glide-portal" style="position: fixed; left: 0; top: 0; z-index: 9999"></div>
+    <script data-marimo="true">
+      window.__MARIMO_MOUNT_CONFIG__ = {
+            "filename": "notebook.py",
+            "cwd": "",
+            "mode": "read",
+            "version": "0.21.1",
+            "serverToken": "unused",
+            "config": {"ai": {"custom_providers": {}, "models": {"custom_models": [], "displayed_models": []}}, "completion": {"activate_on_typing": true, "copilot": false, "signature_hint_on_typing": false}, "diagnostics": {"sql_linter": true}, "display": {"cell_output": "below", "code_editor_font_size": 14, "dataframes": "rich", "default_table_max_columns": 50, "default_table_page_size": 10, "default_width": "medium", "reference_highlighting": true, "theme": "light"}, "formatting": {"line_length": 79}, "keymap": {"overrides": {}, "preset": "default"}, "language_servers": {"pylsp": {"enable_flake8": false, "enable_mypy": true, "enable_pydocstyle": false, "enable_pyflakes": false, "enable_pylint": false, "enable_ruff": true, "enabled": false}}, "mcp": {"mcpServers": {}, "presets": []}, "package_management": {"manager": "pip"}, "runtime": {"auto_instantiate": false, "auto_reload": "off", "default_csv_encoding": "utf-8", "default_sql_output": "auto", "on_cell_change": "autorun", "output_max_bytes": 8000000, "reactive_tests": true, "std_stream_max_bytes": 1000000, "watcher_on_save": "lazy"}, "save": {"autosave": "off", "autosave_delay": 1000, "format_on_save": false}, "server": {"browser": "default", "follow_symlink": false}, "snippets": {"custom_paths": [], "include_default_snippets": true}},
+            "configOverrides": {},
+            "appConfig": {"sql_output": "auto", "width": "medium"},
+            "view": {"showAppCode": true},
+            "notebook": null,
+            "session": null,
+            "runtimeConfig": null,
+        };
+    </script>
+  </body>
+</html>

@@ -1,78 +1,143 @@
-"""Export all Marimo notebooks to static HTML for GitHub Pages."""
+"""Export all Marimo notebooks as WASM-powered interactive HTML for GitHub Pages.
+
+Strategy: Export each notebook to its own subdirectory, then deduplicate
+the assets/ folder by symlinking (or on Windows, copying once and pointing
+all index.html files to the shared assets).
+"""
 import subprocess
 import os
 import glob
 import shutil
+import re
 
 os.chdir(os.path.dirname(__file__))
 
 DOCS_DIR = "docs"
 NOTEBOOKS_DIR = "notebooks"
 
-# Clean and recreate docs
+# Clean docs
 if os.path.exists(DOCS_DIR):
     shutil.rmtree(DOCS_DIR)
 os.makedirs(DOCS_DIR, exist_ok=True)
 
-# Copy animations to docs so they're accessible
+# Copy animations
 anim_src = "animations/rendered"
 anim_dst = os.path.join(DOCS_DIR, "animations", "rendered")
 if os.path.exists(anim_src):
     os.makedirs(anim_dst, exist_ok=True)
     for gif in glob.glob(os.path.join(anim_src, "*.gif")):
         shutil.copy2(gif, anim_dst)
-        print(f"  Copied: {os.path.basename(gif)}")
+    print(f"Copied {len(glob.glob(os.path.join(anim_dst, '*.gif')))} animation GIFs")
 
-# Export each notebook to HTML
+# Export notebooks
 notebooks = sorted(glob.glob(os.path.join(NOTEBOOKS_DIR, "*.py")))
+succeeded = 0
+failed = 0
+shared_assets_copied = False
 
 for nb in notebooks:
     name = os.path.basename(nb).replace(".py", "")
-
-    # home.py -> index.html, others -> name.html
-    if name == "home":
-        out_name = "index.html"
-    else:
-        out_name = f"{name}.html"
-
-    out_path = os.path.join(DOCS_DIR, out_name)
+    out_dir = os.path.join(DOCS_DIR, name)
 
     print(f"Exporting {name}...")
     result = subprocess.run(
-        ["python", "-m", "marimo", "export", "html", nb, "-o", out_path],
-        capture_output=True, text=True, timeout=60,
+        [
+            "python", "-m", "marimo", "export", "html-wasm",
+            nb, "-o", out_dir,
+            "--mode", "run",
+            "--show-code",
+        ],
+        capture_output=True, text=True, timeout=120,
     )
 
-    if result.returncode == 0 and os.path.exists(out_path):
-        size_kb = os.path.getsize(out_path) / 1024
-        print(f"  OK: {out_name} ({size_kb:.0f} KB)")
+    if result.returncode == 0 and os.path.exists(out_dir):
+        succeeded += 1
+        print(f"  OK: {name}")
+
+        # On first success, keep assets as the shared copy
+        if not shared_assets_copied:
+            src_assets = os.path.join(out_dir, "assets")
+            shared_assets = os.path.join(DOCS_DIR, "assets")
+            if os.path.exists(src_assets) and not os.path.exists(shared_assets):
+                shutil.copytree(src_assets, shared_assets)
+                shared_assets_copied = True
+                print(f"  Saved shared assets/ ({len(os.listdir(shared_assets))} files)")
+
+        # Remove duplicate assets from this notebook dir
+        local_assets = os.path.join(out_dir, "assets")
+        if os.path.exists(local_assets) and shared_assets_copied:
+            shutil.rmtree(local_assets)
+
+        # Rewrite the index.html to point to shared assets at ../assets/
+        idx_path = os.path.join(out_dir, "index.html")
+        if os.path.exists(idx_path):
+            with open(idx_path, encoding="utf-8") as f:
+                html = f.read()
+            # Fix asset references: ./assets/ or assets/ -> ../assets/
+            html = html.replace('"./assets/', '"../assets/')
+            html = html.replace('"assets/', '"../assets/')
+            # Also fix unquoted src/href
+            html = re.sub(r'(?<=["\'])assets/', '../assets/', html)
+            with open(idx_path, "w", encoding="utf-8") as f:
+                f.write(html)
+
+        # Copy shared static files to notebook dir (.nojekyll, favicon, etc)
+        for static_file in ["favicon.ico", ".nojekyll"]:
+            src = os.path.join(DOCS_DIR, name, static_file)
+            dst_root = os.path.join(DOCS_DIR, static_file)
+            if os.path.exists(src) and not os.path.exists(dst_root):
+                shutil.copy2(src, dst_root)
     else:
-        print(f"  FAILED: {out_name}")
+        failed += 1
+        print(f"  FAILED: {name}")
         if result.stderr:
-            print(f"  stderr: {result.stderr[:200]}")
+            print(f"  {result.stderr[:200]}")
 
-# Fix links in index.html: /?file=X.py -> X.html
-index_path = os.path.join(DOCS_DIR, "index.html")
-if os.path.exists(index_path):
-    with open(index_path, encoding="utf-8") as f:
-        content = f.read()
+# Create root index.html that redirects or copies home's
+home_idx = os.path.join(DOCS_DIR, "home", "index.html")
+root_idx = os.path.join(DOCS_DIR, "index.html")
+if os.path.exists(home_idx):
+    with open(home_idx, encoding="utf-8") as f:
+        html = f.read()
 
-    # Fix module links
-    import re
-    content = re.sub(
+    # Fix links: /?file=X.py -> ../X/index.html (relative from home/)
+    # But for root index.html, links should be ./X/index.html
+    root_html = html.replace('"../assets/', '"./assets/')
+    root_html = re.sub(
         r'href="/?[?]file=(\w+)\.py"',
-        lambda m: f'href="{m.group(1)}.html"',
-        content,
+        lambda m: f'href="./{m.group(1)}/index.html"',
+        root_html,
     )
-    content = re.sub(
+    root_html = re.sub(
         r'href="/\?file=(\w+)\.py"',
-        lambda m: f'href="{m.group(1)}.html"',
-        content,
+        lambda m: f'href="./{m.group(1)}/index.html"',
+        root_html,
     )
 
-    with open(index_path, "w", encoding="utf-8") as f:
-        f.write(content)
-    print("\nFixed links in index.html")
+    with open(root_idx, "w", encoding="utf-8") as f:
+        f.write(root_html)
+    print("\nCreated root index.html with fixed links")
 
-print(f"\nSite built in {DOCS_DIR}/")
-print(f"Total files: {len(glob.glob(os.path.join(DOCS_DIR, '*.html')))}")
+    # Also fix links in home/index.html for when accessed at /home/
+    with open(home_idx, encoding="utf-8") as f:
+        html = f.read()
+    html = re.sub(
+        r'href="/?[?]file=(\w+)\.py"',
+        lambda m: f'href="../{m.group(1)}/index.html"',
+        html,
+    )
+    html = re.sub(
+        r'href="/\?file=(\w+)\.py"',
+        lambda m: f'href="../{m.group(1)}/index.html"',
+        html,
+    )
+    with open(home_idx, "w", encoding="utf-8") as f:
+        f.write(html)
+
+# Copy .nojekyll to root (prevents GitHub from processing with Jekyll)
+nojekyll = os.path.join(DOCS_DIR, ".nojekyll")
+if not os.path.exists(nojekyll):
+    open(nojekyll, "w").close()
+
+print(f"\nSite built: {succeeded} succeeded, {failed} failed")
+print(f"Assets size: {sum(os.path.getsize(os.path.join(DOCS_DIR, 'assets', f)) for f in os.listdir(os.path.join(DOCS_DIR, 'assets'))) / 1024 / 1024:.1f} MB (shared)")
