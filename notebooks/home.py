@@ -45,12 +45,12 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 0A | [Python & Data Science Stack](/?file=0a_python.py) | NumPy, Pandas, Matplotlib, Jupyter | Executable code throughout |
-    | 0B | [Calculus Refresh](/?file=0b_calculus.py) | Gradients, chain rule, Jacobians, Hessians | Finite differences explorer, 2 animations |
-    | 0C | [Linear Algebra Refresh](/?file=0c_linear_algebra.py) | Eigendecomposition, SVD, projections | 2 animations |
-    | 0D | [Probability Foundations](/?file=0d_probability.py) | Bayes, distributions, expectation, CLT | Distribution explorer, Bayesian updater, 2 animations |
-    | 0E | [Statistical Estimation](/?file=0e_estimation.py) | MLE, MAP, confidence intervals, bootstrap | Executable derivations |
-    | 0F | [Optimization](/?file=0f_optimization.py) | Gradient descent, SGD, momentum, Adam | Learning rate explorer, optimizer comparison, 2 animations |
+    | 0A | [Python & Data Science Stack](../0a_python/index.html) | NumPy, Pandas, Matplotlib, Jupyter | Executable code throughout |
+    | 0B | [Calculus Refresh](../0b_calculus/index.html) | Gradients, chain rule, Jacobians, Hessians | Finite differences explorer, 2 animations |
+    | 0C | [Linear Algebra Refresh](../0c_linear_algebra/index.html) | Eigendecomposition, SVD, projections | 2 animations |
+    | 0D | [Probability Foundations](../0d_probability/index.html) | Bayes, distributions, expectation, CLT | Distribution explorer, Bayesian updater, 2 animations |
+    | 0E | [Statistical Estimation](../0e_estimation/index.html) | MLE, MAP, confidence intervals, bootstrap | Executable derivations |
+    | 0F | [Optimization](../0f_optimization/index.html) | Gradient descent, SGD, momentum, Adam | Learning rate explorer, optimizer comparison, 2 animations |
     """)
     return
 
@@ -64,12 +64,12 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 1A | [The ML Landscape](/?file=1a_ml_landscape.py) | Types of learning, bias-variance, curse of dimensionality | Conceptual |
-    | 1B | [Linear Regression](/?file=1b_linear_regression.py) | OLS, regularization (Ridge/Lasso), probabilistic view | Polynomial degree slider, λ slider, 2 animations |
-    | 1C | [Classification](/?file=1c_classification.py) | Logistic regression, SVMs, Naive Bayes, metrics | SVM C/kernel explorer, 1 animation |
-    | 1D | [Model Selection & Evaluation](/?file=1d_model_selection.py) | Cross-validation, bootstrap, hyperparameter tuning | Executable pipelines |
-    | 1E | [Trees & Ensembles](/?file=1e_trees_ensembles.py) | Decision trees, random forests, gradient boosting | Tree depth slider, ensemble size slider, 1 animation |
-    | 1F | [Unsupervised Learning](/?file=1f_unsupervised.py) | PCA, K-means, GMMs, t-SNE | K slider, PCA components slider, 1 animation |
+    | 1A | [The ML Landscape](../1a_ml_landscape/index.html) | Types of learning, bias-variance, curse of dimensionality | Conceptual |
+    | 1B | [Linear Regression](../1b_linear_regression/index.html) | OLS, regularization (Ridge/Lasso), probabilistic view | Polynomial degree slider, λ slider, 2 animations |
+    | 1C | [Classification](../1c_classification/index.html) | Logistic regression, SVMs, Naive Bayes, metrics | SVM C/kernel explorer, 1 animation |
+    | 1D | [Model Selection & Evaluation](../1d_model_selection/index.html) | Cross-validation, bootstrap, hyperparameter tuning | Executable pipelines |
+    | 1E | [Trees & Ensembles](../1e_trees_ensembles/index.html) | Decision trees, random forests, gradient boosting | Tree depth slider, ensemble size slider, 1 animation |
+    | 1F | [Unsupervised Learning](../1f_unsupervised/index.html) | PCA, K-means, GMMs, t-SNE | K slider, PCA components slider, 1 animation |
     """)
     return
 
@@ -83,11 +83,11 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 2A | [Neural Networks & Backpropagation](/?file=2a_neural_networks.py) | MLPs, activation functions, backprop, autograd | Hidden neurons slider, 1 animation |
-    | 2B | [Optimization for Deep Learning](/?file=2b_dl_optimization.py) | Loss landscapes, batch norm, learning rate schedules | Executable code |
-    | 2C | [Regularization](/?file=2c_regularization.py) | Dropout, early stopping, data augmentation, double descent | Dropout rate slider |
-    | 2D | [Convolutional Neural Networks](/?file=2d_cnn.py) | Convolution, pooling, ResNet, transfer learning | 1 animation |
-    | 2E | [Sequence Models](/?file=2e_sequence_models.py) | RNNs, LSTMs, GRUs, seq2seq | 1 animation |
+    | 2A | [Neural Networks & Backpropagation](../2a_neural_networks/index.html) | MLPs, activation functions, backprop, autograd | Hidden neurons slider, 1 animation |
+    | 2B | [Optimization for Deep Learning](../2b_dl_optimization/index.html) | Loss landscapes, batch norm, learning rate schedules | Executable code |
+    | 2C | [Regularization](../2c_regularization/index.html) | Dropout, early stopping, data augmentation, double descent | Dropout rate slider |
+    | 2D | [Convolutional Neural Networks](../2d_cnn/index.html) | Convolution, pooling, ResNet, transfer learning | 1 animation |
+    | 2E | [Sequence Models](../2e_sequence_models/index.html) | RNNs, LSTMs, GRUs, seq2seq | 1 animation |
     """)
     return
 
@@ -101,10 +101,10 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 3A | [Attention & Transformers](/?file=3a_transformers.py) | Self-attention, multi-head, positional encoding, scaling laws | 1 animation |
-    | 3B | [Generative Models](/?file=3b_generative_models.py) | VAEs, GANs, diffusion models, normalizing flows | 1 animation |
-    | 3C | [Self-Supervised Learning](/?file=3c_self_supervised.py) | BERT, GPT, contrastive learning, CLIP, LoRA | Conceptual |
-    | 3D | [Reinforcement Learning](/?file=3d_reinforcement_learning.py) | MDPs, Q-learning, policy gradients, PPO, RLHF | 1 animation |
+    | 3A | [Attention & Transformers](../3a_transformers/index.html) | Self-attention, multi-head, positional encoding, scaling laws | 1 animation |
+    | 3B | [Generative Models](../3b_generative_models/index.html) | VAEs, GANs, diffusion models, normalizing flows | 1 animation |
+    | 3C | [Self-Supervised Learning](../3c_self_supervised/index.html) | BERT, GPT, contrastive learning, CLIP, LoRA | Conceptual |
+    | 3D | [Reinforcement Learning](../3d_reinforcement_learning/index.html) | MDPs, Q-learning, policy gradients, PPO, RLHF | 1 animation |
     """)
     return
 
@@ -118,10 +118,10 @@ def _(mo):
 
     | Path | Module | Focus |
     |------|--------|-------|
-    | A | [Natural Language Processing](/?file=4a_nlp.py) | Tokenization, LLMs, RAG, evaluation |
-    | B | [Computer Vision](/?file=4b_computer_vision.py) | Detection, segmentation, ViT, multimodal |
-    | C | [Advanced RL](/?file=4c_advanced_rl.py) | Model-based RL, SAC, multi-agent, offline RL |
-    | D | [Bayesian ML](/?file=4d_bayesian_ml.py) | Gaussian processes, BNNs, MCMC, Bayesian optimization |
+    | A | [Natural Language Processing](../4a_nlp/index.html) | Tokenization, LLMs, RAG, evaluation |
+    | B | [Computer Vision](../4b_computer_vision/index.html) | Detection, segmentation, ViT, multimodal |
+    | C | [Advanced RL](../4c_advanced_rl/index.html) | Model-based RL, SAC, multi-agent, offline RL |
+    | D | [Bayesian ML](../4d_bayesian_ml/index.html) | Gaussian processes, BNNs, MCMC, Bayesian optimization |
     """)
     return
 
