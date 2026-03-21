@@ -465,94 +465,89 @@ def _(mo):
         value="Normal",
         label="Distribution",
     )
-    dist_type
-    return (dist_type,)
+    dist_mu = mo.ui.slider(start=-5, stop=5, step=0.1, value=0, label="Mean (mu)")
+    dist_sigma = mo.ui.slider(start=0.1, stop=5, step=0.1, value=1, label="Std dev (sigma)")
+    dist_n = mo.ui.slider(start=1, stop=50, step=1, value=10, label="n (trials)")
+    dist_p = mo.ui.slider(start=0.01, stop=0.99, step=0.01, value=0.5, label="p (probability)")
+    dist_lam = mo.ui.slider(start=0.1, stop=20, step=0.1, value=5, label="lambda (rate)")
+    dist_a = mo.ui.slider(start=-5, stop=4.9, step=0.1, value=0, label="a (lower)")
+    dist_b = mo.ui.slider(start=-4.9, stop=10, step=0.1, value=1, label="b (upper)")
+    return (dist_type, dist_mu, dist_sigma, dist_n, dist_p, dist_lam, dist_a, dist_b)
 
 
 @app.cell
-def _(dist_type, mo):
-    if dist_type.value == "Normal":
-        _param1 = mo.ui.slider(start=-5, stop=5, step=0.1, value=0, label="Mean (mu)")
-        _param2 = mo.ui.slider(start=0.1, stop=5, step=0.1, value=1, label="Std dev (sigma)")
-        dist_params = mo.hstack([_param1, _param2])
-    elif dist_type.value == "Binomial":
-        _param1 = mo.ui.slider(start=1, stop=50, step=1, value=10, label="n (trials)")
-        _param2 = mo.ui.slider(start=0.01, stop=0.99, step=0.01, value=0.5, label="p (success prob)")
-        dist_params = mo.hstack([_param1, _param2])
-    elif dist_type.value == "Poisson":
-        _param1 = mo.ui.slider(start=0.1, stop=20, step=0.1, value=5, label="lambda (rate)")
-        dist_params = _param1
-    elif dist_type.value == "Exponential":
-        _param1 = mo.ui.slider(start=0.1, stop=5, step=0.1, value=1, label="lambda (rate)")
-        dist_params = _param1
-    else:  # Uniform
-        _param1 = mo.ui.slider(start=-5, stop=4.9, step=0.1, value=0, label="a (lower)")
-        _param2 = mo.ui.slider(start=-4.9, stop=10, step=0.1, value=1, label="b (upper)")
-        dist_params = mo.hstack([_param1, _param2])
-    dist_params
-    return (dist_params,)
+def _(dist_type, dist_mu, dist_sigma, dist_n, dist_p, dist_lam, dist_a, dist_b, mo):
+    _d = dist_type.value
+    if _d == "Normal":
+        _controls = mo.hstack([dist_type, dist_mu, dist_sigma])
+    elif _d == "Binomial":
+        _controls = mo.hstack([dist_type, dist_n, dist_p])
+    elif _d == "Poisson":
+        _controls = mo.hstack([dist_type, dist_lam])
+    elif _d == "Exponential":
+        _controls = mo.hstack([dist_type, dist_lam])
+    else:
+        _controls = mo.hstack([dist_type, dist_a, dist_b])
+    _controls
+    return
 
 
 @app.cell
-def _(dist_params, dist_type):
+def _(dist_type, dist_mu, dist_sigma, dist_n, dist_p, dist_lam, dist_a, dist_b):
     import numpy as np
     import matplotlib.pyplot as plt
     from scipy import stats
 
     fig_dist, ax_dist = plt.subplots(figsize=(8, 4))
+    _d = dist_type.value
 
-    if dist_type.value == "Normal":
-        _children = dist_params.children if hasattr(dist_params, 'children') else [dist_params]
-        _mu = _children[0].value
-        _sigma = _children[1].value
-        _x = np.linspace(_mu - 4 * _sigma, _mu + 4 * _sigma, 300)
-        _y = stats.norm.pdf(_x, _mu, _sigma)
+    if _d == "Normal":
+        _mu = dist_mu.value
+        _sig = dist_sigma.value
+        _x = np.linspace(_mu - 4 * _sig, _mu + 4 * _sig, 300)
+        _y = stats.norm.pdf(_x, _mu, _sig)
         ax_dist.plot(_x, _y, 'b-', lw=2)
         ax_dist.fill_between(_x, _y, alpha=0.3)
-        ax_dist.set_title(f"Normal(mu={_mu:.1f}, sigma={_sigma:.1f})")
+        ax_dist.set_title(f"Normal(mu={_mu:.1f}, sigma={_sig:.1f})")
         ax_dist.set_ylabel("Density")
 
-    elif dist_type.value == "Binomial":
-        _children = dist_params.children if hasattr(dist_params, 'children') else [dist_params]
-        _n = int(_children[0].value)
-        _p = _children[1].value
-        _k = np.arange(0, _n + 1)
-        _pmf = stats.binom.pmf(_k, _n, _p)
+    elif _d == "Binomial":
+        _ni = int(dist_n.value)
+        _pi = dist_p.value
+        _k = np.arange(0, _ni + 1)
+        _pmf = stats.binom.pmf(_k, _ni, _pi)
         ax_dist.bar(_k, _pmf, color='steelblue', alpha=0.7)
-        ax_dist.set_title(f"Binomial(n={_n}, p={_p:.2f})")
+        ax_dist.set_title(f"Binomial(n={_ni}, p={_pi:.2f})")
         ax_dist.set_ylabel("P(X = k)")
         ax_dist.set_xlabel("k")
 
-    elif dist_type.value == "Poisson":
-        _lam = dist_params.value if not hasattr(dist_params, 'children') else dist_params.children[0].value
-        _k = np.arange(0, int(_lam * 3) + 10)
-        _pmf = stats.poisson.pmf(_k, _lam)
+    elif _d == "Poisson":
+        _la = dist_lam.value
+        _k = np.arange(0, int(_la * 3) + 10)
+        _pmf = stats.poisson.pmf(_k, _la)
         ax_dist.bar(_k, _pmf, color='steelblue', alpha=0.7)
-        ax_dist.set_title(f"Poisson(lambda={_lam:.1f})")
+        ax_dist.set_title(f"Poisson(lambda={_la:.1f})")
         ax_dist.set_ylabel("P(X = k)")
         ax_dist.set_xlabel("k")
 
-    elif dist_type.value == "Exponential":
-        _lam = dist_params.value if not hasattr(dist_params, 'children') else dist_params.children[0].value
-        _x = np.linspace(0, 5 / _lam, 300)
-        _y = stats.expon.pdf(_x, scale=1 / _lam)
+    elif _d == "Exponential":
+        _la = dist_lam.value
+        _x = np.linspace(0, 5 / _la, 300)
+        _y = stats.expon.pdf(_x, scale=1 / _la)
         ax_dist.plot(_x, _y, 'b-', lw=2)
         ax_dist.fill_between(_x, _y, alpha=0.3)
-        ax_dist.set_title(f"Exponential(lambda={_lam:.1f})")
+        ax_dist.set_title(f"Exponential(lambda={_la:.1f})")
         ax_dist.set_ylabel("Density")
 
     else:  # Uniform
-        _children = dist_params.children if hasattr(dist_params, 'children') else [dist_params]
-        _a = _children[0].value
-        _b = _children[1].value
-        if _b <= _a:
-            _b = _a + 0.1
-        _margin = (_b - _a) * 0.3
-        _x = np.linspace(_a - _margin, _b + _margin, 300)
-        _y = stats.uniform.pdf(_x, loc=_a, scale=_b - _a)
+        _ai = dist_a.value
+        _bi = max(dist_b.value, _ai + 0.1)
+        _margin = (_bi - _ai) * 0.3
+        _x = np.linspace(_ai - _margin, _bi + _margin, 300)
+        _y = stats.uniform.pdf(_x, loc=_ai, scale=_bi - _ai)
         ax_dist.plot(_x, _y, 'b-', lw=2)
         ax_dist.fill_between(_x, _y, alpha=0.3)
-        ax_dist.set_title(f"Uniform(a={_a:.1f}, b={_b:.1f})")
+        ax_dist.set_title(f"Uniform(a={_ai:.1f}, b={_bi:.1f})")
         ax_dist.set_ylabel("Density")
 
     ax_dist.set_xlabel("x")
