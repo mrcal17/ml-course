@@ -30,7 +30,7 @@ def _():
     )
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Unsupervised Learning
@@ -48,7 +48,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -76,7 +76,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Derivation from Maximum Variance
@@ -226,7 +226,7 @@ def _(PCA, X_scaled_digits, load_digits, np, pca_slider, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -357,7 +357,7 @@ def _(KMeans, k_slider, make_blobs, np, plt, silhouette_score):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -416,7 +416,7 @@ def _(make_blobs, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -534,7 +534,7 @@ def _(StandardScaler, make_blobs, np, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -619,7 +619,7 @@ def _(PCA, StandardScaler, load_digits, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -700,7 +700,7 @@ def _(StandardScaler, make_blobs, np, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -722,7 +722,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -741,7 +741,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---

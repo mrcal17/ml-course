@@ -15,7 +15,7 @@ def _():
     return (mo, np, plt, PolynomialFeatures, LinearRegression, Ridge, Lasso, ElasticNet, RidgeCV, LassoCV, train_test_split, r2_score, mean_squared_error)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Linear Regression
@@ -45,7 +45,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -91,7 +91,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Geometric Interpretation
@@ -119,7 +119,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### When $X^\top X$ Is Not Invertible
@@ -135,7 +135,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -175,7 +175,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: OLS and Gradient Descent From Scratch""")
     return
@@ -222,7 +222,7 @@ def _(np):
     return (X_synth, y_synth, w_true, w_ols, w_gd, w_sgd)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -256,7 +256,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -291,7 +291,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: Train/Test Evaluation""")
     return
@@ -316,7 +316,7 @@ def _(X_synth, y_synth, LinearRegression, train_test_split, r2_score, mean_squar
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     > **Reading**: [ISLR S3.1.3](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) for RSE and $R^2$, [ESL S3.2.2](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) for the Gauss-Markov theorem.
@@ -348,7 +348,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: Polynomial Fits of Increasing Degree""")
     return
@@ -372,7 +372,7 @@ def _(np, PolynomialFeatures, LinearRegression, mean_squared_error):
     return (x_poly, y_poly)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     > **Reading**: [Bishop S3.1](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) for basis functions and polynomial fits, [MML S9.1](file:///C:/Users/landa/ml-course/textbooks/MML.pdf).
@@ -432,7 +432,7 @@ def _(degree_slider, np, plt, PolynomialFeatures, LinearRegression, mean_squared
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -505,7 +505,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: Ridge, Lasso, and Elastic Net""")
     return
@@ -604,7 +604,7 @@ def _(lambda_slider, np, plt, Ridge, PolynomialFeatures, x_reg, y_reg):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -631,7 +631,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: Bias-Variance U-Curve""")
     return
@@ -679,7 +679,7 @@ def _(np, Ridge, PolynomialFeatures, mean_squared_error):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     > **Reading**: [ISLR S2.2](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) for bias-variance tradeoff, [ESL S2.9](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) for the mathematical decomposition, [Bishop S3.2](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) for the Bayesian perspective on model complexity.
@@ -705,7 +705,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---

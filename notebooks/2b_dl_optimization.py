@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 # 2B — Optimization for Deep Learning
@@ -23,7 +23,7 @@ Primary reference: [DLBook Ch 8: Optimization for Training Deep Models](file:///
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -45,7 +45,7 @@ See [DLBook §8.2.1](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -81,7 +81,7 @@ You can't visualize a million-dimensional surface directly, but you can project 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -116,7 +116,7 @@ When you increase the batch size by a factor of $k$, you should increase the lea
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -160,7 +160,7 @@ Smith's full recipe: use a single cycle of learning rate that goes from low -> h
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -212,7 +212,7 @@ For truly large-batch training (batch sizes in the thousands or tens of thousand
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -265,7 +265,7 @@ A middle ground: divide channels into groups and normalize within each group. Gr
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -310,7 +310,7 @@ A practical memory optimization. Normally, during the forward pass, you store al
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -359,7 +359,7 @@ This is not the only recipe, but it's a solid default. The specific choices (opt
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -380,7 +380,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---

@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Model Selection & Evaluation
@@ -75,7 +75,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -127,7 +127,7 @@ def _():
     return (X_diabetes, np, y_diabetes,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     The standard deviation across folds tells you how variable the estimate is. If one fold gives you MSE of 2.3 and another gives 8.7, your model's performance is unstable — probably because your dataset is small or heterogeneous.
@@ -166,7 +166,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Always use stratified folds for classification. There's almost never a reason not to.
@@ -212,7 +212,7 @@ def _(X_diabetes, y_diabetes):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     For more on the bias-variance tradeoff in cross-validation, see [ESL Section 7.10: Cross-Validation](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf).
@@ -256,7 +256,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -312,7 +312,7 @@ def _():
     return (X_train_gs, y_train_gs,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Grid search is exhaustive and reliable, but it scales exponentially with the number of hyperparameters. Two hyperparameters with 10 values each = 100 combinations. Five hyperparameters with 10 values each = 100,000 combinations. Each combination requires a full cross-validation loop. This gets expensive fast.
@@ -375,7 +375,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -401,7 +401,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -439,7 +439,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -489,7 +489,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### L1 Regularization as Automatic Feature Selection
@@ -505,7 +505,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -548,7 +548,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     - **Temporal leakage.** In time series, randomly shuffling data before splitting lets the model "see the future." Always split temporally: train on the past, test on the future.
@@ -573,7 +573,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -635,7 +635,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Notice how `StandardScaler` is inside the pipeline. This is critical — it ensures the scaler is fit only on the training fold during each CV iteration, preventing data leakage.
@@ -656,7 +656,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -690,7 +690,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---

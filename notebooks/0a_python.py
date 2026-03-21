@@ -11,7 +11,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Module 0A: Python & Data Science Stack
@@ -23,7 +23,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -104,7 +104,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### List Comprehensions and Generators
@@ -136,7 +136,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     The nested comprehension syntax (`for batch in batches for pred in batch`) reads left-to-right in the same order you'd write nested for-loops. It trips people up at first, but it becomes second nature. You'll use this pattern when you need to flatten lists of predictions from multiple batches into a single list for computing metrics.
@@ -196,7 +196,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     A few things to notice here:
@@ -216,7 +216,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Here's a minimal class that implements a linear regressor using NumPy. Pay attention to the `@` operator in the `predict` method -- that's matrix multiplication, and it's doing all the real work. The `__repr__` method is a nice-to-have that makes debugging easier; when you print a model, you want to see something informative, not `<LinearRegressor object at 0x...>`.
@@ -273,7 +273,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### F-strings, Context Managers, Decorators
@@ -294,7 +294,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Let's break down those format specifiers because you'll use them constantly:
@@ -430,7 +430,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Now indexing and slicing. If you've used Python lists, you know the basics, but NumPy extends this to multiple dimensions and adds two powerful features: **boolean indexing** and **fancy indexing**.
@@ -498,7 +498,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     **Critical detail**: NumPy slices are *views*, not copies. Modifying a slice modifies the original array. This is a performance optimization (no data is copied), but it's a source of subtle bugs if you're not aware of it. Use `.copy()` when you need independence.
@@ -750,7 +750,7 @@ def _():
     return (df,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Get in the habit of running these five things on every new dataset:
@@ -796,7 +796,7 @@ def _(df):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     **Common gotcha**: `loc[0:2]` includes row 2. `iloc[0:2]` excludes row 2. This is because `loc` uses inclusive-on-both-ends label slicing, while `iloc` follows Python's half-open convention. This will bite you at least once -- now you know why.
@@ -835,7 +835,7 @@ def _(df):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     That last example -- subtracting the mean and dividing by the standard deviation -- is called **z-score normalization** (or standardization). It transforms each feature to have mean 0 and standard deviation 1. This is one of the most common preprocessing steps in ML because many algorithms (gradient descent, SVMs, k-nearest neighbors) perform poorly or converge slowly when features are on very different scales. If one feature ranges from 0 to 1 and another from 0 to 1,000,000, the large-scale feature will dominate the distance calculations.
@@ -873,7 +873,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Two strategies for missing data, each with tradeoffs:
@@ -902,7 +902,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     **Training curves** are the plot you'll look at most often. The x-axis is the epoch (one full pass through the training data), and the y-axis is the loss (how wrong the model is). A healthy training curve goes down. If the training loss goes down but the validation loss goes up, your model is overfitting -- memorizing the training data instead of learning generalizable patterns.
@@ -933,7 +933,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     **Scatter plots** let you visualize 2D data with class labels. This is how you'll check whether your classes are separable, spot clusters, and visualize learned embeddings. The `c=labels` parameter colors points by class, and `cmap="bwr"` gives you a blue/white/red colormap.
@@ -959,7 +959,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     **Histograms** show the distribution of your data. You'll use these to check whether features are normally distributed (many algorithms assume this), spot outliers, and verify that your data augmentation is working as expected. The `density=True` parameter normalizes the histogram so the area under the curve equals 1, making it comparable to probability density functions.
@@ -983,7 +983,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     **Heatmaps** visualize matrices. The two most common uses in ML:
@@ -1010,7 +1010,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Subplots and Figure Customization
@@ -1166,7 +1166,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -1182,7 +1182,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     This exercise is designed to test your broadcasting skills. The hint gives you the key identity:
@@ -1254,7 +1254,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     Before you run the cell below, try to work out each shape on paper using the broadcasting rules:
@@ -1286,7 +1286,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Exercise 6: End-to-End Mini Pipeline
@@ -1303,7 +1303,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---

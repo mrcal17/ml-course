@@ -1,15 +1,17 @@
 import marimo
 
+__generated_with = "0.21.1"
 app = marimo.App()
 
 
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # Linear Algebra Refresh
@@ -25,7 +27,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -55,7 +57,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Inner Products
@@ -81,7 +83,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -110,7 +112,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Matrix Multiplication as Composition
@@ -140,7 +142,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -166,7 +168,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -206,7 +208,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -243,7 +245,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Positive Definite and Semi-Definite Matrices
@@ -289,7 +291,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -322,27 +324,31 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _():
+        import numpy as np
 
-    # SVD demonstration
-    A = np.array([[3, 0], [0, 2], [0, 0]], dtype=float)
-    U, S, Vt = np.linalg.svd(A, full_matrices=True)
+        # SVD demonstration
+        A = np.array([[3, 0], [0, 2], [0, 0]], dtype=float)
+        U, S, Vt = np.linalg.svd(A, full_matrices=True)
 
-    print(f"A = \n{A}\n")
-    print(f"U = \n{np.round(U, 4)}\n")
-    print(f"Singular values: {S}")
-    print(f"V^T = \n{np.round(Vt, 4)}\n")
+        print(f"A = \n{A}\n")
+        print(f"U = \n{np.round(U, 4)}\n")
+        print(f"Singular values: {S}")
+        print(f"V^T = \n{np.round(Vt, 4)}\n")
 
-    # Reconstruct A from SVD
-    Sigma = np.zeros_like(A, dtype=float)
-    np.fill_diagonal(Sigma, S)
-    A_reconstructed = U @ Sigma @ Vt
-    print(f"U @ Sigma @ V^T = \n{np.round(A_reconstructed, 4)}")
-    print(f"Reconstruction matches: {np.allclose(A, A_reconstructed)}")
+        # Reconstruct A from SVD
+        Sigma = np.zeros_like(A, dtype=float)
+        np.fill_diagonal(Sigma, S)
+        A_reconstructed = U @ Sigma @ Vt
+        print(f"U @ Sigma @ V^T = \n{np.round(A_reconstructed, 4)}")
+        return print(f"Reconstruction matches: {np.allclose(A, A_reconstructed)}")
+
+
+    _()
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Low-Rank Approximation
@@ -358,27 +364,31 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _():
+        import numpy as np
 
-    # Low-rank approximation demo
-    rng = np.random.default_rng(42)
-    # Create a rank-2 matrix with some noise
-    true_U = rng.standard_normal((10, 2))
-    true_V = rng.standard_normal((8, 2))
-    A = true_U @ true_V.T + 0.1 * rng.standard_normal((10, 8))
+        # Low-rank approximation demo
+        rng = np.random.default_rng(42)
+        # Create a rank-2 matrix with some noise
+        true_U = rng.standard_normal((10, 2))
+        true_V = rng.standard_normal((8, 2))
+        A = true_U @ true_V.T + 0.1 * rng.standard_normal((10, 8))
 
-    U, S, Vt = np.linalg.svd(A, full_matrices=False)
-    print(f"Singular values: {np.round(S, 3)}")
+        U, S, Vt = np.linalg.svd(A, full_matrices=False)
+        print(f"Singular values: {np.round(S, 3)}")
 
-    # Energy captured by top-k singular values
-    total_energy = np.sum(S**2)
-    for k in range(1, min(len(S), 6) + 1):
-        energy_k = np.sum(S[:k]**2) / total_energy
-        print(f"  Rank-{k}: {energy_k:.4f} of total energy")
+        # Energy captured by top-k singular values
+        total_energy = np.sum(S**2)
+        for k in range(1, min(len(S), 6) + 1):
+            energy_k = np.sum(S[:k]**2) / total_energy
+        return print(f"  Rank-{k}: {energy_k:.4f} of total energy")
+
+
+    _()
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Connection to PCA
@@ -402,40 +412,44 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _():
+        import numpy as np
 
-    # PCA via eigendecomposition vs SVD -- verify they give the same result
-    rng = np.random.default_rng(42)
-    X = rng.standard_normal((100, 5))
-    X_centered = X - X.mean(axis=0)
+        # PCA via eigendecomposition vs SVD -- verify they give the same result
+        rng = np.random.default_rng(42)
+        X = rng.standard_normal((100, 5))
+        X_centered = X - X.mean(axis=0)
 
-    # Method 1: Eigendecomposition of covariance matrix
-    C = (X_centered.T @ X_centered) / (X_centered.shape[0] - 1)
-    eig_vals, eig_vecs = np.linalg.eigh(C)
-    # Sort by descending eigenvalue
-    idx = np.argsort(eig_vals)[::-1]
-    eig_vals = eig_vals[idx]
-    eig_vecs = eig_vecs[:, idx]
+        # Method 1: Eigendecomposition of covariance matrix
+        C = (X_centered.T @ X_centered) / (X_centered.shape[0] - 1)
+        eig_vals, eig_vecs = np.linalg.eigh(C)
+        # Sort by descending eigenvalue
+        idx = np.argsort(eig_vals)[::-1]
+        eig_vals = eig_vals[idx]
+        eig_vecs = eig_vecs[:, idx]
 
-    # Method 2: SVD of centered data matrix
-    U, S, Vt = np.linalg.svd(X_centered, full_matrices=False)
-    svd_eig_vals = S**2 / (X_centered.shape[0] - 1)
+        # Method 2: SVD of centered data matrix
+        U, S, Vt = np.linalg.svd(X_centered, full_matrices=False)
+        svd_eig_vals = S**2 / (X_centered.shape[0] - 1)
 
-    print("Eigenvalues from covariance matrix:")
-    print(f"  {np.round(eig_vals, 6)}")
-    print("Eigenvalues from SVD (sigma^2 / (n-1)):")
-    print(f"  {np.round(svd_eig_vals, 6)}")
-    print(f"\nMatch: {np.allclose(eig_vals, svd_eig_vals)}")
+        print("Eigenvalues from covariance matrix:")
+        print(f"  {np.round(eig_vals, 6)}")
+        print("Eigenvalues from SVD (sigma^2 / (n-1)):")
+        print(f"  {np.round(svd_eig_vals, 6)}")
+        print(f"\nMatch: {np.allclose(eig_vals, svd_eig_vals)}")
 
-    # Principal components match (up to sign)
-    print("\nPrincipal components match (up to sign flips):")
-    for i in range(5):
-        match = np.allclose(np.abs(eig_vecs[:, i]), np.abs(Vt[i, :]))
-        print(f"  PC{i+1}: {match}")
+        # Principal components match (up to sign)
+        print("\nPrincipal components match (up to sign flips):")
+        for i in range(5):
+            match = np.allclose(np.abs(eig_vecs[:, i]), np.abs(Vt[i, :]))
+        return print(f"  PC{i+1}: {match}")
+
+
+    _()
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -482,33 +496,37 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _():
+        import numpy as np
 
-    # Trace and determinant demonstrations
-    A = np.array([[4, 2], [2, 3]], dtype=float)
-    eigenvalues = np.linalg.eigvalsh(A)
+        # Trace and determinant demonstrations
+        A = np.array([[4, 2], [2, 3]], dtype=float)
+        eigenvalues = np.linalg.eigvalsh(A)
 
-    print(f"A = \n{A}\n")
-    print(f"Eigenvalues: {eigenvalues}")
-    print(f"Trace(A) = {np.trace(A):.4f}")
-    print(f"Sum of eigenvalues = {np.sum(eigenvalues):.4f}")
-    print(f"Det(A) = {np.linalg.det(A):.4f}")
-    print(f"Product of eigenvalues = {np.prod(eigenvalues):.4f}")
+        print(f"A = \n{A}\n")
+        print(f"Eigenvalues: {eigenvalues}")
+        print(f"Trace(A) = {np.trace(A):.4f}")
+        print(f"Sum of eigenvalues = {np.sum(eigenvalues):.4f}")
+        print(f"Det(A) = {np.linalg.det(A):.4f}")
+        print(f"Product of eigenvalues = {np.prod(eigenvalues):.4f}")
 
-    # Cyclic property: tr(AB) = tr(BA)
-    B = np.array([[1, 3], [2, 4]], dtype=float)
-    print(f"\ntr(AB) = {np.trace(A @ B):.4f}")
-    print(f"tr(BA) = {np.trace(B @ A):.4f}")
+        # Cyclic property: tr(AB) = tr(BA)
+        B = np.array([[1, 3], [2, 4]], dtype=float)
+        print(f"\ntr(AB) = {np.trace(A @ B):.4f}")
+        print(f"tr(BA) = {np.trace(B @ A):.4f}")
 
-    # Frobenius norm via trace
-    frob_norm_sq = np.linalg.norm(A, 'fro')**2
-    trace_ata = np.trace(A.T @ A)
-    print(f"\n||A||_F^2 = {frob_norm_sq:.4f}")
-    print(f"tr(A^T A) = {trace_ata:.4f}")
+        # Frobenius norm via trace
+        frob_norm_sq = np.linalg.norm(A, 'fro')**2
+        trace_ata = np.trace(A.T @ A)
+        print(f"\n||A||_F^2 = {frob_norm_sq:.4f}")
+        return print(f"tr(A^T A) = {trace_ata:.4f}")
+
+
+    _()
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ### Kronecker and Hadamard Products
@@ -541,7 +559,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -569,45 +587,50 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _():
+        import numpy as np
+        import matplotlib.pyplot as plt
 
-    # End-to-end demo: OLS as projection
-    rng = np.random.default_rng(42)
+        # End-to-end demo: OLS as projection
+        rng = np.random.default_rng(42)
 
-    # Generate data: y = 2x + 1 + noise
-    n = 50
-    x = rng.uniform(0, 5, n)
-    y = 2 * x + 1 + rng.standard_normal(n) * 0.8
+        # Generate data: y = 2x + 1 + noise
+        n = 50
+        x = rng.uniform(0, 5, n)
+        y = 2 * x + 1 + rng.standard_normal(n) * 0.8
 
-    # Design matrix with intercept
-    X = np.column_stack([np.ones(n), x])
+        # Design matrix with intercept
+        X = np.column_stack([np.ones(n), x])
 
-    # OLS solution: w = (X^T X)^{-1} X^T y
-    w_hat = np.linalg.solve(X.T @ X, X.T @ y)
-    y_hat = X @ w_hat
-    residuals = y - y_hat
+        # OLS solution: w = (X^T X)^{-1} X^T y
+        w_hat = np.linalg.solve(X.T @ X, X.T @ y)
+        print(f"w_hat: {w_hat}")
+        y_hat = X @ w_hat
+        residuals = y - y_hat
 
-    print(f"Estimated coefficients: intercept={w_hat[0]:.3f}, slope={w_hat[1]:.3f}")
-    print(f"Residuals orthogonal to X columns:")
-    print(f"  X[:,0]^T @ residuals = {X[:, 0] @ residuals:.10f}")
-    print(f"  X[:,1]^T @ residuals = {X[:, 1] @ residuals:.10f}")
+        print(f"Estimated coefficients: intercept={w_hat[0]:.3f}, slope={w_hat[1]:.3f}")
+        print(f"Residuals orthogonal to X columns:")
+        print(f"  X[:,0]^T @ residuals = {X[:, 0] @ residuals:.10f}")
+        print(f"  X[:,1]^T @ residuals = {X[:, 1] @ residuals:.10f}")
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.scatter(x, y, alpha=0.6, label='Data')
-    x_line = np.linspace(0, 5, 100)
-    ax.plot(x_line, w_hat[0] + w_hat[1] * x_line, 'r-', linewidth=2,
-            label=f'OLS: y = {w_hat[1]:.2f}x + {w_hat[0]:.2f}')
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_title('Ordinary Least Squares as Projection')
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    fig
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.scatter(x, y, alpha=0.6, label='Data')
+        x_line = np.linspace(0, 5, 100)
+        ax.plot(x_line, w_hat[0] + w_hat[1] * x_line, 'r-', linewidth=2,
+                label=f'OLS: y = {w_hat[1]:.2f}x + {w_hat[0]:.2f}')
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_title('Ordinary Least Squares as Projection')
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        return fig
+
+
+    _()
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---
@@ -630,25 +653,29 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _():
+        import numpy as np
 
-    # Exercise 2 solution scaffold
-    X = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
-    y = np.array([1, 2, 4], dtype=float)
+        # Exercise 2 solution scaffold
+        X = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
+        y = np.array([1, 2, 4], dtype=float)
 
-    # (a) Compute w_hat
-    w_hat = np.linalg.solve(X.T @ X, X.T @ y)
-    print(f"w_hat = {w_hat}")
+        # (a) Compute w_hat
+        w_hat = np.linalg.solve(X.T @ X, X.T @ y)
+        print(f"w_hat = {w_hat}")
 
-    # (b) Compute y_hat
-    y_hat = X @ w_hat
-    print(f"y_hat = {y_hat}")
+        # (b) Compute y_hat
+        y_hat = X @ w_hat
+        print(f"y_hat = {y_hat}")
 
-    # (c) Verify orthogonality
-    residual = y - y_hat
-    print(f"residual = {residual}")
-    print(f"X[:,0] . residual = {X[:, 0] @ residual:.10f}")
-    print(f"X[:,1] . residual = {X[:, 1] @ residual:.10f}")
+        # (c) Verify orthogonality
+        residual = y - y_hat
+        print(f"residual = {residual}")
+        print(f"X[:,0] . residual = {X[:, 0] @ residual:.10f}")
+        return print(f"X[:,1] . residual = {X[:, 1] @ residual:.10f}")
+
+
+    _()
     return
 
 
@@ -697,7 +724,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ---

@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 # Sequence Models
@@ -25,7 +25,7 @@ This module builds recurrent neural networks from first principles, diagnoses th
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -51,7 +51,7 @@ This is exactly what recurrent neural networks provide. See [DLBook, Section 10.
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -89,7 +89,7 @@ This unrolling view also immediately reveals the fundamental problem, which we w
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### RNN Unrolling Animation
@@ -105,7 +105,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### 2.3 A Concrete Example
@@ -129,7 +129,7 @@ $$h_2 = \tanh\!\left(\begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix}\begin{
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### 2.4 Backpropagation Through Time (BPTT)
@@ -151,7 +151,7 @@ This is the source of everything that follows.
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -193,7 +193,7 @@ The solution requires rethinking how information flows through time. See [DLBook
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -260,7 +260,7 @@ This lets the gates make decisions based on what is actually stored in the cell,
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -298,7 +298,7 @@ My practical advice: try both. If your sequences are very long and you need fine
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -326,7 +326,7 @@ This doubles the hidden state size but gives each position access to the full se
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -358,7 +358,7 @@ The solution — **attention** — lets the decoder look back at *all* encoder h
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -392,7 +392,7 @@ When processing batches of variable-length sequences, you need to handle **paddi
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -442,7 +442,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### 9.2 LSTM Version
@@ -488,7 +488,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 The training loop for these models would include two critical details:
@@ -534,7 +534,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### 9.3 Bidirectional LSTM
@@ -571,7 +571,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 Setting `bidirectional=True` is all it takes. The output hidden size doubles because forward and backward states are concatenated.
@@ -579,7 +579,7 @@ Setting `bidirectional=True` is all it takes. The output hidden size doubles bec
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -621,7 +621,7 @@ These modern recurrent models represent a remarkable full-circle moment: the fie
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---

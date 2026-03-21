@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 # Convolutional Neural Networks
@@ -23,7 +23,7 @@ CNNs are the architecture that brought deep learning back from the dead. They wo
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -48,7 +48,7 @@ The convolutional neural network is what you get when you bake these two priors 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -68,7 +68,7 @@ What does this do? It depends entirely on the kernel values. If $k = [-1, 0, 1]$
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### Extending to 2D
@@ -88,7 +88,7 @@ Mathematically, true convolution requires flipping the kernel before sliding it 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### Convolution Sliding Animation
@@ -104,7 +104,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### What Filters Detect
@@ -118,7 +118,7 @@ is a horizontal edge detector — it responds strongly wherever the image transi
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -154,7 +154,7 @@ Each neuron in a convolutional layer only "sees" a small patch of the input — 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -184,7 +184,7 @@ Why pool at all?
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -252,7 +252,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 Notice the progression: spatial dimensions shrink ($32 \to 16 \to 8 \to 1$), channel depth grows ($3 \to 32 \to 64 \to 128$), and global average pooling at the end collapses the spatial dimensions entirely. The final linear layer maps from 128 features to the number of classes. The entire network has roughly 111K parameters — five orders of magnitude fewer than the naive fully connected approach.
@@ -260,7 +260,7 @@ Notice the progression: spatial dimensions shrink ($32 \to 16 \to 8 \to 1$), cha
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -344,7 +344,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### Brief Mentions
@@ -358,7 +358,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -398,7 +398,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 **Fine-tuning:** Start from pretrained weights, but unfreeze some or all layers and train the entire network with a small learning rate. The pretrained weights provide a good initialization, and fine-tuning adapts them to your specific domain.
@@ -421,7 +421,7 @@ Transfer learning is why CNNs are practical. Without it, you'd need millions of 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -468,7 +468,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 > **Reading:** [DLBook §9.11](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) discusses representational interpretations. For Grad-CAM specifically, the original paper (Selvaraju et al., 2017) is accessible and well-written.
@@ -476,7 +476,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -508,7 +508,7 @@ CNNs also appear in generative models — running "in reverse" to produce images
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -574,7 +574,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 Notice the key components: data augmentation (random crops and flips — a form of regularization), ImageNet normalization statistics, pretrained weights, and a replaced classification head. Even with just 5 epochs, you should see test accuracy above 90% on CIFAR-10 — far better than training from scratch with the same budget.
@@ -582,7 +582,7 @@ Notice the key components: data augmentation (random crops and flips — a form 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---

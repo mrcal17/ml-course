@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 # Regularization for Deep Learning
@@ -31,7 +31,7 @@ The goal is not just to catalog these techniques, but to understand *why* they w
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -69,7 +69,7 @@ The result: every parameter decays at the same rate $\eta\lambda$, regardless of
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -116,7 +116,7 @@ The practical implication: you can use dropout at test time (called **MC Dropout
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -154,7 +154,7 @@ The correspondence is $\tau \approx \frac{1}{\eta\alpha}$, so smaller learning r
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -197,7 +197,7 @@ Data augmentation is so effective because it *multiplies the effective dataset s
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -224,7 +224,7 @@ At test time, BN uses running statistics (population estimates accumulated durin
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -260,7 +260,7 @@ Label smoothing is used in virtually all modern image classifiers and machine tr
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -301,7 +301,7 @@ This connects directly to implicit regularization (Section 9): the optimizer's i
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -341,7 +341,7 @@ This connects to double descent: the overparameterized regime works not because 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -452,7 +452,7 @@ def _(dropout_slider):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---

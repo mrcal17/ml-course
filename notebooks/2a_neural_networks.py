@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 # Module 2A: Neural Networks & Backpropagation
@@ -23,7 +23,7 @@ Take your time with this one.
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -52,7 +52,7 @@ This is a neural network. Two linear transformations with a nonlinearity in betw
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -72,7 +72,7 @@ But I want to be direct: **the biological metaphor is mostly misleading at this 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -121,7 +121,7 @@ See [DLBook 6.3](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for an e
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -163,7 +163,7 @@ The theorem is a reassurance about representational power, not a practical guara
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -199,7 +199,7 @@ Cross-entropy cancels the sigmoid's derivative. The gradient simplifies to $\fra
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -234,7 +234,7 @@ That is the forward pass. We computed the prediction and the loss. Now: how do w
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -266,7 +266,7 @@ See [DLBook 6.5.1](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for a 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### Deriving Backprop for Our 2-Layer Network
@@ -313,7 +313,7 @@ That is backpropagation. We started at the loss and worked backward, computing e
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### The General Pattern
@@ -347,7 +347,7 @@ For a network with 1 million parameters, backprop is a million times faster than
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -365,7 +365,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -421,7 +421,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 Every tensor with `requires_grad=True` accumulates its gradient. The entire system is built on the same chain rule computations we derived by hand above. There is no magic.
@@ -433,7 +433,7 @@ Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd) is a roughl
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -476,7 +476,7 @@ Typical batch sizes: 32, 64, 128, 256. Larger batches give more stable gradient 
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ### The Training Loop in PyTorch
@@ -524,7 +524,7 @@ def _():
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 Three lines do all the work: `zero_grad()`, `backward()`, `step()`. Everything you learned in this module — the forward pass, the chain rule, the computational graph, the VJPs — happens inside `loss.backward()`. The rest is bookkeeping.
@@ -534,7 +534,7 @@ Note `optimizer.zero_grad()`: PyTorch *accumulates* gradients by default (it add
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -668,7 +668,7 @@ def _(hidden_neurons_slider):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
@@ -695,7 +695,7 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
 ---
