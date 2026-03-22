@@ -9,6 +9,12 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -48,6 +54,23 @@ The convolutional neural network is what you get when you bake these two priors 
     return
 
 
+@app.cell
+def _(np):
+    # FC vs Conv parameter count comparison
+    H, W, C = 256, 256, 3          # image dimensions
+    fc_neurons = 1000
+    fc_params = H * W * C * fc_neurons  # ~200M weights (no bias counted)
+
+    num_filters = 32
+    kernel_size = 3
+    conv_params = num_filters * (kernel_size * kernel_size * C + 1)  # weights + bias
+
+    print(f"FC layer params:   {fc_params:>12,}")
+    print(f"Conv layer params: {conv_params:>12,}")
+    print(f"Ratio:             {fc_params / conv_params:>12,.0f}x fewer with conv")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -68,6 +91,25 @@ What does this do? It depends entirely on the kernel values. If $k = [-1, 0, 1]$
     return
 
 
+@app.cell
+def _(np):
+    # 1D convolution by hand — (x * k)[i] = sum_m x[i+m] * k[m]
+    x_signal = np.array([0, 1, 3, 6, 10, 6, 3, 1, 0], dtype=float)
+
+    k_edge = np.array([-1, 0, 1], dtype=float)       # edge / derivative detector
+    k_smooth = np.array([1/3, 1/3, 1/3])              # smoothing kernel
+
+    def conv1d(x, k):
+        """1D cross-correlation (what DL calls 'convolution')."""
+        out_len = len(x) - len(k) + 1
+        return np.array([np.sum(x[i:i+len(k)] * k) for i in range(out_len)])
+
+    print("Input signal:  ", x_signal)
+    print("Edge kernel:   ", conv1d(x_signal, k_edge))   # detects changes
+    print("Smooth kernel: ", conv1d(x_signal, k_smooth).round(2))  # moving average
+    return (conv1d,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -86,6 +128,35 @@ Mathematically, true convolution requires flipping the kernel before sliding it 
 > **Reading:** [DLBook §9.1](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) covers the mathematical definition rigorously, including the distinction between convolution and cross-correlation.
 """)
     return
+
+
+@app.cell
+def _(np):
+    # 2D convolution — (I * K)[i,j] = sum_m sum_n I[i+m, j+n] * K[m,n]
+    def conv2d(image, kernel):
+        """2D cross-correlation (valid padding)."""
+        kh, kw = kernel.shape
+        ih, iw = image.shape
+        oh, ow = ih - kh + 1, iw - kw + 1
+        out = np.zeros((oh, ow))
+        for i in range(oh):
+            for j in range(ow):
+                out[i, j] = np.sum(image[i:i+kh, j:j+kw] * kernel)
+        return out
+
+    # 6x6 image with a bright square in the middle
+    img = np.zeros((6, 6))
+    img[1:5, 1:5] = 1.0
+
+    # Horizontal edge detector: K = [[-1,-1,-1],[0,0,0],[1,1,1]]
+    K_horiz = np.array([[-1, -1, -1],
+                        [ 0,  0,  0],
+                        [ 1,  1,  1]], dtype=float)
+
+    feature_map = conv2d(img, K_horiz)
+    print("Input image (6x6):\n", img)
+    print("\nHorizontal edge detector output (4x4):\n", feature_map)
+    return (conv2d,)
 
 
 @app.cell(hide_code=True)
@@ -115,6 +186,24 @@ $$K = \begin{bmatrix} -1 & -1 & -1 \\ 0 & 0 & 0 \\ 1 & 1 & 1 \end{bmatrix}$$
 
 is a horizontal edge detector — it responds strongly wherever the image transitions from dark (top) to bright (bottom). Rotate it 90 degrees and you get a vertical edge detector. A Gaussian kernel blurs the image. In a CNN, **we don't hand-design these filters — the network learns them through backpropagation**. This is the whole point: the network discovers which local patterns are useful for the task at hand.
 """)
+    return
+
+
+@app.cell
+def _(conv2d, np):
+    # Compare different 3x3 filters on the same image
+    img_demo = np.zeros((8, 8))
+    img_demo[2:6, 2:6] = 1.0  # bright square
+
+    filters = {
+        "Horizontal edge": np.array([[-1,-1,-1],[ 0, 0, 0],[ 1, 1, 1]], dtype=float),
+        "Vertical edge":   np.array([[-1, 0, 1],[-1, 0, 1],[-1, 0, 1]], dtype=float),
+        "Sharpen":         np.array([[ 0,-1, 0],[-1, 5,-1],[ 0,-1, 0]], dtype=float),
+        "Blur (box)":      np.ones((3,3)) / 9.0,
+    }
+    for name, filt in filters.items():
+        out = conv2d(img_demo, filt)
+        print(f"{name:>18s}  ->  output range [{out.min():.1f}, {out.max():.1f}]")
     return
 
 
@@ -154,6 +243,81 @@ Each neuron in a convolutional layer only "sees" a small patch of the input — 
     return
 
 
+@app.cell
+def _(np):
+    # Multi-channel convolution: F filters on a C-channel input
+    # Input: (C_in, H, W), each filter: (C_in, kH, kW), output: (F, H', W')
+    def conv2d_multichannel(x, filters, bias, stride=1, pad=0):
+        """x: (C_in, H, W), filters: (F, C_in, kH, kW), bias: (F,)"""
+        C_in, H, W = x.shape
+        F, _, kH, kW = filters.shape
+        # zero-pad
+        if pad > 0:
+            x = np.pad(x, ((0,0),(pad,pad),(pad,pad)))
+        _, Hp, Wp = x.shape
+        oH = (Hp - kH) // stride + 1
+        oW = (Wp - kW) // stride + 1
+        out = np.zeros((F, oH, oW))
+        for f in range(F):
+            for i in range(oH):
+                for j in range(oW):
+                    region = x[:, i*stride:i*stride+kH, j*stride:j*stride+kW]
+                    out[f, i, j] = np.sum(region * filters[f]) + bias[f]
+        return out
+
+    # Demo: 3-channel 6x6 input, 2 filters of size 3x3, same padding
+    np.random.seed(0)
+    x_in = np.random.randn(3, 6, 6)
+    W_filters = np.random.randn(2, 3, 3, 3) * 0.1  # (F=2, C_in=3, 3, 3)
+    b = np.zeros(2)
+
+    out_valid = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=0)  # valid
+    out_same  = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=1)  # same
+    out_s2    = conv2d_multichannel(x_in, W_filters, b, stride=2, pad=1)  # stride 2
+
+    print(f"Input shape:            (3, 6, 6)")
+    print(f"Valid padding output:   {out_valid.shape}  <- shrinks")
+    print(f"Same padding output:    {out_same.shape}  <- preserves spatial size")
+    print(f"Stride=2 + same pad:    {out_s2.shape}  <- halves spatial dims")
+    return
+
+
+@app.cell
+def _():
+    # Output size formula:  O = floor((I + 2P - K) / S) + 1
+    def output_size(I, K, P, S):
+        return (I + 2 * P - K) // S + 1
+
+    # Examples
+    print("Output size formula: O = floor((I + 2P - K) / S) + 1\n")
+    cases = [
+        (32, 3, 0, 1, "32x32 input, 3x3 kernel, valid, stride 1"),
+        (32, 3, 1, 1, "32x32 input, 3x3 kernel, same,  stride 1"),
+        (32, 3, 1, 2, "32x32 input, 3x3 kernel, same,  stride 2"),
+        (224, 7, 3, 2, "224 input, 7x7 kernel, pad 3, stride 2 (ResNet stem)"),
+    ]
+    for I, K, P, S, desc in cases:
+        print(f"  {desc:55s}  ->  {output_size(I, K, P, S)}")
+    return
+
+
+@app.cell
+def _():
+    # Receptive field growth: stacking L layers of 3x3 kernels (stride 1)
+    # RF = 1 + L * (K - 1)   for stride-1 layers
+    def receptive_field(num_layers, kernel_size=3, stride=1):
+        rf = 1
+        for _ in range(num_layers):
+            rf = rf + (kernel_size - 1) * stride
+        return rf
+
+    print("Receptive field with stacked 3x3 conv layers (stride 1):")
+    for L in range(1, 7):
+        print(f"  {L} layers  ->  {receptive_field(L)}x{receptive_field(L)} pixels")
+    print("\nTwo 3x3 layers = same RF as one 5x5, but fewer params and more ReLUs")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -181,6 +345,57 @@ Why pool at all?
 
 > **Reading:** [DLBook §9.3](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) discusses pooling in detail, including its role as an invariance mechanism.
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Max pooling and average pooling in numpy
+    def max_pool2d(x, pool_size=2):
+        """x: (H, W) -> (H//pool_size, W//pool_size)"""
+        H, W = x.shape
+        oH, oW = H // pool_size, W // pool_size
+        out = np.zeros((oH, oW))
+        for i in range(oH):
+            for j in range(oW):
+                patch = x[i*pool_size:(i+1)*pool_size, j*pool_size:(j+1)*pool_size]
+                out[i, j] = np.max(patch)
+        return out
+
+    def avg_pool2d(x, pool_size=2):
+        """Same structure but takes mean instead of max."""
+        H, W = x.shape
+        oH, oW = H // pool_size, W // pool_size
+        out = np.zeros((oH, oW))
+        for i in range(oH):
+            for j in range(oW):
+                patch = x[i*pool_size:(i+1)*pool_size, j*pool_size:(j+1)*pool_size]
+                out[i, j] = np.mean(patch)
+        return out
+
+    feature_map_demo = np.array([
+        [1, 3, 2, 0],
+        [4, 6, 5, 1],
+        [0, 2, 8, 3],
+        [1, 0, 7, 4]
+    ], dtype=float)
+
+    print("Feature map (4x4):\n", feature_map_demo)
+    print("\nMax pool 2x2 (2x2):\n", max_pool2d(feature_map_demo))
+    print("\nAvg pool 2x2 (2x2):\n", avg_pool2d(feature_map_demo))
+    return
+
+
+@app.cell
+def _(np):
+    # Global Average Pooling: collapse spatial dims entirely
+    # Input: (C, H, W) -> Output: (C,)
+    feature_maps_gap = np.random.randn(3, 4, 4)  # 3 channels, 4x4 spatial
+    gap_output = feature_maps_gap.mean(axis=(1, 2))  # average over H, W
+
+    print("Input shape:  (3, 4, 4)  =", feature_maps_gap.size, "values")
+    print("After GAP:    (3,)       =", gap_output.size, "values")
+    print("GAP output:  ", gap_output.round(3))
     return
 
 
@@ -249,6 +464,38 @@ def _():
     # Count parameters:
     total = sum(p.numel() for p in model.parameters())
     print(f"Total parameters: {total:,}")  # ~111K — compare to 200M for FC!
+    return
+
+
+@app.cell
+def _(np):
+    # Full forward pass of a tiny CNN in pure numpy:
+    # Conv(3x3, 1->2 filters) -> ReLU -> MaxPool(2x2) -> GAP -> Linear -> softmax
+    np.random.seed(42)
+    img_tiny = np.random.randn(1, 8, 8)  # 1 channel, 8x8
+
+    # Conv: 2 filters, 3x3
+    W1 = np.random.randn(2, 1, 3, 3) * 0.5
+    b1 = np.zeros(2)
+    # manual conv (valid)
+    conv_out = np.zeros((2, 6, 6))
+    for f in range(2):
+        for i in range(6):
+            for j in range(6):
+                conv_out[f,i,j] = np.sum(img_tiny[:, i:i+3, j:j+3] * W1[f]) + b1[f]
+
+    relu_out = np.maximum(0, conv_out)                 # ReLU
+    pool_out = relu_out.reshape(2, 3, 2, 3, 2).max(axis=(2, 4))  # MaxPool 2x2
+    gap_out  = pool_out.mean(axis=(1, 2))              # GAP -> (2,)
+    logits   = gap_out @ np.random.randn(2, 3)         # Linear -> 3 classes
+    probs    = np.exp(logits) / np.exp(logits).sum()   # softmax
+
+    print(f"Input:     {img_tiny.shape}")
+    print(f"After conv:{conv_out.shape}")
+    print(f"After ReLU:{relu_out.shape}  (neg values clipped)")
+    print(f"After pool:{pool_out.shape}")
+    print(f"After GAP: {gap_out.shape}")
+    print(f"Logits:    {logits.shape}  ->  probs: {probs.round(3)}")
     return
 
 
@@ -341,6 +588,30 @@ def _():
 
     block = ResidualBlock(64)
     print(f"ResidualBlock parameters: {sum(p.numel() for p in block.parameters()):,}")
+    return
+
+
+@app.cell
+def _(np):
+    # Residual block in numpy: output = relu(f(x) + x)
+    # f(x) is two "conv" layers (simulated as matrix ops on a vector)
+    np.random.seed(7)
+    x_res = np.random.randn(4)            # feature vector
+
+    # Two "layers" (simplified as weight matrices)
+    W1_res = np.random.randn(4, 4) * 0.01   # small weights -> f(x) near 0
+    W2_res = np.random.randn(4, 4) * 0.01
+
+    f_x = np.maximum(0, W1_res @ x_res)       # layer 1 + ReLU
+    f_x = W2_res @ f_x                         # layer 2
+
+    plain_out = np.maximum(0, f_x)             # plain block: just f(x)
+    resid_out = np.maximum(0, f_x + x_res)     # residual block: f(x) + x
+
+    print("Input x:          ", x_res.round(3))
+    print("f(x) [learned]:   ", f_x.round(3), " <- near zero (small weights)")
+    print("Plain output:     ", plain_out.round(3))
+    print("Residual output:  ", resid_out.round(3), " <- close to x (identity default)")
     return
 
 
@@ -465,6 +736,28 @@ def _():
     print("4. Weight feature maps by pooled gradients")
     print("5. ReLU (keep only positive contributions)")
     print("6. Upsample to input resolution and overlay")
+    return
+
+
+@app.cell
+def _(np):
+    # Simplified Grad-CAM math in numpy
+    # Given: feature_maps (C, H, W) and gradients (C, H, W)
+    np.random.seed(99)
+    fmaps = np.random.randn(4, 3, 3)         # 4 channels, 3x3 spatial
+    grads = np.random.randn(4, 3, 3)         # gradients of class score w.r.t. fmaps
+
+    # Step 1: global average pool gradients -> per-channel importance weights
+    alpha = grads.mean(axis=(1, 2))           # shape (4,)
+
+    # Step 2: weighted combination of feature maps
+    cam = np.sum(alpha[:, None, None] * fmaps, axis=0)  # (3, 3)
+
+    # Step 3: ReLU — only positive contributions
+    cam = np.maximum(0, cam)
+
+    print("Channel importance weights (alpha):", alpha.round(3))
+    print("Grad-CAM heatmap (3x3):\n", cam.round(3))
     return
 
 
@@ -609,6 +902,254 @@ def _(mo):
 
 > **Primary reference for all topics in this lecture:** [DLBook, Chapter 9: Convolutional Networks](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf). For the practical side, [Murphy PML1 §14.1-14.3](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) provides a clear, modern treatment with additional architectural details.
 """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+---
+
+## Code It
+
+The exercises below ask you to implement core CNN operations from scratch in numpy. Fill in the `TODO` placeholders, then run each cell to verify your output.
+""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 1: Implement 2D Convolution with Padding and Stride
+
+Write a general-purpose 2D convolution function that supports arbitrary padding and stride. Test it on a small input to verify the output dimensions match the formula $O = \lfloor(I + 2P - K) / S\rfloor + 1$.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def my_conv2d(image, kernel, stride=1, padding=0):
+        """
+        2D cross-correlation with stride and padding.
+        image: (H, W) array
+        kernel: (kH, kW) array
+        Returns: output feature map
+        """
+        # TODO: zero-pad the image
+        # Hint: use np.pad(image, ((padding, padding), (padding, padding)))
+        padded = None  # TODO
+
+        kH, kW = kernel.shape
+        # TODO: compute output dimensions using the formula
+        oH = None  # TODO
+        oW = None  # TODO
+
+        out = np.zeros((oH, oW))
+        # TODO: nested loop — slide kernel with given stride
+        # for i in range(oH):
+        #     for j in range(oW):
+        #         region = ...
+        #         out[i, j] = ...
+
+        return out
+
+    # Test: 6x6 input, 3x3 kernel, stride=2, padding=1 -> should be 3x3
+    _test_img = np.ones((6, 6))
+    _test_ker = np.ones((3, 3))
+    # _result = my_conv2d(_test_img, _test_ker, stride=2, padding=1)
+    # print(f"Output shape: {_result.shape}")  # expect (3, 3)
+    # print(_result)  # each value should be 9.0 (interior) or less (border)
+    return (my_conv2d,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 2: Implement Max Pooling with Arbitrary Pool Size
+
+Write max pooling that works for any square pool size. Also return the indices of the max values (these are needed for backprop through max pool).
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def my_maxpool(feature_map, pool_size=2):
+        """
+        Max pooling with given pool size (assumes stride = pool_size).
+        feature_map: (H, W) array
+        Returns: (pooled_output, max_indices)
+            - pooled_output: (H//pool_size, W//pool_size)
+            - max_indices: same shape, each entry is (row, col) of the max in the patch
+        """
+        H, W = feature_map.shape
+        oH, oW = H // pool_size, W // pool_size
+        out = np.zeros((oH, oW))
+        indices = np.zeros((oH, oW, 2), dtype=int)
+
+        # TODO: iterate over output positions
+        # For each (i, j), extract the pool_size x pool_size patch,
+        # find the max value and its position within the patch
+        # Hint: np.argmax gives flat index; use np.unravel_index to get (row, col)
+
+        return out, indices
+
+    # Test
+    _fm = np.array([[1, 5, 2, 0],
+                     [3, 4, 6, 1],
+                     [8, 2, 0, 3],
+                     [7, 1, 9, 4]], dtype=float)
+    # _pooled, _idx = my_maxpool(_fm, pool_size=2)
+    # print("Pooled:\n", _pooled)    # expect [[5, 6], [8, 9]]
+    # print("Indices:\n", _idx)
+    return (my_maxpool,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 3: Multi-Channel Convolution (Full Conv Layer)
+
+Implement a complete convolutional layer: multiple input channels, multiple output filters, bias, and ReLU activation. This is the core computation inside every CNN.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def conv_layer(x, filters, bias):
+        """
+        Full conv layer: multi-channel input, multiple filters, bias, ReLU.
+        x:       (C_in, H, W)
+        filters: (C_out, C_in, kH, kW)
+        bias:    (C_out,)
+        Returns: (C_out, H-kH+1, W-kW+1) — valid padding, ReLU applied
+        """
+        C_out, C_in, kH, kW = filters.shape
+        _, H, W = x.shape
+        oH, oW = H - kH + 1, W - kW + 1
+        out = np.zeros((C_out, oH, oW))
+
+        # TODO: for each output filter f:
+        #   for each spatial position (i, j):
+        #     extract the (C_in, kH, kW) region from x
+        #     element-wise multiply with filters[f], sum, add bias[f]
+        # Then apply ReLU: out = np.maximum(0, out)
+
+        return out
+
+    # Test: 3-channel 5x5 input, 2 filters of 3x3
+    np.random.seed(123)
+    _x_test = np.random.randn(3, 5, 5)
+    _f_test = np.random.randn(2, 3, 3, 3) * 0.5
+    _b_test = np.zeros(2)
+    # _out = conv_layer(_x_test, _f_test, _b_test)
+    # print(f"Output shape: {_out.shape}")  # expect (2, 3, 3)
+    # print(f"All non-negative (ReLU)? {(_out >= 0).all()}")
+    return (conv_layer,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 4: Build a Tiny CNN Forward Pass
+
+Chain together your `conv_layer` and `my_maxpool` functions to build a two-layer CNN forward pass. Compute the output shape at each stage and verify it matches your expectation.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def tiny_cnn_forward(x, params):
+        """
+        Forward pass: Conv1 -> ReLU -> MaxPool -> Conv2 -> ReLU -> GAP -> Linear
+        x: (C_in, H, W) single image
+        params: dict with keys 'W1','b1','W2','b2','W_fc','b_fc'
+        Returns: class logits (num_classes,)
+        """
+        # TODO: Layer 1 — conv + ReLU (use your conv_layer function)
+        # h1 = conv_layer(x, params['W1'], params['b1'])
+
+        # TODO: Max pool (apply to each channel separately)
+        # h1_pooled = ... for each channel in h1
+
+        # TODO: Layer 2 — conv + ReLU
+        # h2 = conv_layer(h1_pooled, params['W2'], params['b2'])
+
+        # TODO: Global average pooling — mean over spatial dims
+        # gap = h2.mean(axis=(1, 2))
+
+        # TODO: Linear classifier
+        # logits = gap @ params['W_fc'] + params['b_fc']
+
+        # return logits
+        pass
+
+    # Setup: 1-channel 8x8 input -> conv(1->4, 3x3) -> pool(2) -> conv(4->8, 3x3) -> GAP -> linear(8->3)
+    np.random.seed(0)
+    _params = {
+        'W1': np.random.randn(4, 1, 3, 3) * 0.5,   # 4 filters on 1-channel input
+        'b1': np.zeros(4),
+        'W2': np.random.randn(8, 4, 3, 3) * 0.5,   # 8 filters on 4-channel input
+        'b2': np.zeros(8),
+        'W_fc': np.random.randn(8, 3) * 0.5,        # 8 features -> 3 classes
+        'b_fc': np.zeros(3),
+    }
+    # _x_input = np.random.randn(1, 8, 8)
+    # _logits = tiny_cnn_forward(_x_input, _params)
+    # print(f"Input: (1, 8, 8) -> Logits: {_logits.shape}")
+    # print(f"Logits: {_logits.round(3)}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 5: Implement a Residual Block in Numpy
+
+Implement the residual connection: `output = ReLU(f(x) + x)`, where `f` is two convolution layers with ReLU in between. Verify that when weights are near zero, the output is close to `ReLU(x)`.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def residual_block_np(x, W1_r, b1_r, W2_r, b2_r):
+        """
+        Residual block: output = ReLU(conv2(ReLU(conv1(x))) + x)
+        x: (C, H, W) — input with same padding so spatial dims are preserved
+        W1_r, W2_r: (C, C, 3, 3) filters — same in/out channels
+        b1_r, b2_r: (C,) biases
+        Returns: (C, H, W)
+        """
+        C, H, W = x.shape
+
+        # TODO: conv1 with same padding (pad=1 for 3x3 kernel)
+        # Hint: pad x with zeros, then convolve
+        # h = ReLU(conv1(x))
+
+        # TODO: conv2 with same padding
+        # f_x = conv2(h)
+
+        # TODO: skip connection + ReLU
+        # out = np.maximum(0, f_x + x)
+
+        # return out
+        pass
+
+    # Test: with near-zero weights, output should approximate ReLU(x)
+    # np.random.seed(42)
+    # _C = 2
+    # _x_rb = np.random.randn(_C, 6, 6)
+    # _W1_rb = np.random.randn(_C, _C, 3, 3) * 0.001  # near zero
+    # _W2_rb = np.random.randn(_C, _C, 3, 3) * 0.001
+    # _b1_rb, _b2_rb = np.zeros(_C), np.zeros(_C)
+    # _out_rb = residual_block_np(_x_rb, _W1_rb, _b1_rb, _W2_rb, _b2_rb)
+    # _relu_x = np.maximum(0, _x_rb)
+    # print(f"Max difference from ReLU(x): {np.abs(_out_rb - _relu_x).max():.6f}")
+    # print("(Should be very small — residual block defaults to identity)")
     return
 
 

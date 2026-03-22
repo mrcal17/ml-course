@@ -89,6 +89,30 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Sample space: fair die
+    omega = np.array([1, 2, 3, 4, 5, 6])
+    probs = np.ones(6) / 6  # uniform PMF
+
+    # Axiom 1: all probs >= 0
+    assert np.all(probs >= 0), "Non-negativity violated"
+
+    # Axiom 2: total probability = 1
+    assert np.isclose(probs.sum(), 1.0), "Normalization violated"
+
+    # Axiom 3: P(even OR odd<=3) for mutually exclusive events {2,4,6} and {1,3}
+    A = np.isin(omega, [2, 4, 6])  # even
+    B = np.isin(omega, [1, 3])      # odd and <= 3
+    P_A = probs[A].sum()             # 3/6
+    P_B = probs[B].sum()             # 2/6
+    P_union = probs[A | B].sum()     # 5/6 — should equal P_A + P_B
+    print(f"P(A)={P_A:.3f}, P(B)={P_B:.3f}, P(A∪B)={P_union:.3f}, P(A)+P(B)={P_A+P_B:.3f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -144,6 +168,56 @@ def _(mo):
 
     > [Chan Ch 2.1–2.3](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) covers conditional probability with many worked examples.
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Conditional probability: P(King | Face card)
+    deck = 52
+    kings = 4
+    face_cards = 12  # J, Q, K of each suit
+
+    # P(King ∩ Face) = P(King), since all kings are face cards
+    P_king_and_face = kings / deck
+    P_face = face_cards / deck
+    P_king_given_face = P_king_and_face / P_face  # Bayes definition
+
+    print(f"P(King | Face) = {P_king_and_face:.4f} / {P_face:.4f} = {P_king_given_face:.4f}")
+    print(f"That's 1/{int(1/P_king_given_face)} — exactly 4 kings among 12 face cards")
+
+    # Verify with simulation
+    cards = np.arange(deck)
+    n_sims = 500_000
+    draws = np.random.choice(cards, size=n_sims)
+    is_face = draws < 12          # first 12 cards are face cards
+    is_king = draws < 4           # first 4 are kings
+    simulated = is_king[is_face].mean()
+    print(f"Simulated P(King | Face) ≈ {simulated:.4f}")
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Independence test: are two dice rolls independent?
+    n = 200_000
+    die1 = np.random.randint(1, 7, n)
+    die2 = np.random.randint(1, 7, n)
+
+    # P(die1=6) vs P(die1=6 | die2=6) — should be equal if independent
+    P_d1_6 = (die1 == 6).mean()
+    P_d1_6_given_d2_6 = (die1[die2 == 6] == 6).mean()
+    print(f"P(die1=6) = {P_d1_6:.4f}")
+    print(f"P(die1=6 | die2=6) = {P_d1_6_given_d2_6:.4f}")
+    print(f"Nearly equal → dice are independent")
+
+    # Also verify: P(A∩B) = P(A)*P(B) for independent events
+    P_both_6 = ((die1 == 6) & (die2 == 6)).mean()
+    print(f"P(both 6) = {P_both_6:.4f}, P(6)*P(6) = {P_d1_6**2:.4f}")
     return
 
 
@@ -260,6 +334,37 @@ def _(mo):
 
 
 @app.cell
+def _():
+    import numpy as np
+
+    # Verify Bayes' theorem: Medical test example
+    P_disease = 0.01
+    P_pos_given_disease = 0.99      # sensitivity
+    P_pos_given_healthy = 0.01      # 1 - specificity
+
+    # Total probability of positive test (law of total probability)
+    P_positive = P_pos_given_disease * P_disease + P_pos_given_healthy * (1 - P_disease)
+
+    # Bayes' theorem
+    P_disease_given_pos = (P_pos_given_disease * P_disease) / P_positive
+
+    print("=== Medical Test (Bayes' Theorem) ===")
+    print(f"P(+)             = {P_positive:.4f}")
+    print(f"P(disease | +)   = {P_disease_given_pos:.4f}  ← only 50%!")
+
+    # Spam example
+    P_spam = 0.3
+    P_lottery_given_spam = 0.15
+    P_lottery_given_ham = 0.005
+    P_lottery = P_lottery_given_spam * P_spam + P_lottery_given_ham * (1 - P_spam)
+    P_spam_given_lottery = (P_lottery_given_spam * P_spam) / P_lottery
+
+    print(f"\n=== Spam Filter (Bayes' Theorem) ===")
+    print(f"P(spam | 'lottery') = {P_spam_given_lottery:.3f}  ← prior 0.30 → posterior 0.93")
+    return
+
+
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -358,6 +463,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Discrete RV: fair die PMF
+    outcomes = np.arange(1, 7)
+    pmf = np.ones(6) / 6
+
+    # Verify PMF requirements: non-negative, sums to 1
+    print("=== Discrete: Fair Die PMF ===")
+    for x, p in zip(outcomes, pmf):
+        print(f"  P(X={x}) = {p:.4f}")
+    print(f"  Sum = {pmf.sum():.1f} ✓")
+
+    # Continuous RV: approximate PDF→probability via sampling
+    # P(0.5 < Z < 1.5) for Z ~ N(0,1)
+    z_samples = np.random.randn(1_000_000)
+    P_interval = ((z_samples > 0.5) & (z_samples < 1.5)).mean()
+    print(f"\n=== Continuous: Standard Normal ===")
+    print(f"  P(0.5 < Z < 1.5) ≈ {P_interval:.4f}")
+
+    # CDF: P(Z <= 1.96) should be ~0.975
+    P_cdf = (z_samples <= 1.96).mean()
+    print(f"  P(Z ≤ 1.96) ≈ {P_cdf:.4f}  (exact: 0.975)")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -443,6 +575,27 @@ def _(mo):
     - **Key property:** Memoryless. $P(X > s + t \mid X > s) = P(X > t)$. The probability of waiting another $t$ minutes is the same regardless of how long you have already waited.
     - **ML connection:** Survival analysis. Modeling inter-arrival times in streaming data.
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+    from scipy import stats
+
+    # Sample from each distribution, compare empirical vs theoretical moments
+    n = 100_000
+    dists = {
+        "Bernoulli(0.3)":    (np.random.binomial(1, 0.3, n),    0.3, 0.3*0.7),
+        "Binomial(20,0.4)":  (np.random.binomial(20, 0.4, n),   8.0, 20*0.4*0.6),
+        "Poisson(5)":        (np.random.poisson(5, n),           5.0, 5.0),
+        "Normal(2,3²)":      (np.random.normal(2, 3, n),         2.0, 9.0),
+        "Exponential(λ=2)":  (np.random.exponential(0.5, n),     0.5, 0.25),
+    }
+    print(f"{'Distribution':<20} {'E[X] theory':>11} {'E[X] sample':>11} {'Var theory':>11} {'Var sample':>11}")
+    print("-" * 68)
+    for name, (samples, mu, var) in dists.items():
+        print(f"{name:<20} {mu:>11.3f} {samples.mean():>11.3f} {var:>11.3f} {samples.var():>11.3f}")
     return
 
 
@@ -635,6 +788,57 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Expected value: E[X] for a loaded die
+    outcomes = np.arange(1, 7)
+    pmf = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # loaded toward 6
+    E_X = (outcomes * pmf).sum()                        # weighted average
+    E_X2 = (outcomes**2 * pmf).sum()
+
+    # Variance two ways
+    Var_direct = ((outcomes - E_X)**2 * pmf).sum()      # E[(X-μ)²]
+    Var_shortcut = E_X2 - E_X**2                        # E[X²] - (E[X])²
+    print(f"E[X]  = {E_X:.3f}")
+    print(f"Var(X) via definition = {Var_direct:.3f}")
+    print(f"Var(X) via shortcut   = {Var_shortcut:.3f}")
+
+    # Linearity: E[3X+5] = 3*E[X]+5
+    print(f"\nE[3X+5] = {3*E_X+5:.3f}")
+
+    # Var(3X+5) = 9*Var(X) — the +5 doesn't affect spread
+    print(f"Var(3X+5) = {9*Var_direct:.3f}")
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Covariance and correlation from data
+    np.random.seed(0)
+    n = 50_000
+
+    # Correlated pair: X ~ N(0,1), Y = 2X + noise
+    X = np.random.randn(n)
+    Y = 2 * X + np.random.randn(n) * 0.5
+
+    cov_XY = np.cov(X, Y)[0, 1]           # off-diagonal of covariance matrix
+    corr_XY = np.corrcoef(X, Y)[0, 1]     # normalized to [-1, 1]
+    print(f"Cov(X,Y)  = {cov_XY:.3f}  (positive — they move together)")
+    print(f"Corr(X,Y) = {corr_XY:.3f}  (strong positive linear relationship)")
+
+    # Full covariance matrix for 3 variables
+    Z = -X + np.random.randn(n) * 0.3
+    data = np.stack([X, Y, Z])
+    cov_matrix = np.cov(data)
+    print(f"\nCovariance matrix (3×3):\n{np.round(cov_matrix, 2)}")
+    print("Diagonal = variances, off-diagonal = covariances")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -705,6 +909,30 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Joint distribution table from Exercise P4
+    joint = np.array([[0.2, 0.1],   # X=0: Y=0, Y=1
+                      [0.3, 0.4]])  # X=1: Y=0, Y=1
+
+    # Marginals: sum over the other variable
+    P_X = joint.sum(axis=1)   # sum over Y
+    P_Y = joint.sum(axis=0)   # sum over X
+    print(f"Marginal P(X): {P_X}  (sums to {P_X.sum():.1f})")
+    print(f"Marginal P(Y): {P_Y}  (sums to {P_Y.sum():.1f})")
+
+    # Conditional: P(Y=1 | X=1) = P(X=1,Y=1) / P(X=1)
+    P_Y1_given_X1 = joint[1, 1] / P_X[1]
+    print(f"\nP(Y=1 | X=1) = {joint[1,1]} / {P_X[1]} = {P_Y1_given_X1:.3f}")
+
+    # Independence check: P(X,Y) == P(X)*P(Y) for all entries?
+    independent = np.allclose(joint, np.outer(P_X, P_Y))
+    print(f"Independent? {independent}  (product table: {np.round(np.outer(P_X, P_Y), 2)})")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -744,6 +972,30 @@ def _(mo):
     > [Chan Ch 7.2](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) covers the LLN and CLT with proofs and visualizations.
     > [MML Section 6.7](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) discusses these limit theorems in the ML context.
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Law of Large Numbers: running average converges to true mean
+    np.random.seed(7)
+    true_mean = 3.5  # E[fair die]
+    rolls = np.random.randint(1, 7, size=5000)
+    running_avg = np.cumsum(rolls) / np.arange(1, len(rolls) + 1)
+
+    fig_lln, ax_lln = plt.subplots(figsize=(8, 3))
+    ax_lln.plot(running_avg, lw=1)
+    ax_lln.axhline(true_mean, color='r', linestyle='--', label=f'True mean = {true_mean}')
+    ax_lln.set_xlabel('Number of rolls')
+    ax_lln.set_ylabel('Running average')
+    ax_lln.set_title('Law of Large Numbers: sample mean → population mean')
+    ax_lln.legend()
+    ax_lln.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_lln
     return
 
 
@@ -812,6 +1064,58 @@ def _(mo):
     > [Bishop PRML Section 1.6](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) covers information theory and its connection to ML beautifully.
     > [Murphy PML1 Section 2.8](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) provides a modern treatment with ML applications.
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    def entropy(p):
+        """H(p) in nats (using ln)."""
+        p = np.asarray(p, dtype=float)
+        p = p[p > 0]
+        return -np.sum(p * np.log(p))
+
+    def kl_divergence(p, q):
+        """D_KL(p || q) in nats."""
+        p, q = np.asarray(p, float), np.asarray(q, float)
+        mask = p > 0
+        return np.sum(p[mask] * np.log(p[mask] / q[mask]))
+
+    def cross_entropy(p, q):
+        """H(p, q) in nats."""
+        p, q = np.asarray(p, float), np.asarray(q, float)
+        mask = p > 0
+        return -np.sum(p[mask] * np.log(q[mask]))
+
+    # Compare: fair die vs loaded die
+    p_fair = np.ones(6) / 6
+    p_loaded = np.array([0.4, 0.2, 0.15, 0.1, 0.1, 0.05])
+
+    print(f"Entropy(fair)   = {entropy(p_fair):.4f} nats  (maximum uncertainty)")
+    print(f"Entropy(loaded) = {entropy(p_loaded):.4f} nats  (less uncertain)")
+    print(f"KL(fair || loaded) = {kl_divergence(p_fair, p_loaded):.4f}  (asymmetric!)")
+    print(f"KL(loaded || fair) = {kl_divergence(p_loaded, p_fair):.4f}")
+    print(f"Cross-entropy H(fair, loaded) = {cross_entropy(p_fair, p_loaded):.4f}")
+    print(f"Verify: H(p) + KL(p||q) = {entropy(p_fair) + kl_divergence(p_fair, p_loaded):.4f} = H(p,q)")
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Binary cross-entropy loss — the classification workhorse
+    # True label y=1, model predicts p_hat
+    y_true = 1
+    p_hats = [0.01, 0.1, 0.5, 0.9, 0.99]
+
+    print("Binary cross-entropy loss for y=1:")
+    for p_hat in p_hats:
+        bce = -(y_true * np.log(p_hat) + (1 - y_true) * np.log(1 - p_hat))
+        print(f"  p_hat={p_hat:.2f} → loss={bce:.4f}")
+    print("Lower p_hat → higher loss (model is wrong and gets punished)")
     return
 
 
@@ -1035,6 +1339,205 @@ def _(mo):
     > - [Bishop PRML Chapter 1](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) — Introduction, particularly Sections 1.2 (Probability Theory) and 1.6 (Information Theory)
     > - [Murphy PML1 Chapter 2](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) — Probability: Univariate Models, a modern and thorough treatment
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    Now it is your turn. Each exercise below gives you a problem and a skeleton — fill in the missing code. These reinforce the math-to-code translation for every major concept in this module.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Bayes' Theorem from Scratch
+
+    A factory has two machines. Machine A produces 60% of items, Machine B produces 40%. Machine A has a 2% defect rate, Machine B has a 5% defect rate. An item is found defective. What is the probability it came from Machine A?
+
+    Compute `P_A_given_defective` using Bayes' theorem.
+    """)
+    return
+
+
+@app.cell
+def _():
+    # Exercise 1: Bayes' theorem — factory defect problem
+    P_A = 0.6            # prior: item from Machine A
+    P_B = 0.4            # prior: item from Machine B
+    P_def_A = 0.02       # P(defective | Machine A)
+    P_def_B = 0.05       # P(defective | Machine B)
+
+    # TODO: compute total probability of defect (law of total probability)
+    P_defective = ...
+
+    # TODO: apply Bayes' theorem
+    P_A_given_defective = ...
+
+    # print(f"P(Machine A | defective) = {P_A_given_defective:.4f}")
+    # Expected answer: ~0.375
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Simulate the Law of Large Numbers
+
+    Roll a biased die (P(6) = 0.5, others share the remaining 0.5 equally) 10,000 times. Plot the running mean and show it converges to the true expected value.
+
+    Hint: compute the true E[X] from the PMF first.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Exercise 2: LLN with a biased die
+    pmf = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # P(1)..P(6)
+    outcomes = np.arange(1, 7)
+
+    # TODO: compute the true expected value from the PMF
+    true_mean = ...
+
+    # TODO: sample 10,000 rolls using np.random.choice with the pmf as weights
+    rolls = ...
+
+    # TODO: compute running average (cumulative sum / index)
+    running_avg = ...
+
+    # Uncomment to plot:
+    # fig, ax = plt.subplots(figsize=(8, 3))
+    # ax.plot(running_avg, lw=1)
+    # ax.axhline(true_mean, color='r', linestyle='--', label=f'E[X] = {true_mean:.2f}')
+    # ax.set_xlabel('Number of rolls')
+    # ax.set_ylabel('Running average')
+    # ax.set_title('LLN: biased die')
+    # ax.legend()
+    # ax.grid(True, alpha=0.3)
+    # plt.tight_layout()
+    # fig
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Variance — Two Ways
+
+    Given a discrete distribution with outcomes [1, 2, 3, 4, 5] and PMF [0.1, 0.2, 0.4, 0.2, 0.1], compute the variance using:
+    1. The definition: $\text{Var}(X) = E[(X - \mu)^2]$
+    2. The shortcut: $\text{Var}(X) = E[X^2] - (E[X])^2$
+
+    Verify they match.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Exercise 3: Compute variance two ways
+    outcomes = np.array([1, 2, 3, 4, 5])
+    pmf = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
+
+    # TODO: compute E[X]
+    E_X = ...
+
+    # TODO: compute Var(X) via definition E[(X - mu)^2]
+    var_definition = ...
+
+    # TODO: compute Var(X) via shortcut E[X^2] - (E[X])^2
+    E_X2 = ...
+    var_shortcut = ...
+
+    # print(f"E[X] = {E_X:.3f}")
+    # print(f"Var (definition) = {var_definition:.3f}")
+    # print(f"Var (shortcut)   = {var_shortcut:.3f}")
+    # print(f"Match: {np.isclose(var_definition, var_shortcut)}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Cross-Entropy Loss
+
+    A 3-class classifier outputs predicted probabilities `q = [0.7, 0.2, 0.1]` for a sample whose true class is 0 (one-hot: `p = [1, 0, 0]`).
+
+    1. Compute the cross-entropy loss $H(p, q) = -\sum p_i \log q_i$
+    2. Now suppose the model predicts `q = [0.3, 0.4, 0.3]` instead. Compute the loss again.
+    3. Which prediction has lower loss? Why?
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Exercise 4: Cross-entropy loss for classification
+    p_true = np.array([1, 0, 0])  # one-hot label: class 0
+
+    q_good = np.array([0.7, 0.2, 0.1])  # confident and correct
+    q_bad = np.array([0.3, 0.4, 0.3])   # uncertain and wrong
+
+    # TODO: compute cross-entropy H(p, q) = -sum(p * log(q))
+    loss_good = ...
+    loss_bad = ...
+
+    # print(f"Loss (good prediction): {loss_good:.4f}")
+    # print(f"Loss (bad prediction):  {loss_bad:.4f}")
+    # print(f"Better model has lower loss: {'good' if loss_good < loss_bad else 'bad'}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: Simulate the CLT with an Exponential Distribution
+
+    The exponential distribution is heavily right-skewed — nothing like a Gaussian. Yet the CLT says that the mean of many exponential samples will be approximately Gaussian.
+
+    Draw `n_samples=10000` means, each computed from `k` exponential($\lambda=2$) draws, for `k` in [1, 5, 30, 100]. Plot histograms and watch the shape become Gaussian.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    # Exercise 5: CLT with exponential distribution
+    lam = 2.0
+    n_samples = 10_000
+    k_values = [1, 5, 30, 100]
+
+    fig, axes = plt.subplots(1, 4, figsize=(16, 3))
+
+    for ax, k in zip(axes, k_values):
+        # TODO: generate (n_samples, k) exponential draws and take row means
+        # Hint: np.random.exponential(scale=1/lam, size=(n_samples, k)).mean(axis=1)
+        means = ...
+
+        # Uncomment to plot:
+        # ax.hist(means, bins=50, density=True, alpha=0.7)
+        # ax.set_title(f'Mean of {k} Exp samples')
+        pass
+
+    # plt.tight_layout()
+    # fig
     return
 
 

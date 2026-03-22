@@ -9,6 +9,12 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -43,6 +49,35 @@ def _(mo):
     **The tradeoff.** Model-based methods are more sample-efficient but introduce a new failure mode: model error. If your learned model is wrong --- and it will be, especially in regions of the state space you haven't visited --- planning with it will produce bad policies. This is called **compounding model error**, and it's the central tension in model-based RL. The field spends a lot of energy on methods that are robust to imperfect models.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- Dyna-Q: Model-based RL in a simple gridworld ---
+    # The agent learns a tabular model (s,a) -> (s',r) from real experience,
+    # then generates simulated experience to speed up Q-learning.
+
+    n_states, n_actions = 25, 4  # 5x5 grid, 4 directions
+    Q = np.zeros((n_states, n_actions))
+    model = {}  # learned model: (s, a) -> (s', r)
+    alpha, gamma, n_planning = 0.1, 0.95, 5
+
+    def dyna_q_step(s, a, r, s_next):
+        """One step of Dyna-Q: real update + n_planning simulated updates."""
+        # Real Q-learning update: Q(s,a) += alpha * [r + gamma * max Q(s') - Q(s,a)]
+        Q[s, a] += alpha * (r + gamma * np.max(Q[s_next]) - Q[s, a])
+        model[(s, a)] = (s_next, r)  # store in learned model
+        # Planning: replay from model (simulated experience)
+        for _ in range(n_planning):
+            si, ai = list(model.keys())[np.random.randint(len(model))]
+            sn, ri = model[(si, ai)]
+            Q[si, ai] += alpha * (ri + gamma * np.max(Q[sn]) - Q[si, ai])
+
+    # Demo: one real transition from state 0, action 1 -> state 5, reward -1
+    dyna_q_step(0, 1, -1.0, 5)
+    print(f"Q[0,1] after 1 real step + {n_planning} planning steps: {Q[0,1]:.4f}")
+    print(f"Model has {len(model)} stored transitions")
+    return (Q, alpha, dyna_q_step, gamma, model, n_actions, n_planning, n_states)
 
 
 @app.cell(hide_code=True)
@@ -87,6 +122,88 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- PPO clipped objective ---
+    # Implements L^CLIP: clip the probability ratio to prevent large policy updates.
+
+    def ppo_clipped_loss(ratio, advantage, epsilon=0.2):
+        """PPO clipped surrogate loss.
+        ratio: pi_new(a|s) / pi_old(a|s)
+        advantage: A_hat(s, a)
+        """
+        # Unclipped term: r_t * A_t
+        unclipped = ratio * advantage
+        # Clipped term: clip(r_t, 1-eps, 1+eps) * A_t
+        clipped = np.clip(ratio, 1 - epsilon, 1 + epsilon) * advantage
+        # Take the min (pessimistic bound), then average
+        return np.mean(np.minimum(unclipped, clipped))
+
+    # Demo: positive advantage => ratio clipped above at 1+eps
+    ratios = np.array([0.8, 1.0, 1.3, 1.5, 2.0])
+    advs = np.array([1.0, 1.0, 1.0, 1.0, 1.0])  # all positive advantage
+    for r_i, a_i in zip(ratios, advs):
+        loss = ppo_clipped_loss(np.array([r_i]), np.array([a_i]))
+        print(f"ratio={r_i:.1f}, adv={a_i:.1f} => L_clip={loss:.3f}")
+    return (ppo_clipped_loss,)
+
+
+@app.cell
+def _(np):
+    # --- Soft Actor-Critic: max-entropy policy evaluation ---
+    # SAC's soft Bellman equation: V(s) = E_a[Q(s,a) - alpha * log pi(a|s)]
+    # Higher entropy => more exploration
+
+    def soft_value(q_values, alpha=0.2):
+        """Compute soft value from Q-values using max-entropy framework.
+        V(s) = alpha * log( sum_a exp(Q(s,a)/alpha) )  (soft max)
+        """
+        # This is the log-sum-exp, i.e., the soft maximum
+        return alpha * np.log(np.sum(np.exp(q_values / alpha)))
+
+    def entropy_bonus_policy(logits, alpha=0.2):
+        """Policy entropy: H(pi) = -sum pi(a|s) log pi(a|s)"""
+        probs = np.exp(logits - np.max(logits))
+        probs = probs / probs.sum()
+        entropy = -np.sum(probs * np.log(probs + 1e-8))
+        return alpha * entropy
+
+    q_vals = np.array([1.0, 2.0, 1.5, 0.5])
+    print(f"Hard max of Q-values:  {np.max(q_vals):.3f}")
+    print(f"Soft value (alpha=0.2): {soft_value(q_vals, 0.2):.3f}")
+    print(f"Soft value (alpha=1.0): {soft_value(q_vals, 1.0):.3f}  (more exploration)")
+    return (entropy_bonus_policy, soft_value)
+
+
+@app.cell
+def _(np):
+    # --- Generalized Advantage Estimation (GAE) ---
+    # GAE(lambda) smoothly interpolates between 1-step TD and Monte Carlo advantage.
+    # A_t^GAE = sum_{l=0}^{T-t} (gamma*lambda)^l * delta_{t+l}
+    # where delta_t = r_t + gamma*V(s_{t+1}) - V(s_t)
+
+    def compute_gae(rewards, values, gamma=0.99, lam=0.95):
+        """Compute GAE advantages from rewards and value estimates."""
+        T = len(rewards)
+        advantages = np.zeros(T)
+        gae = 0.0
+        for t in reversed(range(T)):
+            v_next = values[t + 1] if t + 1 < len(values) else 0.0
+            delta = rewards[t] + gamma * v_next - values[t]  # TD error
+            gae = delta + gamma * lam * gae  # accumulate discounted TD errors
+            advantages[t] = gae
+        return advantages
+
+    # Demo trajectory: 5 steps
+    rewards_demo = np.array([1.0, 0.0, -1.0, 2.0, 1.0])
+    values_demo = np.array([0.5, 0.6, 0.3, 1.0, 0.8])
+    adv = compute_gae(rewards_demo, values_demo)
+    print("Rewards: ", rewards_demo)
+    print("Values:  ", values_demo)
+    print("GAE:     ", np.round(adv, 3))
+    return (compute_gae,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -103,6 +220,65 @@ def _(mo):
     **AlphaGo** (Silver et al., 2016; [arXiv:1607.02239](https://arxiv.org/abs/1607.02239)) combined supervised learning from human games with self-play RL and Monte Carlo Tree Search (MCTS). **AlphaZero** (Silver et al., 2017; [arXiv:1712.01815](https://arxiv.org/abs/1712.01815)) dropped the human data entirely --- learning chess, shogi, and Go from scratch through pure self-play. The architecture is simple: a neural network predicts both a policy (move probabilities) and a value (probability of winning) from the board position. MCTS uses these predictions to search ahead, and the search results become training targets for the network. This loop --- neural network guides search, search improves neural network --- is one of the most elegant ideas in all of AI.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- Self-play with fictitious play in rock-paper-scissors ---
+    # Each player tracks opponent's empirical action frequencies and best-responds.
+    # In self-play, both players converge to the Nash equilibrium (uniform random).
+
+    n_rounds = 500
+    # counts[i][a] = how many times player i has played action a
+    counts = [np.zeros(3), np.zeros(3)]  # 0=rock, 1=paper, 2=scissors
+    payoff = np.array([[0, -1, 1], [1, 0, -1], [-1, 1, 0]])  # row vs col
+
+    for t in range(n_rounds):
+        strategies = []
+        for i in range(2):
+            opp = 1 - i
+            if counts[opp].sum() == 0:
+                strategies.append(np.random.randint(3))
+            else:
+                # Best-respond to opponent's empirical distribution
+                opp_freq = counts[opp] / counts[opp].sum()
+                expected = payoff @ opp_freq  # expected payoff per action
+                strategies.append(np.argmax(expected))
+        for i in range(2):
+            counts[i][strategies[i]] += 1
+
+    labels = ["Rock", "Paper", "Scissors"]
+    for i in range(2):
+        freq = counts[i] / counts[i].sum()
+        dist = ", ".join(f"{labels[a]}: {freq[a]:.2f}" for a in range(3))
+        print(f"Player {i+1} empirical strategy: {dist}")
+    print("Nash equilibrium is (0.33, 0.33, 0.33) --- self-play converges to it.")
+    return (counts, labels, n_rounds, payoff)
+
+
+@app.cell
+def _(np):
+    # --- Simplified MCTS (Monte Carlo Tree Search) core logic ---
+    # The UCB1 selection rule used in AlphaZero-style search:
+    # select child maximizing Q(s,a) + c_puct * P(s,a) * sqrt(N(s)) / (1 + N(s,a))
+
+    def ucb_score(q_value, prior, parent_visits, child_visits, c_puct=1.5):
+        """AlphaZero-style UCB selection score."""
+        exploration = c_puct * prior * np.sqrt(parent_visits) / (1 + child_visits)
+        return q_value + exploration
+
+    # Example: 3 candidate moves with different visit counts and priors
+    moves = ["a", "b", "c"]
+    q_vals_mcts = [0.6, 0.5, 0.7]   # average value from simulations
+    priors = [0.5, 0.3, 0.2]         # neural network policy prior P(s,a)
+    visits = [100, 10, 2]            # how many times each was visited
+    parent_n = sum(visits)
+
+    for m, q, p, n in zip(moves, q_vals_mcts, priors, visits):
+        score = ucb_score(q, p, parent_n, n)
+        print(f"Move {m}: Q={q:.2f}, prior={p:.2f}, visits={n:3d} => UCB={score:.3f}")
+    print("Low-visit moves with high priors get explored (move c).")
+    return (ucb_score,)
 
 
 @app.cell(hide_code=True)
@@ -123,6 +299,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Conservative Q-Learning (CQL) penalty ---
+    # CQL adds a regularizer: push down Q for ALL actions, push up Q for dataset actions.
+    # CQL loss = standard TD loss + alpha * (E_{a~unif}[Q(s,a)] - E_{a~data}[Q(s,a)])
+
+    def cql_regularizer(q_all_actions, q_dataset_actions):
+        """CQL penalty: logsumexp(Q) over all actions minus Q for dataset actions.
+        This penalizes high Q-values for out-of-distribution actions.
+        """
+        # log-sum-exp approximates the max; pushes down all Q-values
+        logsumexp = np.log(np.sum(np.exp(q_all_actions)))
+        # Push up Q for actions actually in the dataset
+        data_q = np.mean(q_dataset_actions)
+        return logsumexp - data_q
+
+    # Example: Q-values for 5 actions, but dataset only contains actions 0 and 2
+    q_all = np.array([2.0, 5.0, 1.5, 8.0, 3.0])
+    q_data = q_all[[0, 2]]  # only actions seen in dataset
+    penalty = cql_regularizer(q_all, q_data)
+    print(f"Q-values (all actions):  {q_all}")
+    print(f"Q-values (dataset only): {q_data}")
+    print(f"CQL penalty: {penalty:.3f}")
+    print("High penalty => action 3 (Q=8.0) is OOD and will be pushed down.")
+    return (cql_regularizer,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -137,6 +340,34 @@ def _(mo):
     **Goal-conditioned policies** are a related idea: train a policy $\pi(a | s, g)$ that can achieve any goal $g$, and then use a high-level policy to sequence goals. Hindsight Experience Replay (HER) (Andrychowicz et al., 2017; [arXiv:1707.01495](https://arxiv.org/abs/1707.01495)) makes goal-conditioned learning practical by relabeling failed trajectories with the goals they actually achieved.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- Hindsight Experience Replay (HER) ---
+    # Key idea: a failed trajectory still teaches us something.
+    # If we aimed for goal g but ended at g', relabel the experience with goal=g'.
+
+    def hindsight_relabel(trajectory, desired_goal, achieved_goal):
+        """Relabel a failed trajectory with the goal it actually achieved.
+        trajectory: list of (state, action, next_state)
+        Returns: (original transition, relabeled transition)
+        """
+        # Original: reward = -1 (failed to reach desired_goal)
+        original_reward = -1.0 if achieved_goal != desired_goal else 0.0
+        # HER relabel: pretend we wanted to reach achieved_goal all along
+        relabeled_reward = 0.0  # success! we "reached" the relabeled goal
+        return original_reward, relabeled_reward
+
+    # Demo: agent wanted to reach cell 24 but ended at cell 18
+    orig_r, relabel_r = hindsight_relabel(
+        trajectory=[(0, 1, 5), (5, 1, 10), (10, 1, 15), (15, 3, 18)],
+        desired_goal=24, achieved_goal=18
+    )
+    print(f"Original reward (goal=24, reached=18): {orig_r}")
+    print(f"HER relabeled reward (goal=18, reached=18): {relabel_r}")
+    print("HER turns every trajectory into a learning signal!")
+    return (hindsight_relabel,)
 
 
 @app.cell(hide_code=True)
@@ -157,6 +388,34 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Potential-based reward shaping ---
+    # F(s, s') = gamma * Phi(s') - Phi(s)
+    # This form provably preserves the optimal policy.
+
+    def potential_fn(state, goal=np.array([4, 4])):
+        """Potential = negative distance to goal (closer = higher potential)."""
+        return -np.linalg.norm(state - goal)
+
+    def shaped_reward(r_env, s, s_next, gamma_shape=0.99):
+        """Add potential-based shaping to environment reward."""
+        # F(s, s') = gamma * Phi(s') - Phi(s)
+        F = gamma_shape * potential_fn(s_next) - potential_fn(s)
+        return r_env + F
+
+    # Demo: moving toward the goal gets a shaping bonus
+    s_cur = np.array([2, 2])
+    s_toward = np.array([3, 3])   # moves toward goal (4,4)
+    s_away = np.array([1, 1])     # moves away from goal
+
+    print(f"Raw reward is -1 for every step (sparse).")
+    print(f"Shaped reward (toward goal): {shaped_reward(-1, s_cur, s_toward):.3f}")
+    print(f"Shaped reward (away from goal): {shaped_reward(-1, s_cur, s_away):.3f}")
+    print("Shaping gives a bonus for moving closer --- but preserves optimal policy!")
+    return (potential_fn, shaped_reward)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -171,6 +430,33 @@ def _(mo):
     **System identification** takes the opposite approach: measure the real-world parameters carefully and make the simulation as accurate as possible. In practice, the best results often combine both strategies.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- Domain randomization: training across randomized physics ---
+    # Simulate a simple "push object" task with randomized friction.
+    # A robust policy must handle any friction in the range.
+
+    def simulate_push(force, friction, mass=1.0, dt=0.1, steps=10):
+        """Simulate pushing an object with given friction. Returns final position."""
+        pos, vel = 0.0, 0.0
+        for _ in range(steps):
+            accel = (force - friction * vel) / mass  # F = ma, with friction
+            vel = max(vel + accel * dt, 0.0)
+            pos += vel * dt
+        return pos
+
+    # Domain randomization: sample friction from a wide range during training
+    np.random.seed(42)
+    frictions = np.random.uniform(0.5, 3.0, size=100)  # randomized friction
+    positions = [simulate_push(force=5.0, friction=f) for f in frictions]
+
+    print(f"Force = 5.0 across {len(frictions)} randomized friction values")
+    print(f"Final position: mean={np.mean(positions):.2f}, std={np.std(positions):.2f}")
+    print(f"Range: [{np.min(positions):.2f}, {np.max(positions):.2f}]")
+    print("A robust policy must handle this whole range of outcomes.")
+    return (simulate_push,)
 
 
 @app.cell(hide_code=True)
@@ -193,6 +479,55 @@ def _(mo):
     **Process reward models** (Lightman et al., 2023; [arXiv:2305.20050](https://arxiv.org/abs/2305.20050)) provide feedback on each step of reasoning rather than just the final answer. This is critical for mathematical reasoning, where a correct final answer doesn't mean the reasoning was sound, and where step-level feedback dramatically improves performance.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- RLHF: KL-penalized reward for language model training ---
+    # The RL objective is: maximize R(x,y) - beta * KL(pi || pi_ref)
+    # Without KL penalty, the model "reward hacks" the reward model.
+
+    def rlhf_reward(reward_score, log_prob_policy, log_prob_ref, beta=0.1):
+        """RLHF objective: reward minus KL penalty.
+        KL(pi||pi_ref) approx = log pi(y|x) - log pi_ref(y|x)
+        """
+        kl_penalty = log_prob_policy - log_prob_ref
+        return reward_score - beta * kl_penalty
+
+    # Demo: comparing a normal response vs a reward-hacked response
+    # Normal response: moderate reward, stays close to reference
+    normal = rlhf_reward(reward_score=0.7, log_prob_policy=-2.0, log_prob_ref=-2.1)
+    # Hacked response: high reward but drifted far from reference
+    hacked = rlhf_reward(reward_score=0.95, log_prob_policy=-1.0, log_prob_ref=-5.0)
+
+    print(f"Normal response:  RLHF objective = {normal:.3f}")
+    print(f"Hacked response:  RLHF objective = {hacked:.3f}")
+    print("KL penalty catches reward hacking --- hacked response scores lower!")
+    return (rlhf_reward,)
+
+
+@app.cell
+def _(np):
+    # --- Bradley-Terry reward model: learning from human preferences ---
+    # P(y1 > y2) = sigma(r(y1) - r(y2)), trained on pairwise comparisons.
+
+    def preference_probability(r1, r2):
+        """Bradley-Terry model: P(response 1 preferred over response 2)."""
+        return 1.0 / (1.0 + np.exp(-(r1 - r2)))  # sigmoid(r1 - r2)
+
+    def reward_model_loss(r_chosen, r_rejected):
+        """Negative log-likelihood loss for preference pairs."""
+        # We want P(chosen > rejected) to be high
+        return -np.log(preference_probability(r_chosen, r_rejected))
+
+    # Demo: training signal from preference pairs
+    pairs = [(2.0, 0.5), (1.0, 0.8), (0.3, 1.5)]  # (chosen_r, rejected_r)
+    for r_c, r_j in pairs:
+        prob = preference_probability(r_c, r_j)
+        loss = reward_model_loss(r_c, r_j)
+        print(f"r_chosen={r_c:.1f}, r_rejected={r_j:.1f} => "
+              f"P(correct)={prob:.3f}, loss={loss:.3f}")
+    return (preference_probability, reward_model_loss)
 
 
 @app.cell(hide_code=True)
@@ -242,6 +577,278 @@ def _(mo):
     5. **Self-play for a board game.** Implement AlphaZero-style self-play for Connect Four or Othello. Train a small neural network to predict move probabilities and game outcome, and use MCTS for move selection during self-play. Watch the agent discover strategies you didn't program.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    The exercises below ask you to implement core advanced RL components from scratch. Each gives you a skeleton with `TODO` placeholders --- fill them in using only numpy. These are intentionally minimal so you focus on the algorithmic core rather than engineering scaffolding.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: PPO Update Step
+
+    Implement a single PPO policy update. Given old log-probabilities, new log-probabilities, and advantages, compute the clipped surrogate loss and return the mean loss. Remember: `ratio = exp(log_prob_new - log_prob_old)`.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def ppo_update(log_probs_old, log_probs_new, advantages, epsilon=0.2):
+        """Compute the PPO clipped surrogate loss.
+
+        Args:
+            log_probs_old: log pi_old(a|s), shape (batch,)
+            log_probs_new: log pi_new(a|s), shape (batch,)
+            advantages: A_hat(s,a), shape (batch,)
+            epsilon: clipping parameter
+
+        Returns:
+            Scalar mean clipped loss (to be MAXIMIZED).
+        """
+        # TODO: compute the probability ratio from log-probs
+        ratio = None
+
+        # TODO: compute unclipped objective: ratio * advantage
+        unclipped = None
+
+        # TODO: compute clipped objective: clip(ratio, 1-eps, 1+eps) * advantage
+        clipped = None
+
+        # TODO: PPO loss = mean of min(unclipped, clipped)
+        loss = None
+
+        return loss
+
+    # Test your implementation:
+    # _log_old = np.log(np.array([0.5, 0.3, 0.7]))
+    # _log_new = np.log(np.array([0.6, 0.25, 0.8]))
+    # _adv = np.array([1.0, -0.5, 2.0])
+    # print(f"PPO loss: {ppo_update(_log_old, _log_new, _adv):.4f}")
+    # Expected: approximately 0.8548
+    return (ppo_update,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Dyna-Q with Prioritized Sweeping
+
+    Standard Dyna replays random model transitions. Prioritized sweeping replays transitions whose predecessors had large TD errors --- focusing computation where it matters most. Implement the priority update logic.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def prioritized_dyna_step(Q_table, model_table, s, a, r, s_next,
+                               priority_queue, alpha_lr=0.1, gamma_d=0.99,
+                               theta=0.01, n_plan=5):
+        """Dyna-Q step with prioritized sweeping.
+
+        Args:
+            Q_table: Q-value table, shape (n_states, n_actions)
+            model_table: dict mapping (s,a) -> (s', r)
+            s, a, r, s_next: real transition
+            priority_queue: dict mapping (s,a) -> priority (TD error magnitude)
+            theta: minimum priority threshold
+            n_plan: number of planning steps
+        """
+        # TODO: compute TD error for the real transition
+        td_error = None
+
+        # TODO: update Q_table[s, a] with standard Q-learning update
+        pass
+
+        # TODO: store transition in model_table
+        pass
+
+        # TODO: if |td_error| > theta, add (s, a) to priority_queue
+        pass
+
+        # TODO: planning loop - pop highest-priority (s, a), replay from model,
+        #       compute new TD error, and propagate priorities to predecessors
+        # (Hint: predecessors are all (s_bar, a_bar) in model that lead to s)
+        for _ in range(n_plan):
+            if not priority_queue:
+                break
+            # TODO: pop highest priority entry and replay
+            pass
+
+        return Q_table, priority_queue
+
+    # Test: create a small Q-table and run one step
+    # _Q = np.zeros((10, 4))
+    # _model = {}
+    # _pq = {}
+    # _Q, _pq = prioritized_dyna_step(_Q, _model, s=0, a=1, r=1.0, s_next=3,
+    #                                   priority_queue=_pq)
+    # print(f"Q[0,1] = {_Q[0,1]:.4f}, queue size = {len(_pq)}")
+    return (prioritized_dyna_step,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Soft Value Function (SAC)
+
+    Implement the soft Bellman backup for SAC. Given Q-values for all actions and the current policy distribution, compute the soft value: $V(s) = \sum_a \pi(a|s)[Q(s,a) - \alpha \log \pi(a|s)]$.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def soft_bellman_backup(q_values_all, policy_probs, alpha_temp=0.2):
+        """Compute the soft value function from Q-values and policy.
+
+        Args:
+            q_values_all: Q(s, a) for all actions, shape (n_actions,)
+            policy_probs: pi(a|s) for all actions, shape (n_actions,)
+            alpha_temp: temperature parameter
+
+        Returns:
+            Soft value V(s) = sum_a pi(a|s) * [Q(s,a) - alpha * log pi(a|s)]
+        """
+        # TODO: compute log probabilities (add small epsilon for numerical stability)
+        log_probs = None
+
+        # TODO: compute soft value: sum_a pi(a|s) * [Q(s,a) - alpha * log pi(a|s)]
+        soft_v = None
+
+        return soft_v
+
+    # Test:
+    # _q = np.array([1.0, 2.0, 1.5])
+    # _pi = np.array([0.2, 0.5, 0.3])
+    # print(f"Soft V = {soft_bellman_backup(_q, _pi, 0.2):.4f}")
+    # Expected: approximately 1.8297
+    return (soft_bellman_backup,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Reward Model from Pairwise Preferences
+
+    Implement a simple linear reward model trained on pairwise human preferences using the Bradley-Terry model. Given feature vectors for response pairs, update reward weights via gradient descent.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def train_reward_model(features_chosen, features_rejected, weights,
+                           lr=0.01, n_steps=100):
+        """Train a linear reward model r(x) = w^T x on preference pairs.
+
+        The Bradley-Terry model gives: P(chosen > rejected) = sigma(r(chosen) - r(rejected))
+        Loss = -log sigma(r(chosen) - r(rejected))
+
+        Args:
+            features_chosen: feature vectors for preferred responses, shape (n_pairs, d)
+            features_rejected: feature vectors for rejected responses, shape (n_pairs, d)
+            weights: reward model weights, shape (d,)
+            lr: learning rate
+            n_steps: gradient descent steps
+
+        Returns:
+            Updated weights, final loss
+        """
+        for step in range(n_steps):
+            # TODO: compute reward difference r(chosen) - r(rejected) for each pair
+            r_diff = None
+
+            # TODO: compute sigmoid probabilities
+            probs = None
+
+            # TODO: compute mean negative log-likelihood loss
+            loss = None
+
+            # TODO: compute gradient: d_loss/d_w = -mean((1 - prob) * (x_chosen - x_rejected))
+            grad = None
+
+            # TODO: gradient descent update
+            pass
+
+        return weights, loss
+
+    # Test:
+    # np.random.seed(0)
+    # _X_c = np.random.randn(50, 5)  # chosen responses
+    # _X_r = np.random.randn(50, 5)  # rejected responses (different distribution)
+    # _X_c[:, 0] += 1.0  # chosen responses have higher feature 0
+    # _w = np.zeros(5)
+    # _w, _loss = train_reward_model(_X_c, _X_r, _w, lr=0.1, n_steps=200)
+    # print(f"Learned weights: {np.round(_w, 3)}")
+    # print(f"Final loss: {_loss:.4f}")
+    # Weight 0 should be the largest (it distinguishes chosen from rejected)
+    return (train_reward_model,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: GAE + Simple Policy Gradient Update
+
+    Combine GAE advantage estimation with a simple policy gradient update. Given a trajectory of (log_probs, rewards, values), compute GAE advantages, then compute the policy gradient loss.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def policy_gradient_with_gae(log_probs, rewards, values,
+                                  gamma_pg=0.99, lam_pg=0.95):
+        """Compute policy gradient loss using GAE advantages.
+
+        Args:
+            log_probs: log pi(a_t|s_t), shape (T,)
+            rewards: r_t, shape (T,)
+            values: V(s_t), shape (T,) (from critic; treat as fixed)
+            gamma_pg: discount factor
+            lam_pg: GAE lambda
+
+        Returns:
+            policy_loss: scalar (to be MAXIMIZED)
+            advantages: GAE advantages, shape (T,)
+        """
+        T = len(rewards)
+
+        # TODO: compute GAE advantages
+        # delta_t = r_t + gamma * V(s_{t+1}) - V(s_t)
+        # A_t = sum_{l=0}^{T-t} (gamma * lambda)^l * delta_{t+l}
+        advantages = np.zeros(T)
+        gae_acc = 0.0
+        for t in reversed(range(T)):
+            pass  # TODO: fill in the GAE computation
+
+        # TODO: normalize advantages (zero mean, unit variance)
+        pass
+
+        # TODO: policy gradient loss = mean(log_prob * advantage)
+        policy_loss = None
+
+        return policy_loss, advantages
+
+    # Test:
+    # np.random.seed(42)
+    # _lp = np.log(np.random.uniform(0.1, 0.9, size=10))
+    # _r = np.random.randn(10)
+    # _v = np.random.randn(10) * 0.5
+    # _loss, _adv = policy_gradient_with_gae(_lp, _r, _v)
+    # print(f"Policy loss: {_loss:.4f}")
+    # print(f"Advantages (first 5): {np.round(_adv[:5], 3)}")
+    return (policy_gradient_with_gae,)
 
 
 if __name__ == "__main__":

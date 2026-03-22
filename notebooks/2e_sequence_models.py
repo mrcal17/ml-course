@@ -129,6 +129,23 @@ $$h_2 = \tanh\!\left(\begin{bmatrix} 0.5 & 0.1 \\ 0.2 & 0.3 \end{bmatrix}\begin{
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # RNN forward pass: h_t = tanh(W_hh @ h_{t-1} + W_xh * x_t + b_h)
+    W_hh = np.array([[0.5, 0.1], [0.2, 0.3]])
+    W_xh = np.array([[0.4], [0.7]])
+    b_h = np.array([[0.0], [0.0]])
+    h = np.zeros((2, 1))  # h_0
+
+    inputs = [1.0, 0.5, -0.3]
+    for t, x_t in enumerate(inputs):
+        h = np.tanh(W_hh @ h + W_xh * x_t + b_h)  # recurrence relation
+        print(f"h_{t+1} = {h.ravel()}")
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -148,6 +165,23 @@ Look at that product term $\prod_{j=k+1}^{t} \frac{\partial h_j}{\partial h_{j-1
 
 This is the source of everything that follows.
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Jacobian of one RNN step: dh_t/dh_{t-1} = diag(1 - tanh(z)^2) @ W_hh
+    # Simulate gradient product over many steps
+    W_hh_bptt = np.array([[0.5, 0.1], [0.2, 0.3]])
+    product = np.eye(2)
+
+    for step in range(20):
+        # Assume tanh'(z) ~ 0.8 at each step (typical value)
+        tanh_deriv = 0.8
+        jacobian = tanh_deriv * W_hh_bptt  # diag(tanh') @ W_hh
+        product = jacobian @ product
+        if step in [4, 9, 19]:
+            print(f"After {step+1} steps, max |gradient| = {np.max(np.abs(product)):.6f}")
     return
 
 
@@ -190,6 +224,34 @@ You cannot fix this with gradient clipping. You cannot fix it with better initia
 
 The solution requires rethinking how information flows through time. See [DLBook, Section 10.9: Leaky Units and Other Strategies](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf).
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Vanishing vs exploding: singular value controls everything
+    # sigma^T for various singular values and sequence lengths
+    for sigma in [0.9, 0.99, 1.0, 1.01, 1.1]:
+        vals = {T: sigma**T for T in [10, 50, 100]}
+        print(f"sigma={sigma:.2f} -> T=10: {vals[10]:.4e}, T=50: {vals[50]:.4e}, T=100: {vals[100]:.4e}")
+    return
+
+
+@app.cell
+def _(np):
+    # Gradient clipping in numpy: g_hat = (theta / ||g||) * g if ||g|| > theta
+    def clip_gradient(grad, theta=5.0):
+        norm = np.linalg.norm(grad)
+        if norm > theta:
+            grad = (theta / norm) * grad
+        return grad
+
+    # Example: a gradient that has exploded
+    g_exploded = np.array([100.0, -200.0, 50.0])
+    g_clipped = clip_gradient(g_exploded, theta=5.0)
+    print(f"Before clipping: norm={np.linalg.norm(g_exploded):.1f}, g={g_exploded}")
+    print(f"After clipping:  norm={np.linalg.norm(g_clipped):.1f}, g={g_clipped.round(3)}")
+    print("Direction preserved, magnitude bounded.")
     return
 
 
@@ -260,6 +322,67 @@ This lets the gates make decisions based on what is actually stored in the cell,
     return
 
 
+@app.cell
+def _(np):
+    # LSTM single step in numpy — all four equations
+    def sigmoid(x):
+        return 1 / (1 + np.exp(-x))
+
+    def lstm_step(x_t, h_prev, c_prev, Wf, Wi, Wc, Wo, bf, bi, bc, bo):
+        """One LSTM time step. x_t: (input_dim,), h_prev: (hidden_dim,)"""
+        combined = np.concatenate([h_prev, x_t])       # [h_{t-1}, x_t]
+        f_t = sigmoid(Wf @ combined + bf)               # forget gate
+        i_t = sigmoid(Wi @ combined + bi)               # input gate
+        c_tilde = np.tanh(Wc @ combined + bc)            # candidate cell
+        o_t = sigmoid(Wo @ combined + bo)                # output gate
+        c_t = f_t * c_prev + i_t * c_tilde              # cell update (additive!)
+        h_t = o_t * np.tanh(c_t)                         # hidden state
+        return h_t, c_t, f_t, i_t, o_t
+
+    # Tiny example: input_dim=2, hidden_dim=3
+    H, X = 3, 2
+    np.random.seed(42)
+    Wf = np.random.randn(H, H + X) * 0.1
+    Wi = np.random.randn(H, H + X) * 0.1
+    Wc = np.random.randn(H, H + X) * 0.1
+    Wo = np.random.randn(H, H + X) * 0.1
+    bf, bi, bc, bo = np.zeros(H), np.zeros(H), np.zeros(H), np.zeros(H)
+
+    h, c = np.zeros(H), np.zeros(H)
+    for t, xt in enumerate([[1.0, 0.5], [0.3, -0.2], [-0.1, 0.8]]):
+        h, c, ft, it, ot = lstm_step(np.array(xt), h, c, Wf, Wi, Wc, Wo, bf, bi, bc, bo)
+        print(f"t={t+1}: h={h.round(3)}, forget={ft.round(3)}")
+    return (sigmoid,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+Notice how the forget gate values hover near 0.5 with random weights. A trained LSTM learns to push forget gates close to 1 for information it needs to remember long-term, which is exactly what creates the unimpeded gradient highway through the cell state.
+""")
+    return
+
+
+@app.cell
+def _(np, sigmoid):
+    # LSTM gradient flow vs vanilla RNN gradient flow
+    # dc_t / dc_{t-1} = f_t (just the forget gate!)
+    # For vanilla RNN: dh_t / dh_{t-1} = diag(tanh') @ W_hh
+
+    T = 50
+    # LSTM: gradient product = product of forget gates
+    forget_gate_val = 0.95  # trained LSTM keeps this close to 1
+    lstm_grad = forget_gate_val ** T
+    print(f"LSTM gradient after {T} steps (f_t=0.95): {lstm_grad:.4f}")
+
+    # Vanilla RNN: gradient product ~ (tanh' * sigma_max(W_hh))^T
+    rnn_factor = 0.8 * 0.9  # tanh' ~ 0.8, sigma_max ~ 0.9
+    rnn_grad = rnn_factor ** T
+    print(f"RNN gradient after {T} steps (factor=0.72): {rnn_grad:.2e}")
+    print(f"Ratio LSTM/RNN: {lstm_grad / rnn_grad:.0f}x better gradient flow")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -298,6 +421,39 @@ My practical advice: try both. If your sequences are very long and you need fine
     return
 
 
+@app.cell
+def _(np, sigmoid):
+    # GRU single step in numpy
+    def gru_step(x_t, h_prev, Wz, Wr, Wh, bz, br, bh):
+        """One GRU time step. Two gates instead of three."""
+        combined = np.concatenate([h_prev, x_t])
+        z_t = sigmoid(Wz @ combined + bz)              # update gate
+        r_t = sigmoid(Wr @ combined + br)              # reset gate
+        combined_reset = np.concatenate([r_t * h_prev, x_t])
+        h_tilde = np.tanh(Wh @ combined_reset + bh)   # candidate
+        h_t = (1 - z_t) * h_prev + z_t * h_tilde      # interpolate
+        return h_t, z_t, r_t
+
+    # Same dimensions as LSTM example: input_dim=2, hidden_dim=3
+    H, X = 3, 2
+    np.random.seed(0)
+    Wz = np.random.randn(H, H + X) * 0.1
+    Wr = np.random.randn(H, H + X) * 0.1
+    Wh = np.random.randn(H, H + X) * 0.1
+    bz, br, bh = np.zeros(H), np.zeros(H), np.zeros(H)
+
+    h_gru = np.zeros(H)
+    for t, xt in enumerate([[1.0, 0.5], [0.3, -0.2], [-0.1, 0.8]]):
+        h_gru, zt, rt = gru_step(np.array(xt), h_gru, Wz, Wr, Wh, bz, br, bh)
+        print(f"t={t+1}: h={h_gru.round(3)}, update_gate={zt.round(3)}")
+
+    # Parameter count comparison: GRU vs LSTM
+    gru_params = 3 * H * (H + X)   # Wz, Wr, Wh
+    lstm_params = 4 * H * (H + X)  # Wf, Wi, Wc, Wo
+    print(f"\nParams (hidden={H}, input={X}): GRU={gru_params}, LSTM={lstm_params}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -323,6 +479,40 @@ This doubles the hidden state size but gives each position access to the full se
 
 > **Reading:** [DLBook, Section 10.3: Bidirectional RNNs](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf).
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Bidirectional RNN in numpy: forward + backward, then concatenate
+    def rnn_forward(xs, W_hh, W_xh, b_h):
+        """Run RNN over a sequence, return all hidden states."""
+        H = W_hh.shape[0]
+        h = np.zeros(H)
+        states = []
+        for x_t in xs:
+            h = np.tanh(W_hh @ h + W_xh @ x_t + b_h)
+            states.append(h)
+        return np.array(states)
+
+    # Small example: 4-step sequence, input_dim=2, hidden_dim=3
+    np.random.seed(7)
+    H, X, T = 3, 2, 4
+    W_hh_f = np.random.randn(H, H) * 0.3
+    W_xh_f = np.random.randn(H, X) * 0.3
+    W_hh_b = np.random.randn(H, H) * 0.3  # separate backward weights
+    W_xh_b = np.random.randn(H, X) * 0.3
+    b_h = np.zeros(H)
+
+    xs = np.random.randn(T, X)
+    fwd_states = rnn_forward(xs, W_hh_f, W_xh_f, b_h)
+    bwd_states = rnn_forward(xs[::-1], W_hh_b, W_xh_b, b_h)[::-1]  # reverse input & output
+
+    # Concatenate: each position gets [forward_h; backward_h]
+    bi_states = np.concatenate([fwd_states, bwd_states], axis=1)
+    print(f"Forward states shape:  {fwd_states.shape}   (T={T}, H={H})")
+    print(f"BiRNN states shape:    {bi_states.shape}  (T={T}, 2H={2*H})")
+    print(f"Position 0 sees full context: {bi_states[0].round(3)}")
     return
 
 
@@ -355,6 +545,43 @@ The solution — **attention** — lets the decoder look back at *all* encoder h
 
 > **Reading:** [DLBook, Section 10.4: Encoder-Decoder Sequence-to-Sequence Architectures](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf).
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Seq2seq encoder-decoder sketch in numpy
+    # Encoder: process input sequence, return final hidden state (context vector)
+    def seq2seq_encode(xs, W_hh, W_xh, b_h):
+        h = np.zeros(W_hh.shape[0])
+        for x_t in xs:
+            h = np.tanh(W_hh @ h + W_xh @ x_t + b_h)
+        return h  # context vector c = h_T
+
+    # Decoder: generate output sequence from context vector
+    def seq2seq_decode(context, W_hh, W_xh, W_hy, b_h, b_y, steps):
+        h = context  # initialize decoder with encoder's final state
+        y = np.zeros(W_xh.shape[1])  # start token (zeros)
+        outputs = []
+        for _ in range(steps):
+            h = np.tanh(W_hh @ h + W_xh @ y + b_h)
+            y = W_hy @ h + b_y  # output projection
+            outputs.append(y)
+        return np.array(outputs)
+
+    H, X_dim = 4, 2
+    np.random.seed(3)
+    We_hh, We_xh = np.random.randn(H, H) * 0.3, np.random.randn(H, X_dim) * 0.3
+    Wd_hh, Wd_xh = np.random.randn(H, H) * 0.3, np.random.randn(H, X_dim) * 0.3
+    W_hy = np.random.randn(X_dim, H) * 0.3
+    b = np.zeros(H)
+
+    encoder_input = np.random.randn(5, X_dim)  # 5-step input
+    context = seq2seq_encode(encoder_input, We_hh, We_xh, b)
+    decoder_output = seq2seq_decode(context, Wd_hh, Wd_xh, W_hy, b, np.zeros(X_dim), steps=3)
+    print(f"Encoder input:  {encoder_input.shape[0]} steps")
+    print(f"Context vector: {context.shape} (entire input compressed here)")
+    print(f"Decoder output: {decoder_output.shape[0]} steps (different length!)")
     return
 
 
@@ -642,6 +869,317 @@ def _(mo):
 
 7. **Reading:** Work through [DLBook, Sections 10.2-10.4](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) carefully. Pay particular attention to the computational graph diagrams — they make the unrolling and gradient flow explicit in a way that equations alone cannot.
 """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+---
+
+## Code It
+
+Work through these implementation exercises to solidify your understanding. Each exercise gives you a skeleton — fill in the `TODO` sections.
+""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 1: Vanilla RNN from Scratch
+
+Implement a complete vanilla RNN class in numpy that can do a forward pass over a sequence and produce output logits at each step. This is the most fundamental exercise — if you can write this, you understand RNNs.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    class VanillaRNN:
+        """Vanilla RNN in pure numpy."""
+        def __init__(self, input_dim, hidden_dim, output_dim):
+            scale = 0.01
+            self.W_xh = np.random.randn(hidden_dim, input_dim) * scale
+            self.W_hh = np.random.randn(hidden_dim, hidden_dim) * scale
+            self.W_hy = np.random.randn(output_dim, hidden_dim) * scale
+            self.b_h = np.zeros(hidden_dim)
+            self.b_y = np.zeros(output_dim)
+            self.hidden_dim = hidden_dim
+
+        def forward(self, xs):
+            """
+            xs: list of input vectors, each shape (input_dim,)
+            Returns: list of output vectors, list of hidden states
+            """
+            h = np.zeros(self.hidden_dim)
+            outputs, hiddens = [], []
+            for x_t in xs:
+                # TODO: compute h_t = tanh(W_hh @ h + W_xh @ x_t + b_h)
+                h = None  # replace this line
+
+                # TODO: compute y_t = W_hy @ h_t + b_y
+                y_t = None  # replace this line
+
+                hiddens.append(h)
+                outputs.append(y_t)
+            return outputs, hiddens
+
+    # Test your implementation:
+    # rnn = VanillaRNN(input_dim=4, hidden_dim=8, output_dim=3)
+    # xs = [np.random.randn(4) for _ in range(5)]
+    # outs, hs = rnn.forward(xs)
+    # print(f"Output shape per step: {outs[0].shape}")  # should be (3,)
+    # print(f"Hidden shape per step: {hs[0].shape}")     # should be (8,)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 2: LSTM Forward Pass
+
+Implement a single LSTM forward pass. This is the core of the LSTM — the four equations that compute gates and update the cell state. Pay close attention to which operations are element-wise vs matrix multiplies.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    class LSTMCell:
+        """Single LSTM cell in pure numpy."""
+        def __init__(self, input_dim, hidden_dim):
+            scale = 0.01
+            D = input_dim + hidden_dim
+            # All four gate weight matrices and biases
+            self.W_f = np.random.randn(hidden_dim, D) * scale
+            self.W_i = np.random.randn(hidden_dim, D) * scale
+            self.W_c = np.random.randn(hidden_dim, D) * scale
+            self.W_o = np.random.randn(hidden_dim, D) * scale
+            self.b_f = np.zeros(hidden_dim)
+            self.b_i = np.zeros(hidden_dim)
+            self.b_c = np.zeros(hidden_dim)
+            self.b_o = np.zeros(hidden_dim)
+            self.hidden_dim = hidden_dim
+
+        def forward(self, xs):
+            """
+            xs: list of input vectors, each shape (input_dim,)
+            Returns: list of (h_t, c_t) tuples
+            """
+            _sigmoid = lambda x: 1 / (1 + np.exp(-x))
+            h = np.zeros(self.hidden_dim)
+            c = np.zeros(self.hidden_dim)
+            states = []
+            for x_t in xs:
+                combined = np.concatenate([h, x_t])
+
+                # TODO: compute forget gate f_t = sigmoid(W_f @ combined + b_f)
+                f_t = None
+
+                # TODO: compute input gate i_t = sigmoid(W_i @ combined + b_i)
+                i_t = None
+
+                # TODO: compute candidate cell c_tilde = tanh(W_c @ combined + b_c)
+                c_tilde = None
+
+                # TODO: compute output gate o_t = sigmoid(W_o @ combined + b_o)
+                o_t = None
+
+                # TODO: update cell state c = f_t * c + i_t * c_tilde
+                c = None
+
+                # TODO: compute hidden state h = o_t * tanh(c)
+                h = None
+
+                states.append((h.copy(), c.copy()))
+            return states
+
+    # Test your implementation:
+    # lstm = LSTMCell(input_dim=4, hidden_dim=8)
+    # xs = [np.random.randn(4) for _ in range(5)]
+    # states = lstm.forward(xs)
+    # print(f"h shape: {states[-1][0].shape}, c shape: {states[-1][1].shape}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 3: Vanishing Gradient Experiment
+
+Empirically demonstrate the vanishing gradient problem. Run a vanilla RNN forward for sequences of increasing length, then compute the Jacobian product that gradients must flow through. Compare with the LSTM cell state gradient path.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def measure_gradient_flow(W_hh, seq_lengths, tanh_deriv=0.7):
+        """
+        Compute ||prod_{j=1}^{T} diag(tanh') @ W_hh|| for each T.
+        This approximates the gradient magnitude reaching step 1 from step T.
+        """
+        results = {}
+        H = W_hh.shape[0]
+        for T in seq_lengths:
+            product = np.eye(H)
+            for _ in range(T):
+                # TODO: multiply product by (tanh_deriv * W_hh)
+                # This simulates the Jacobian chain: diag(tanh'(z)) @ W_hh
+                pass
+            # TODO: compute the Frobenius norm of product
+            results[T] = None
+        return results
+
+    def measure_lstm_gradient_flow(forget_gate_val, seq_lengths):
+        """
+        For LSTM, dc_T/dc_1 = prod of forget gates = f^T.
+        Much simpler — no matrix multiplication needed.
+        """
+        results = {}
+        for T in seq_lengths:
+            # TODO: compute forget_gate_val ** T
+            results[T] = None
+        return results
+
+    # Test with these values:
+    # lengths = [5, 10, 20, 50, 100]
+    # W = np.array([[0.9, 0.1], [-0.1, 0.8]])
+    # rnn_grads = measure_gradient_flow(W, lengths)
+    # lstm_grads = measure_lstm_gradient_flow(0.95, lengths)
+    # for T in lengths:
+    #     print(f"T={T:3d}  RNN grad: {rnn_grads[T]:.2e}  LSTM grad: {lstm_grads[T]:.4f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 4: GRU Cell
+
+Implement a GRU cell. Notice how it uses only two gates (update and reset) instead of the LSTM's three, and how the update gate elegantly interpolates between old and new states.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    class GRUCell:
+        """Single GRU cell in pure numpy."""
+        def __init__(self, input_dim, hidden_dim):
+            scale = 0.01
+            D = input_dim + hidden_dim
+            self.W_z = np.random.randn(hidden_dim, D) * scale  # update gate
+            self.W_r = np.random.randn(hidden_dim, D) * scale  # reset gate
+            self.W_h = np.random.randn(hidden_dim, D) * scale  # candidate
+            self.b_z = np.zeros(hidden_dim)
+            self.b_r = np.zeros(hidden_dim)
+            self.b_h = np.zeros(hidden_dim)
+            self.hidden_dim = hidden_dim
+
+        def forward(self, xs):
+            """
+            xs: list of input vectors, each shape (input_dim,)
+            Returns: list of hidden states
+            """
+            _sigmoid = lambda x: 1 / (1 + np.exp(-x))
+            h = np.zeros(self.hidden_dim)
+            states = []
+            for x_t in xs:
+                combined = np.concatenate([h, x_t])
+
+                # TODO: update gate z_t = sigmoid(W_z @ combined + b_z)
+                z_t = None
+
+                # TODO: reset gate r_t = sigmoid(W_r @ combined + b_r)
+                r_t = None
+
+                # TODO: candidate h_tilde = tanh(W_h @ [r_t * h, x_t] + b_h)
+                combined_reset = np.concatenate([None, x_t])  # fix None
+                h_tilde = None
+
+                # TODO: interpolate h = (1 - z_t) * h + z_t * h_tilde
+                h = None
+
+                states.append(h.copy())
+            return states
+
+    # Test your implementation:
+    # gru = GRUCell(input_dim=4, hidden_dim=8)
+    # xs = [np.random.randn(4) for _ in range(5)]
+    # states = gru.forward(xs)
+    # print(f"Hidden state shape: {states[-1].shape}")  # should be (8,)
+    # print(f"Final hidden: {states[-1].round(4)}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 5: Sequence-to-Sequence Encoder-Decoder
+
+Build a minimal encoder-decoder in numpy. The encoder processes an input sequence and produces a context vector. The decoder takes that context vector and generates an output sequence. This is the architecture behind the original neural machine translation paper.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    class Seq2Seq:
+        """Minimal encoder-decoder in numpy using vanilla RNN cells."""
+        def __init__(self, input_dim, hidden_dim, output_dim):
+            scale = 0.1
+            # Encoder weights
+            self.enc_W_xh = np.random.randn(hidden_dim, input_dim) * scale
+            self.enc_W_hh = np.random.randn(hidden_dim, hidden_dim) * scale
+            self.enc_b = np.zeros(hidden_dim)
+            # Decoder weights
+            self.dec_W_xh = np.random.randn(hidden_dim, output_dim) * scale
+            self.dec_W_hh = np.random.randn(hidden_dim, hidden_dim) * scale
+            self.dec_b = np.zeros(hidden_dim)
+            # Output projection
+            self.W_out = np.random.randn(output_dim, hidden_dim) * scale
+            self.b_out = np.zeros(output_dim)
+            self.hidden_dim = hidden_dim
+
+        def encode(self, xs):
+            """
+            Process input sequence, return final hidden state (context vector).
+            xs: list of input vectors
+            """
+            h = np.zeros(self.hidden_dim)
+            for x_t in xs:
+                # TODO: h = tanh(enc_W_hh @ h + enc_W_xh @ x_t + enc_b)
+                h = None
+            return h  # this is the context vector
+
+        def decode(self, context, num_steps):
+            """
+            Generate output sequence from context vector.
+            context: hidden state from encoder
+            num_steps: how many output steps to generate
+            """
+            h = context
+            y = np.zeros(self.W_out.shape[0])  # start token
+            outputs = []
+            for _ in range(num_steps):
+                # TODO: h = tanh(dec_W_hh @ h + dec_W_xh @ y + dec_b)
+                h = None
+
+                # TODO: y = W_out @ h + b_out
+                y = None
+
+                outputs.append(y.copy())
+            return outputs
+
+    # Test your implementation:
+    # model = Seq2Seq(input_dim=3, hidden_dim=8, output_dim=3)
+    # encoder_inputs = [np.random.randn(3) for _ in range(5)]
+    # ctx = model.encode(encoder_inputs)
+    # print(f"Context vector: {ctx.shape}")  # (8,)
+    # decoder_outputs = model.decode(ctx, num_steps=3)
+    # print(f"Decoder produced {len(decoder_outputs)} outputs of shape {decoder_outputs[0].shape}")
     return
 
 

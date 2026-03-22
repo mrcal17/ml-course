@@ -9,6 +9,13 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    import matplotlib.pyplot as plt
+    return (np, plt)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -87,6 +94,64 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Demonstrate bias of sample variance with 1/n vs 1/(n-1)
+    # True parameters: mu=5, sigma^2=4
+    true_mu, true_sigma2 = 5.0, 4.0
+    n_samples, n_trials = 10, 50_000
+
+    rng = np.random.default_rng(0)
+    biased_vars, unbiased_vars = [], []
+    for _ in range(n_trials):
+        x = rng.normal(true_mu, np.sqrt(true_sigma2), size=n_samples)
+        biased_vars.append(np.var(x))          # divides by n (MLE)
+        unbiased_vars.append(np.var(x, ddof=1)) # divides by n-1
+
+    print(f"True sigma^2 = {true_sigma2}")
+    print(f"E[biased estimator]   = {np.mean(biased_vars):.4f}  (bias = {np.mean(biased_vars) - true_sigma2:.4f})")
+    print(f"E[unbiased estimator] = {np.mean(unbiased_vars):.4f}  (bias = {np.mean(unbiased_vars) - true_sigma2:.4f})")
+    return
+
+
+@app.cell
+def _(np, plt):
+    # Simulate the bias-variance tradeoff: shrinkage estimator vs sample mean
+    # Estimator family: theta_hat_c = c * x_bar  (c=1 is unbiased, c<1 adds bias but reduces variance)
+    true_mean = 5.0
+    n_obs = 10
+    n_sim = 20_000
+    rng_bv = np.random.default_rng(42)
+
+    c_values = np.linspace(0.5, 1.2, 50)
+    bias2_arr, var_arr, mse_arr = [], [], []
+
+    samples = rng_bv.normal(true_mean, 2.0, size=(n_sim, n_obs))
+    x_bars = samples.mean(axis=1)
+
+    for c in c_values:
+        estimates = c * x_bars
+        bias2 = (estimates.mean() - true_mean) ** 2
+        var = estimates.var()
+        bias2_arr.append(bias2)
+        var_arr.append(var)
+        mse_arr.append(bias2 + var)
+
+    fig_bv, ax_bv = plt.subplots(figsize=(7, 4))
+    ax_bv.plot(c_values, bias2_arr, label="Bias$^2$")
+    ax_bv.plot(c_values, var_arr, label="Variance")
+    ax_bv.plot(c_values, mse_arr, "k--", lw=2, label="MSE = Bias$^2$ + Var")
+    ax_bv.axvline(1.0, color="gray", ls=":", label="c=1 (unbiased)")
+    ax_bv.set_xlabel("Shrinkage factor c")
+    ax_bv.set_ylabel("Value")
+    ax_bv.set_title("Bias-Variance Tradeoff for Shrinkage Estimator")
+    ax_bv.legend()
+    ax_bv.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_bv
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -157,6 +222,35 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np, plt):
+    # MLE for Bernoulli: compute and visualize the log-likelihood
+    rng_bern = np.random.default_rng(7)
+    true_p = 0.7
+    flips = rng_bern.binomial(1, true_p, size=20)  # 20 coin flips
+    k = flips.sum()
+    n_bern = len(flips)
+
+    # MLE = k/n
+    p_mle_bern = k / n_bern
+    print(f"Observed: {k} heads in {n_bern} flips")
+    print(f"MLE for p: {p_mle_bern:.3f}  (true p = {true_p})")
+
+    # Plot log-likelihood as function of p
+    p_grid = np.linspace(0.01, 0.99, 200)
+    log_lik_bern = k * np.log(p_grid) + (n_bern - k) * np.log(1 - p_grid)
+
+    fig_bern, ax_bern = plt.subplots(figsize=(6, 3.5))
+    ax_bern.plot(p_grid, log_lik_bern)
+    ax_bern.axvline(p_mle_bern, color="r", ls="--", label=f"MLE = {p_mle_bern:.2f}")
+    ax_bern.set_xlabel("p"); ax_bern.set_ylabel("Log-likelihood")
+    ax_bern.set_title("Bernoulli Log-Likelihood")
+    ax_bern.legend(); ax_bern.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_bern
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -177,6 +271,35 @@ def _(mo):
 
     > [Chan 8.3 — Maximum Likelihood Estimation](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) works through these derivations step by step with additional examples.
     """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # MLE for Gaussian: compute estimates and visualize log-likelihood surface
+    rng_gauss = np.random.default_rng(42)
+    data_gauss = rng_gauss.normal(loc=3.0, scale=2.0, size=50)
+
+    # Analytical MLE
+    mu_hat = data_gauss.mean()           # sample mean
+    sigma2_hat = data_gauss.var()        # 1/n variance (MLE)
+    print(f"MLE: mu = {mu_hat:.3f}, sigma^2 = {sigma2_hat:.3f}")
+    print(f"True: mu = 3.0, sigma^2 = 4.0")
+
+    # Log-likelihood on a grid of mu values (sigma^2 fixed at MLE)
+    mu_grid = np.linspace(1, 5, 200)
+    n_g = len(data_gauss)
+    ll_mu = -0.5 * n_g * np.log(2 * np.pi * sigma2_hat) - \
+            0.5 * np.sum((data_gauss[:, None] - mu_grid[None, :]) ** 2, axis=0) / sigma2_hat
+
+    fig_g, ax_g = plt.subplots(figsize=(6, 3.5))
+    ax_g.plot(mu_grid, ll_mu)
+    ax_g.axvline(mu_hat, color="r", ls="--", label=f"MLE mu = {mu_hat:.2f}")
+    ax_g.set_xlabel("mu"); ax_g.set_ylabel("Log-likelihood")
+    ax_g.set_title("Gaussian Log-Likelihood (sigma^2 at MLE)")
+    ax_g.legend(); ax_g.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_g
     return
 
 
@@ -204,6 +327,28 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # MLE for linear regression = OLS via the normal equation
+    rng_lr = np.random.default_rng(99)
+    n_lr = 80
+    X_lr = rng_lr.standard_normal((n_lr, 2))
+    X_lr_b = np.column_stack([np.ones(n_lr), X_lr])  # add intercept column
+    w_true_lr = np.array([1.0, 2.0, -0.5])
+    y_lr = X_lr_b @ w_true_lr + rng_lr.normal(0, 0.5, n_lr)
+
+    # Normal equation: w_hat = (X^T X)^{-1} X^T y
+    w_ols_lr = np.linalg.solve(X_lr_b.T @ X_lr_b, X_lr_b.T @ y_lr)
+    print(f"True weights:     {w_true_lr}")
+    print(f"OLS/MLE weights:  {np.round(w_ols_lr, 4)}")
+
+    # MLE for noise variance
+    resid = y_lr - X_lr_b @ w_ols_lr
+    sigma2_lr = np.mean(resid ** 2)
+    print(f"MLE sigma^2: {sigma2_lr:.4f}  (true = 0.25)")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -224,6 +369,30 @@ def _(mo):
 
     These failures motivate the Bayesian approach.
     """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # MLE overfitting with small samples: repeated experiments
+    rng_small = np.random.default_rng(10)
+    true_p_demo = 0.6
+    sample_sizes = [3, 10, 50, 200]
+    n_repeats = 5_000
+
+    fig_mle_fail, axes_mle = plt.subplots(1, 4, figsize=(14, 3), sharey=True)
+    for ax_m, n_s in zip(axes_mle, sample_sizes):
+        mle_estimates = rng_small.binomial(n_s, true_p_demo, n_repeats) / n_s
+        ax_m.hist(mle_estimates, bins=30, density=True, alpha=0.7, edgecolor="k")
+        ax_m.axvline(true_p_demo, color="r", ls="--", lw=2, label=f"true p={true_p_demo}")
+        ax_m.set_title(f"n = {n_s}")
+        ax_m.set_xlabel("MLE estimate")
+        if n_s == 3:
+            ax_m.set_ylabel("Density")
+        ax_m.legend(fontsize=8)
+    fig_mle_fail.suptitle("MLE Sampling Distribution: Small vs Large Samples", y=1.02)
+    plt.tight_layout()
+    fig_mle_fail
     return
 
 
@@ -250,6 +419,36 @@ def _(mo):
 
     Compare this to MLE, which maximizes just $\log p(\mathbf{x} \mid \theta)$. MAP adds the $\log p(\theta)$ term — a penalty or bonus depending on how well $\theta$ aligns with your prior beliefs. **MAP = MLE + regularization.** This is one of the most important conceptual connections in ML.
     """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # MAP vs MLE for Bernoulli with Beta prior
+    # Observe 7 heads in 10 flips — compare MLE and MAP under different priors
+    from scipy.stats import beta as beta_dist_demo
+    k_demo, n_demo = 7, 10
+    p_mle_demo = k_demo / n_demo
+
+    priors = [(1, 1, "Beta(1,1) — uniform"), (2, 5, "Beta(2,5) — skeptical of high p")]
+    p_range = np.linspace(0.01, 0.99, 300)
+
+    fig_map, axes_map = plt.subplots(1, 2, figsize=(12, 4))
+    for ax_mp, (a, b, label) in zip(axes_map, priors):
+        # MAP = (k + a - 1) / (n + a + b - 2)
+        p_map_demo = (k_demo + a - 1) / (n_demo + a + b - 2)
+        prior_pdf = beta_dist_demo.pdf(p_range, a, b)
+        post_pdf = beta_dist_demo.pdf(p_range, a + k_demo, b + n_demo - k_demo)
+        lik = p_range ** k_demo * (1 - p_range) ** (n_demo - k_demo)
+        lik = lik / lik.max() * prior_pdf.max()  # scale for plotting
+        ax_mp.plot(p_range, prior_pdf, "g--", lw=2, label="Prior")
+        ax_mp.plot(p_range, lik, "r:", lw=2, label="Likelihood (scaled)")
+        ax_mp.plot(p_range, post_pdf, "b-", lw=2, label="Posterior")
+        ax_mp.axvline(p_mle_demo, color="r", alpha=0.4, label=f"MLE={p_mle_demo:.2f}")
+        ax_mp.axvline(p_map_demo, color="b", alpha=0.4, label=f"MAP={p_map_demo:.2f}")
+        ax_mp.set_title(label); ax_mp.legend(fontsize=8); ax_mp.set_xlabel("p")
+    plt.tight_layout()
+    fig_map
     return
 
 
@@ -300,6 +499,45 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np, plt):
+    # Ridge vs Lasso: compare weight shrinkage paths
+    rng_reg = np.random.default_rng(0)
+    n_reg = 100
+    X_reg = rng_reg.standard_normal((n_reg, 5))
+    # Only features 0 and 1 matter; rest are noise
+    w_true_reg = np.array([3.0, -2.0, 0.0, 0.0, 0.0])
+    y_reg = X_reg @ w_true_reg + rng_reg.normal(0, 1, n_reg)
+
+    lambdas_reg = np.logspace(-1, 3, 60)
+    ridge_path = np.zeros((len(lambdas_reg), 5))
+    lasso_path = np.zeros((len(lambdas_reg), 5))
+
+    XtX = X_reg.T @ X_reg
+    Xty = X_reg.T @ y_reg
+    for i, lam in enumerate(lambdas_reg):
+        # Ridge closed form: (X^T X + lambda I)^{-1} X^T y
+        ridge_path[i] = np.linalg.solve(XtX + lam * np.eye(5), Xty)
+
+    # Lasso via coordinate descent (simple implementation)
+    from sklearn.linear_model import Lasso
+    for i, lam in enumerate(lambdas_reg):
+        model_l = Lasso(alpha=lam / (2 * n_reg), fit_intercept=False, max_iter=5000)
+        model_l.fit(X_reg, y_reg)
+        lasso_path[i] = model_l.coef_
+
+    fig_reg, (ax_r, ax_l) = plt.subplots(1, 2, figsize=(12, 4))
+    for j in range(5):
+        ax_r.plot(lambdas_reg, ridge_path[:, j], label=f"w{j} (true={w_true_reg[j]:.0f})")
+        ax_l.plot(lambdas_reg, lasso_path[:, j], label=f"w{j} (true={w_true_reg[j]:.0f})")
+    for ax_rl, title_rl in [(ax_r, "Ridge (L2 / Gaussian prior)"), (ax_l, "Lasso (L1 / Laplace prior)")]:
+        ax_rl.set_xscale("log"); ax_rl.set_xlabel("lambda"); ax_rl.set_ylabel("Weight")
+        ax_rl.set_title(title_rl); ax_rl.legend(fontsize=7); ax_rl.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_reg
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -336,6 +574,35 @@ def _(mo):
 
     > [Bishop 2.1 — Binary Variables](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) walks through the Beta-Bernoulli conjugate pair in beautiful detail. [Chan 8.5 — Bayesian Estimation](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) covers the conceptual foundations.
     """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # Bayesian updating with conjugate Beta-Bernoulli model
+    # Watch the posterior sharpen as we see more data
+    from scipy.stats import beta as beta_conj
+    rng_bayes = np.random.default_rng(3)
+    true_p_bayes = 0.65
+    all_flips = rng_bayes.binomial(1, true_p_bayes, size=100)
+
+    prior_a, prior_b = 2, 2  # mild prior centered at 0.5
+    checkpoints = [0, 1, 5, 20, 100]  # after this many observations
+    p_vals = np.linspace(0, 1, 300)
+
+    fig_bu, ax_bu = plt.subplots(figsize=(7, 4))
+    for cp in checkpoints:
+        k_cp = all_flips[:cp].sum() if cp > 0 else 0
+        a_post = prior_a + k_cp
+        b_post = prior_b + (cp - k_cp)
+        ax_bu.plot(p_vals, beta_conj.pdf(p_vals, a_post, b_post),
+                   label=f"n={cp} (k={k_cp})")
+    ax_bu.axvline(true_p_bayes, color="k", ls=":", label=f"true p={true_p_bayes}")
+    ax_bu.set_xlabel("p"); ax_bu.set_ylabel("Density")
+    ax_bu.set_title("Bayesian Updating: Posterior Sharpens with More Data")
+    ax_bu.legend(); ax_bu.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_bu
     return
 
 
@@ -381,6 +648,71 @@ def _(mo):
 
     > [Chan 8.4 — Confidence Intervals](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) gives a clear treatment with the correct interpretation.
     """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # Simulate the frequentist interpretation of confidence intervals
+    # Generate many 95% CIs and count how many contain the true mean
+    from scipy import stats as stats_ci
+    rng_ci = np.random.default_rng(42)
+    true_mu_ci = 5.0
+    n_ci = 25
+    n_experiments = 100
+
+    fig_ci, ax_ci = plt.subplots(figsize=(8, 6))
+    contains_count = 0
+    for i in range(n_experiments):
+        sample = rng_ci.normal(true_mu_ci, 2.0, size=n_ci)
+        xbar = sample.mean()
+        se = sample.std(ddof=1) / np.sqrt(n_ci)
+        t_crit = stats_ci.t.ppf(0.975, df=n_ci - 1)
+        lo, hi = xbar - t_crit * se, xbar + t_crit * se
+        contains = lo <= true_mu_ci <= hi
+        contains_count += contains
+        color = "steelblue" if contains else "red"
+        ax_ci.plot([lo, hi], [i, i], color=color, lw=1.2)
+    ax_ci.axvline(true_mu_ci, color="k", ls="--", lw=1.5, label=f"true mu={true_mu_ci}")
+    ax_ci.set_xlabel("Value"); ax_ci.set_ylabel("Experiment")
+    ax_ci.set_title(f"100 Confidence Intervals (95%): {contains_count} contain true mean")
+    ax_ci.legend()
+    plt.tight_layout()
+    fig_ci
+    return
+
+
+@app.cell
+def _(np, plt):
+    # Bootstrap confidence intervals for the mean and median
+    rng_boot = np.random.default_rng(7)
+    data_boot = rng_boot.normal(4.0, 1.5, size=40)
+    n_boot_samples = 10_000
+
+    # Bootstrap: resample with replacement, compute statistic each time
+    boot_means = np.array([
+        rng_boot.choice(data_boot, size=len(data_boot), replace=True).mean()
+        for _ in range(n_boot_samples)
+    ])
+    boot_medians = np.array([
+        np.median(rng_boot.choice(data_boot, size=len(data_boot), replace=True))
+        for _ in range(n_boot_samples)
+    ])
+
+    ci_mean = np.percentile(boot_means, [2.5, 97.5])
+    ci_median = np.percentile(boot_medians, [2.5, 97.5])
+    print(f"Bootstrap 95% CI for mean:   [{ci_mean[0]:.3f}, {ci_mean[1]:.3f}]")
+    print(f"Bootstrap 95% CI for median: [{ci_median[0]:.3f}, {ci_median[1]:.3f}]")
+
+    fig_boot, (ax_b1, ax_b2) = plt.subplots(1, 2, figsize=(11, 3.5))
+    ax_b1.hist(boot_means, bins=50, edgecolor="k", alpha=0.7)
+    ax_b1.axvline(ci_mean[0], color="r", ls="--"); ax_b1.axvline(ci_mean[1], color="r", ls="--")
+    ax_b1.set_title("Bootstrap Distribution of Mean")
+    ax_b2.hist(boot_medians, bins=50, edgecolor="k", alpha=0.7)
+    ax_b2.axvline(ci_median[0], color="r", ls="--"); ax_b2.axvline(ci_median[1], color="r", ls="--")
+    ax_b2.set_title("Bootstrap Distribution of Median")
+    plt.tight_layout()
+    fig_boot
     return
 
 
@@ -434,6 +766,37 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Simulate p-values and Type I / Type II error rates
+    from scipy import stats as stats_hyp
+    rng_hyp = np.random.default_rng(5)
+    n_hyp = 30
+    n_tests = 10_000
+    alpha = 0.05
+
+    # Type I error: H0 is true (mu=0), test if mu != 0
+    type1_rejections = 0
+    for _ in range(n_tests):
+        sample_null = rng_hyp.normal(0, 1, n_hyp)  # H0 true
+        _, p_val = stats_hyp.ttest_1samp(sample_null, 0)
+        if p_val < alpha:
+            type1_rejections += 1
+
+    # Type II error: H0 is false (mu=0.5), test if mu != 0
+    type2_failures = 0
+    for _ in range(n_tests):
+        sample_alt = rng_hyp.normal(0.5, 1, n_hyp)  # H0 false, true mu=0.5
+        _, p_val = stats_hyp.ttest_1samp(sample_alt, 0)
+        if p_val >= alpha:
+            type2_failures += 1
+
+    print(f"Type I error rate:  {type1_rejections / n_tests:.3f}  (expected ~ {alpha})")
+    print(f"Type II error rate: {type2_failures / n_tests:.3f}")
+    print(f"Power:              {1 - type2_failures / n_tests:.3f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -468,6 +831,40 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np, plt):
+    # AIC and BIC for polynomial model selection
+    rng_ic = np.random.default_rng(12)
+    n_ic = 80
+    x_ic = np.sort(rng_ic.uniform(-3, 3, n_ic))
+    y_ic_true = 0.5 * x_ic ** 3 - x_ic + 2  # true model is degree 3
+    y_ic = y_ic_true + rng_ic.normal(0, 3, n_ic)
+
+    degrees_ic = range(1, 10)
+    aic_vals, bic_vals = [], []
+    for d in degrees_ic:
+        # Fit polynomial of degree d
+        coeffs = np.polyfit(x_ic, y_ic, d)
+        y_pred_ic = np.polyval(coeffs, x_ic)
+        resid_ic = y_ic - y_pred_ic
+        sigma2_ic = np.mean(resid_ic ** 2)
+        k_ic = d + 2  # coefficients + sigma^2
+        # Log-likelihood for Gaussian model
+        ll = -0.5 * n_ic * np.log(2 * np.pi * sigma2_ic) - 0.5 * n_ic
+        aic_vals.append(-2 * ll + 2 * k_ic)
+        bic_vals.append(-2 * ll + k_ic * np.log(n_ic))
+
+    fig_ic, ax_ic = plt.subplots(figsize=(7, 4))
+    ax_ic.plot(list(degrees_ic), aic_vals, "bo-", label=f"AIC (best: deg {list(degrees_ic)[np.argmin(aic_vals)]})")
+    ax_ic.plot(list(degrees_ic), bic_vals, "rs-", label=f"BIC (best: deg {list(degrees_ic)[np.argmin(bic_vals)]})")
+    ax_ic.set_xlabel("Polynomial Degree"); ax_ic.set_ylabel("Criterion Value")
+    ax_ic.set_title("AIC vs BIC for Model Selection")
+    ax_ic.legend(); ax_ic.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig_ic
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -496,6 +893,25 @@ def _(mo):
 
     > [Bishop 1.1 — Polynomial Curve Fitting](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) beautifully illustrates overfitting, regularization, and the Bayesian approach all on one simple example. Read this section — it's one of the best 15 pages in any ML textbook.
     """)
+    return
+
+
+@app.cell
+def _(np):
+    # Cross-entropy loss IS negative log-likelihood of Bernoulli
+    rng_ce = np.random.default_rng(0)
+    y_true_ce = rng_ce.integers(0, 2, size=50).astype(float)
+    p_pred = np.clip(rng_ce.uniform(0.2, 0.8, 50), 1e-8, 1 - 1e-8)
+
+    # Cross-entropy loss (as used in ML)
+    ce_loss = -np.mean(y_true_ce * np.log(p_pred) + (1 - y_true_ce) * np.log(1 - p_pred))
+
+    # Negative log-likelihood of Bernoulli (same formula!)
+    nll = -np.sum(y_true_ce * np.log(p_pred) + (1 - y_true_ce) * np.log(1 - p_pred)) / len(y_true_ce)
+
+    print(f"Cross-entropy loss:            {ce_loss:.6f}")
+    print(f"Bernoulli negative log-lik:    {nll:.6f}")
+    print(f"They are identical:            {np.isclose(ce_loss, nll)}")
     return
 
 
@@ -843,6 +1259,225 @@ def _(mo):
     | Full Bayes | Computes entire posterior | $p(\theta \mid \mathbf{x}) \propto p(\mathbf{x} \mid \theta)p(\theta)$ | Uncertainty quantification |
     | Bootstrap | Resamples data | Empirical sampling distribution | Bagging (Random Forests!) |
     | AIC/BIC | Balances fit + complexity | $-2\ell + \text{penalty}$ | Model/hyperparameter selection |
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    Work through these exercises to build estimation algorithms from scratch. Each one gives you a problem statement and skeleton code -- fill in the blanks.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 1: MLE for the Exponential Distribution
+
+    Given samples from $\text{Exp}(\lambda)$ with density $f(x) = \lambda e^{-\lambda x}$, the MLE is $\hat{\lambda} = 1/\bar{x}$. Implement this analytically, then verify by numerically minimizing the negative log-likelihood.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Code It 1: MLE for Exponential distribution
+    rng_exp = np.random.default_rng(42)
+    true_lam = 2.5
+    samples_exp = rng_exp.exponential(1 / true_lam, size=200)
+
+    # TODO: Analytical MLE (hint: lambda_hat = 1 / x_bar)
+    lam_analytical = ...  # fill in
+
+    # TODO: Numerical MLE — minimize negative log-likelihood
+    # NLL = -sum(log(lambda) - lambda * x_i) = -n*log(lambda) + lambda*sum(x_i)
+    from scipy.optimize import minimize_scalar
+    nll_exp = lambda lam: ...  # fill in
+    # result_exp = minimize_scalar(nll_exp, bounds=(0.01, 20), method="bounded")
+    # lam_numerical = result_exp.x
+
+    # print(f"True lambda:      {true_lam}")
+    # print(f"Analytical MLE:   {lam_analytical:.4f}")
+    # print(f"Numerical MLE:    {lam_numerical:.4f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 2: Simulate Bias-Variance Tradeoff
+
+    Compare two estimators of the population mean from $\mathcal{N}(\mu, \sigma^2)$:
+    - **Estimator A**: sample mean $\bar{x}$ (unbiased)
+    - **Estimator B**: shrinkage estimator $0.8 \bar{x}$ (biased toward zero)
+
+    Run 10,000 simulations and compute bias, variance, and MSE for each. Which one has lower MSE, and when?
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Code It 2: Bias-variance simulation
+    rng_bvex = np.random.default_rng(0)
+    true_mu_bv = 3.0
+    sigma_bv = 5.0
+    n_obs_bv = 10
+    n_sims = 10_000
+
+    estimates_A = np.zeros(n_sims)
+    estimates_B = np.zeros(n_sims)
+
+    for i in range(n_sims):
+        sample = rng_bvex.normal(true_mu_bv, sigma_bv, size=n_obs_bv)
+        # TODO: Estimator A — sample mean
+        estimates_A[i] = ...  # fill in
+        # TODO: Estimator B — shrinkage: 0.8 * sample mean
+        estimates_B[i] = ...  # fill in
+
+    # TODO: Compute bias, variance, MSE for each estimator
+    # bias_A = estimates_A.mean() - true_mu_bv
+    # var_A = estimates_A.var()
+    # mse_A = bias_A**2 + var_A
+    # (same for B)
+
+    # print(f"Estimator A (x_bar):     Bias={bias_A:.4f}, Var={var_A:.4f}, MSE={mse_A:.4f}")
+    # print(f"Estimator B (0.8*x_bar): Bias={bias_B:.4f}, Var={var_B:.4f}, MSE={mse_B:.4f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 3: Bootstrap Confidence Interval for Correlation
+
+    Given bivariate data $(x_i, y_i)$, construct a bootstrap 95% CI for the Pearson correlation coefficient. There is no simple analytical formula for the CI of a correlation -- the bootstrap shines here.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Code It 3: Bootstrap CI for correlation
+    rng_corr = np.random.default_rng(55)
+    n_corr = 50
+    # Generate correlated data
+    mean_corr = [0, 0]
+    cov_corr = [[1, 0.6], [0.6, 1]]
+    xy = rng_corr.multivariate_normal(mean_corr, cov_corr, size=n_corr)
+    x_corr, y_corr = xy[:, 0], xy[:, 1]
+
+    sample_corr = np.corrcoef(x_corr, y_corr)[0, 1]
+    print(f"Sample correlation: {sample_corr:.4f}")
+
+    n_boot_corr = 10_000
+    boot_corrs = np.zeros(n_boot_corr)
+    for i in range(n_boot_corr):
+        # TODO: resample indices with replacement
+        # idx = rng_corr.choice(n_corr, size=n_corr, replace=True)
+        # boot_corrs[i] = np.corrcoef(x_corr[idx], y_corr[idx])[0, 1]
+        pass
+
+    # TODO: Compute 95% CI from percentiles
+    # ci_lo, ci_hi = np.percentile(boot_corrs, [2.5, 97.5])
+    # print(f"Bootstrap 95% CI for correlation: [{ci_lo:.4f}, {ci_hi:.4f}]")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 4: Bayesian Posterior Predictive
+
+    Using a Beta-Bernoulli model: after observing coin flips, compute the posterior predictive probability of the next flip being heads. Compare the Bayesian prediction (which integrates over parameter uncertainty) with the MLE plug-in prediction.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Code It 4: Posterior predictive for Beta-Bernoulli
+    rng_pp = np.random.default_rng(8)
+    true_p_pp = 0.7
+    flips_pp = rng_pp.binomial(1, true_p_pp, size=15)
+    k_pp = flips_pp.sum()
+    n_pp = len(flips_pp)
+    print(f"Observed: {k_pp} heads in {n_pp} flips")
+
+    # Prior: Beta(a, b)
+    a_prior, b_prior = 2, 2
+
+    # TODO: MLE plug-in prediction for P(next flip = heads)
+    # p_mle_pred = k_pp / n_pp
+
+    # TODO: Bayesian posterior predictive
+    # For Beta-Bernoulli, P(next=1 | data) = (a + k) / (a + b + n)
+    # This integrates over the full posterior, not just the point estimate
+    # p_bayes_pred = (a_prior + k_pp) / (a_prior + b_prior + n_pp)
+
+    # print(f"MLE plug-in prediction:        {p_mle_pred:.4f}")
+    # print(f"Bayesian posterior predictive:  {p_bayes_pred:.4f}")
+    # print(f"True p:                         {true_p_pp}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 5: Compare AIC, BIC, and Cross-Validation
+
+    Fit polynomial models of degrees 1-8 to noisy cubic data. Compute AIC, BIC, and 10-fold CV error. Print a table showing all three criteria and which degree each selects.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Code It 5: Model selection comparison
+    rng_ms = np.random.default_rng(17)
+    n_ms = 120
+    x_ms = np.sort(rng_ms.uniform(-2, 2, n_ms))
+    y_ms = 0.8 * x_ms ** 3 - 1.5 * x_ms + 1 + rng_ms.normal(0, 2, n_ms)
+
+    # TODO: For each degree d in 1..8:
+    #   1. Fit polynomial with np.polyfit
+    #   2. Compute residuals and MLE sigma^2
+    #   3. Compute log-likelihood, AIC, BIC
+    #   4. Compute 10-fold CV MSE (use sklearn cross_val_score)
+    # Print a table of results
+
+    # degrees_ms = range(1, 9)
+    # print(f"{'Degree':>6} {'AIC':>10} {'BIC':>10} {'CV MSE':>10}")
+    # print("-" * 40)
+    # for d in degrees_ms:
+    #     coeffs_ms = np.polyfit(x_ms, y_ms, d)
+    #     y_pred_ms = np.polyval(coeffs_ms, x_ms)
+    #     sigma2_ms = np.mean((y_ms - y_pred_ms) ** 2)
+    #     k_ms = d + 2
+    #     ll_ms = -0.5 * n_ms * np.log(2 * np.pi * sigma2_ms) - 0.5 * n_ms
+    #     aic_ms = -2 * ll_ms + 2 * k_ms
+    #     bic_ms = -2 * ll_ms + k_ms * np.log(n_ms)
+    #     # CV: use sklearn
+    #     from sklearn.preprocessing import PolynomialFeatures
+    #     from sklearn.linear_model import LinearRegression
+    #     from sklearn.model_selection import cross_val_score
+    #     X_ms = PolynomialFeatures(d, include_bias=False).fit_transform(x_ms.reshape(-1,1))
+    #     cv_ms = -cross_val_score(LinearRegression(), X_ms, y_ms, cv=10,
+    #                              scoring='neg_mean_squared_error').mean()
+    #     print(f"{d:>6} {aic_ms:>10.2f} {bic_ms:>10.2f} {cv_ms:>10.4f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
 
     Next up: **0F — Optimization**, where you'll learn the algorithms that actually solve these optimization problems — because in practice, you rarely get a nice closed-form solution like we did for Gaussian MLE. You'll need gradient descent.
     """)

@@ -84,7 +84,36 @@ def _(mo):
     where $\hat{y}_{R_k}$ is the mean of the targets in region $R_k$. We search over all features $j$ and all thresholds $t$ to find the split that minimizes this.
 
     For **classification trees**, we need a measure of node "impurity" — how mixed the classes are.
+    """)
+    return
 
+
+@app.cell
+def _(np):
+    # Regression tree split loss: try every threshold on 1D data
+    # and pick the one minimizing total RSS across both regions
+    y_demo = np.array([2.1, 2.5, 3.8, 4.0, 7.1, 7.9, 8.2])
+    x_demo = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+
+    best_loss, best_t = np.inf, None
+    for t in x_demo[:-1]:  # candidate thresholds between consecutive points
+        left = y_demo[x_demo <= t]
+        right = y_demo[x_demo > t]
+        # RSS = sum of squared deviations from the region mean
+        loss = np.sum((left - left.mean())**2) + np.sum((right - right.mean())**2)
+        if loss < best_loss:
+            best_loss, best_t = loss, t
+
+    print(f"Best split: x <= {best_t}")
+    print(f"Left mean:  {y_demo[x_demo <= best_t].mean():.2f}")
+    print(f"Right mean: {y_demo[x_demo > best_t].mean():.2f}")
+    print(f"RSS:        {best_loss:.2f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### 1.2 Splitting Criteria: Gini Impurity and Entropy
 
     Let $\hat{p}_{mk}$ be the proportion of training observations in node $m$ that belong to class $k$. Two standard impurity measures:
@@ -104,7 +133,75 @@ def _(mo):
     In practice, Gini and entropy produce nearly identical trees. The real choice is between these and misclassification error, which is *not* a good splitting criterion because it is piecewise linear and less sensitive to changes in class probabilities.
 
     See [ISLR Section 8.1.2](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) and [ESL Section 9.2.3](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) for the full treatment.
+    """)
+    return
 
+
+@app.cell
+def _(np):
+    # Gini impurity: G = 1 - sum(p_k^2)
+    def gini(p):
+        return 1.0 - np.sum(p ** 2)
+
+    # Entropy: H = -sum(p_k * log2(p_k)), with 0*log(0) = 0
+    def entropy(p):
+        p = p[p > 0]  # avoid log(0)
+        return -np.sum(p * np.log2(p))
+
+    # Compare for a binary node at different mixture levels
+    for p1 in [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0]:
+        p = np.array([p1, 1 - p1])
+        print(f"p={p}  Gini={gini(p):.3f}  Entropy={entropy(p):.3f}")
+    return (entropy, gini,)
+
+
+@app.cell
+def _(entropy, gini, np, plt):
+    # Visualize Gini and entropy as functions of p for binary classification
+    p_range = np.linspace(0.001, 0.999, 200)
+    gini_vals = [gini(np.array([p, 1 - p])) for p in p_range]
+    entropy_vals = [entropy(np.array([p, 1 - p])) for p in p_range]
+
+    fig_imp, ax_imp = plt.subplots(figsize=(6, 3.5))
+    ax_imp.plot(p_range, gini_vals, label="Gini impurity")
+    ax_imp.plot(p_range, entropy_vals, label="Entropy (bits)")
+    ax_imp.set_xlabel(r"$\hat{p}_1$ (proportion of class 1)")
+    ax_imp.set_ylabel("Impurity")
+    ax_imp.set_title("Gini vs Entropy for binary classification")
+    ax_imp.legend()
+    plt.tight_layout()
+    fig_imp
+    return
+
+
+@app.cell
+def _(np):
+    # Information gain from a candidate split
+    # Parent node: 50 class-0, 50 class-1
+    # Split A -> left (40,10), right (10,40)
+    # Split B -> left (30,20), right (20,30)
+    def ig(parent_counts, left_counts, right_counts):
+        """Weighted entropy reduction (information gain)."""
+        def H(counts):
+            p = counts / counts.sum()
+            p = p[p > 0]
+            return -np.sum(p * np.log2(p))
+        n = parent_counts.sum()
+        n_l, n_r = left_counts.sum(), right_counts.sum()
+        return H(parent_counts) - (n_l/n)*H(left_counts) - (n_r/n)*H(right_counts)
+
+    parent = np.array([50, 50])
+    gain_A = ig(parent, np.array([40, 10]), np.array([10, 40]))
+    gain_B = ig(parent, np.array([30, 20]), np.array([20, 30]))
+    print(f"Information gain — Split A: {gain_A:.4f} bits")
+    print(f"Information gain — Split B: {gain_B:.4f} bits")
+    print(f"Split A is better: {gain_A > gain_B}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### 1.3 Tree Pruning
 
     A fully grown tree will overfit — it will keep splitting until every leaf contains one observation. We need to prune.
@@ -116,7 +213,38 @@ def _(mo):
     The parameter $\alpha \ge 0$ controls the trade-off between fit and complexity. When $\alpha = 0$, the full tree is optimal. As $\alpha$ increases, smaller trees become optimal. We select $\alpha$ via cross-validation.
 
     This is exactly the same idea as regularization in ridge/lasso — penalize complexity to control overfitting. The difference is that here "complexity" means number of leaves, not magnitude of coefficients. See [ISLR Section 8.1.1: Pruning a Tree](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf).
+    """)
+    return
 
+
+@app.cell
+def _(DecisionTreeClassifier, make_moons, np, plt):
+    # Cost-complexity pruning: grow full tree, then prune with alpha
+    X_prune, y_prune = make_moons(n_samples=200, noise=0.3, random_state=0)
+    dt_full = DecisionTreeClassifier(random_state=0)
+    # Get the effective alphas from cost-complexity pruning path
+    path = dt_full.cost_complexity_pruning_path(X_prune, y_prune)
+    alphas = path.ccp_alphas[::5]  # subsample for speed
+
+    leaves = []
+    for a in alphas:
+        clf = DecisionTreeClassifier(ccp_alpha=a, random_state=0)
+        clf.fit(X_prune, y_prune)
+        leaves.append(clf.get_n_leaves())
+
+    fig_prune, ax_prune = plt.subplots(figsize=(6, 3.5))
+    ax_prune.plot(alphas, leaves, "o-", ms=3)
+    ax_prune.set_xlabel(r"$\alpha$ (cost-complexity parameter)")
+    ax_prune.set_ylabel("Number of leaves")
+    ax_prune.set_title(r"Pruning: more $\alpha$ $\rightarrow$ simpler tree")
+    plt.tight_layout()
+    fig_prune
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### 1.4 Strengths and Weaknesses
 
     **Pros:**
@@ -198,7 +326,34 @@ def _(mo):
     This is high variance in the bias-variance sense. A single decision tree is an **unstable learner** — its predictions change drastically with small perturbations in the training data. The tree itself has low bias (it can approximate complex functions if grown deep), but the variance is enormous.
 
     This observation is the motivation for everything that follows. If we could somehow reduce the variance of trees while keeping their low bias, we would have a powerful model. That is exactly what ensemble methods do.
+    """)
+    return
 
+
+@app.cell
+def _(DecisionTreeClassifier, make_moons, np):
+    # Demonstrate tree instability: train on slightly different data
+    X_instab, y_instab = make_moons(n_samples=100, noise=0.3, random_state=42)
+    preds_list = []
+    x_test_pt = np.array([[0.5, 0.2]])  # single test point
+
+    for seed in range(10):
+        # Bootstrap resample (simulating small data perturbation)
+        rng = np.random.RandomState(seed)
+        idx = rng.choice(len(X_instab), len(X_instab), replace=True)
+        dt_inst = DecisionTreeClassifier(random_state=0)
+        dt_inst.fit(X_instab[idx], y_instab[idx])
+        preds_list.append(dt_inst.predict(x_test_pt)[0])
+
+    print(f"Predictions from 10 bootstrap trees: {preds_list}")
+    print(f"Variance of predictions: {np.var(preds_list):.3f}")
+    print("High variance = unstable learner")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ---
 
     ## 3. Bagging (Bootstrap Aggregating)
@@ -229,6 +384,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Bagging variance formula: Var = rho*sigma^2 + (1-rho)*sigma^2 / B
+    sigma2 = 1.0  # individual tree variance
+
+    for rho in [0.8, 0.4, 0.1]:
+        for B in [10, 100, 1000]:
+            var = rho * sigma2 + (1 - rho) * sigma2 / B
+            print(f"rho={rho}, B={B:4d} -> ensemble variance = {var:.4f}")
+        print()
+
+    print("Key insight: reducing rho (correlation) helps more than increasing B (trees)")
+    return
+
+
+@app.cell
+def _(np):
+    # OOB: probability that observation i is NOT in a bootstrap sample
+    # P(not picked in one draw) = 1 - 1/n, repeated n times
+    n = 100
+    p_oob = (1 - 1/n) ** n  # approaches 1/e ~ 0.368
+    print(f"P(observation is OOB) for n={n}: {p_oob:.4f}")
+    print(f"Theoretical limit (1/e):          {np.exp(-1):.4f}")
+    print(f"So ~{100*p_oob:.1f}% of data is OOB per tree — free validation!")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -248,7 +430,23 @@ def _(mo):
     - **Regression:** $m = p/3$
 
     These defaults work surprisingly well in practice. Decreasing $m$ reduces correlation between trees (good) but increases the bias of each individual tree (bad). The sweet spot is usually close to the defaults, but it is worth tuning via cross-validation.
+    """)
+    return
 
+
+@app.cell
+def _(np):
+    # mtry defaults: sqrt(p) for classification, p/3 for regression
+    for p in [10, 50, 100, 500]:
+        m_clf = int(np.sqrt(p))
+        m_reg = max(1, int(p / 3))
+        print(f"p={p:3d} features -> mtry_classification={m_clf}, mtry_regression={m_reg}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### 4.2 Feature Importance
 
     One of the most useful byproducts of random forests is feature importance ranking.
@@ -371,7 +569,39 @@ def _(mo):
     5. Repeat. The final prediction is a weighted vote of all learners.
 
     Observations that are hard to classify accumulate weight over iterations, forcing subsequent learners to focus on them. The "boosting" name comes from the theoretical result that combining many weak learners (barely better than random) produces a strong learner.
+    """)
+    return
 
+
+@app.cell
+def _(DecisionTreeClassifier, make_moons, np):
+    # Mini AdaBoost from scratch (binary classification, 5 stumps)
+    X_ada, y_ada = make_moons(n_samples=200, noise=0.3, random_state=42)
+    y_ada_pm = np.where(y_ada == 0, -1, 1)  # convert to {-1, +1}
+    n_ada = len(X_ada)
+    w = np.ones(n_ada) / n_ada  # step 1: uniform weights
+
+    stumps, alphas = [], []
+    for t in range(5):
+        stump = DecisionTreeClassifier(max_depth=1, random_state=t)
+        stump.fit(X_ada, y_ada_pm, sample_weight=w)              # step 2
+        pred = stump.predict(X_ada)
+        err = np.dot(w, pred != y_ada_pm)                        # weighted error
+        alpha = 0.5 * np.log((1 - err) / max(err, 1e-10))       # learner weight
+        w *= np.exp(-alpha * y_ada_pm * pred)                    # step 3: reweight
+        w /= w.sum()
+        stumps.append(stump); alphas.append(alpha)
+        print(f"Round {t+1}: err={err:.3f}, alpha={alpha:.3f}")
+
+    # Final ensemble: weighted vote
+    ensemble_pred = np.sign(sum(a * s.predict(X_ada) for s, a in zip(stumps, alphas)))
+    print(f"\nEnsemble accuracy: {np.mean(ensemble_pred == y_ada_pm):.3f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### 5.2 Gradient Boosting
 
     Gradient boosting (Friedman, 2001) generalizes AdaBoost to arbitrary differentiable loss functions. This is the framework that dominates modern ML competitions.
@@ -387,7 +617,35 @@ def _(mo):
     For squared error loss, the negative gradient is simply the residual $y_i - F_{m-1}(x_i)$, so gradient boosting literally fits trees to residuals. For other losses (logistic, Huber, quantile), the pseudo-residuals are different, but the principle is the same: each tree corrects the direction of steepest descent in function space.
 
     This is **functional gradient descent** — we are doing gradient descent, but instead of updating parameters, we are adding functions to our model. Each tree is a step in function space. See [ESL Section 10.10: Gradient Boosting](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) and [ESL Section 10.1-10.4](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf).
+    """)
+    return
 
+
+@app.cell
+def _(DecisionTreeClassifier, np):
+    # Gradient boosting from scratch (regression, squared error loss)
+    # For L2 loss, pseudo-residuals = y - F(x), i.e. literal residuals
+    from sklearn.tree import DecisionTreeRegressor
+    rng_gb = np.random.RandomState(42)
+    X_gb_demo = rng_gb.uniform(0, 10, (100, 1))
+    y_gb_demo = np.sin(X_gb_demo.ravel()) + rng_gb.normal(0, 0.2, 100)
+
+    eta = 0.3  # learning rate (shrinkage)
+    F = np.full_like(y_gb_demo, y_gb_demo.mean())  # F_0 = mean(y)
+
+    for m in range(5):
+        residuals = y_gb_demo - F             # negative gradient for L2 loss
+        tree_m = DecisionTreeRegressor(max_depth=2, random_state=m)
+        tree_m.fit(X_gb_demo, residuals)       # fit tree to pseudo-residuals
+        F += eta * tree_m.predict(X_gb_demo)   # update: F_m = F_{m-1} + eta * h_m
+        mse = np.mean((y_gb_demo - F) ** 2)
+        print(f"Round {m+1}: MSE = {mse:.4f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### 5.3 Key Hyperparameters
 
     **Learning rate (shrinkage) $\eta$:** Each tree's contribution is scaled by $\eta \in (0, 1]$. Smaller values require more trees but generalize better. The intuition is the same as in gradient descent — a small step size prevents overshooting. Typical values: 0.01 to 0.1.
@@ -438,6 +696,20 @@ def _():
     return
 
 
+@app.cell
+def _(np):
+    # Learning rate vs number of trees tradeoff
+    # Smaller eta needs more trees but generalizes better
+    # This is the "slow learning" principle
+    eta_values = [1.0, 0.1, 0.01]
+    for eta_val in eta_values:
+        # Rough rule: n_trees ~ 1/eta to reach same training loss
+        n_trees_needed = int(1.0 / eta_val) * 10
+        print(f"eta={eta_val:5.2f} -> ~{n_trees_needed:5d} trees needed, "
+              f"overfitting risk: {'HIGH' if eta_val > 0.3 else 'LOW'}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -477,6 +749,22 @@ def _(mo):
     - Need maximum ecosystem support / deployment flexibility: XGBoost
     - All three are excellent — differences are usually small
     """)
+    return
+
+
+@app.cell
+def _(np):
+    # Histogram-based splitting: bin continuous features into buckets
+    # This is the core speedup in XGBoost/LightGBM
+    x_cont = np.random.RandomState(0).normal(0, 1, 10000)
+
+    n_bins = 256  # typical default
+    bin_edges = np.linspace(x_cont.min(), x_cont.max(), n_bins + 1)
+    x_binned = np.digitize(x_cont, bin_edges)
+
+    print(f"Unique values in raw feature:    {len(np.unique(x_cont))}")
+    print(f"Unique values after binning:     {len(np.unique(x_binned))}")
+    print(f"Speedup: checking {n_bins} thresholds instead of {len(np.unique(x_cont))}")
     return
 
 
@@ -662,6 +950,234 @@ def _(mo):
     8. **Feature importance comparison:** Train a random forest and compute both permutation importance and impurity-based importance. Find a case where the two rankings disagree. Which do you trust more, and why?
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It
+
+    Now implement the core algorithms yourself. Each exercise gives you a skeleton — fill in the `TODO` lines. These implementations are intentionally simplified (no categorical features, no missing values) so you can focus on the core logic.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Decision Tree Stump (Best Single Split)
+
+    Implement a function that finds the best binary split for a classification node. Given features `X` and labels `y`, search over all features and thresholds to find the split that maximizes information gain (or equivalently, minimizes weighted Gini impurity of the children).
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def find_best_split(X_ex, y_ex):
+        """Find the best (feature, threshold) split minimizing weighted Gini."""
+        n_samples, n_features = X_ex.shape
+        best_gain = -np.inf
+        best_feature, best_threshold = None, None
+
+        # Parent Gini
+        def gini_node(y_node):
+            if len(y_node) == 0:
+                return 0.0
+            # TODO: compute Gini impurity = 1 - sum(p_k^2)
+            pass
+
+        parent_gini = gini_node(y_ex)
+
+        for j in range(n_features):
+            thresholds = np.unique(X_ex[:, j])
+            for t in thresholds:
+                left_mask = X_ex[:, j] <= t
+                right_mask = ~left_mask
+                if left_mask.sum() == 0 or right_mask.sum() == 0:
+                    continue
+
+                # TODO: compute weighted Gini of the split
+                # weighted_gini = (n_left/n) * gini(left) + (n_right/n) * gini(right)
+                weighted_gini = 0.0  # replace this
+
+                gain = parent_gini - weighted_gini
+                if gain > best_gain:
+                    best_gain = gain
+                    best_feature = j
+                    best_threshold = t
+
+        return best_feature, best_threshold, best_gain
+
+    # Test with simple data
+    X_split_test = np.array([[1], [2], [3], [4], [5], [6]], dtype=float)
+    y_split_test = np.array([0, 0, 0, 1, 1, 1])
+    feat, thresh, gain = find_best_split(X_split_test, y_split_test)
+    print(f"Best split: feature {feat}, threshold {thresh}, gain {gain}")
+    return (find_best_split,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Bagging Classifier from Scratch
+
+    Implement bagging: draw `B` bootstrap samples, train a decision tree on each, and predict by majority vote.
+    """)
+    return
+
+
+@app.cell
+def _(DecisionTreeClassifier, np):
+    def bagging_predict(X_train_bag, y_train_bag, X_test_bag, B=10, max_depth=None):
+        """Train B bootstrap trees and predict by majority vote."""
+        n = len(X_train_bag)
+        predictions = []
+
+        for b in range(B):
+            rng_bag = np.random.RandomState(b)
+            # TODO: draw bootstrap sample (sample n indices with replacement)
+            idx = None  # replace this
+
+            # TODO: train a DecisionTreeClassifier on the bootstrap sample
+            tree = None  # replace this
+
+            # TODO: collect predictions on X_test_bag
+            pred = None  # replace this
+            predictions.append(pred)
+
+        # TODO: majority vote across all B trees
+        # Hint: np.array(predictions) has shape (B, n_test)
+        # Use scipy.stats.mode or manual counting
+        predictions = np.array(predictions)
+        final = np.zeros(X_test_bag.shape[0], dtype=int)  # replace this
+
+        return final
+
+    print("Bagging classifier skeleton ready — fill in the TODOs")
+    return (bagging_predict,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Gradient Boosting Regressor from Scratch
+
+    Implement the core gradient boosting loop for regression with squared error loss. Remember: pseudo-residuals for L2 loss are simply $y - F(x)$.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def gradient_boosting_regressor(X_tr, y_tr, X_te, n_rounds=50, lr=0.1, max_depth=3):
+        """Simple gradient boosting for regression (L2 loss)."""
+        from sklearn.tree import DecisionTreeRegressor as DTR_ex
+
+        # TODO: initialize F_train and F_test with the mean of y_tr
+        F_train = None  # replace: constant prediction = mean(y)
+        F_test = None   # replace: same constant for test set
+
+        trees = []
+        for m in range(n_rounds):
+            # TODO: compute pseudo-residuals (negative gradient of L2 loss)
+            residuals = None  # replace this
+
+            # TODO: fit a shallow regression tree to the residuals
+            tree = None  # replace this
+
+            # TODO: update F_train and F_test
+            # F = F + lr * tree.predict(X)
+            pass
+
+            trees.append(tree)
+
+        return F_test, trees
+
+    print("Gradient boosting regressor skeleton ready — fill in the TODOs")
+    return (gradient_boosting_regressor,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Random Forest with Feature Subsampling
+
+    Extend the bagging classifier to use random feature subsets at each split. This is the key difference between bagging and random forests. Use scikit-learn's `max_features` parameter to control this.
+    """)
+    return
+
+
+@app.cell
+def _(DecisionTreeClassifier, np):
+    def random_forest_predict(X_train_rf_ex, y_train_rf_ex, X_test_rf_ex,
+                               B=50, max_features='sqrt'):
+        """Random forest: bagging + random feature subsets at each split."""
+        n = len(X_train_rf_ex)
+        predictions = []
+
+        for b in range(B):
+            rng_rf = np.random.RandomState(b)
+            # TODO: draw bootstrap sample
+            idx = None  # replace this
+
+            # TODO: train DecisionTreeClassifier with max_features param
+            # (sklearn handles the random feature subset internally)
+            tree = None  # replace this
+
+            # TODO: predict on test set
+            pred = None  # replace this
+            predictions.append(pred)
+
+        # TODO: majority vote
+        predictions = np.array(predictions)
+        final = np.zeros(X_test_rf_ex.shape[0], dtype=int)  # replace this
+
+        return final
+
+    print("Random forest skeleton ready — fill in the TODOs")
+    return (random_forest_predict,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: Permutation Feature Importance
+
+    Implement permutation importance from scratch: for each feature, shuffle it, re-score the model, and measure the accuracy drop.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def permutation_importance_manual(model, X_val_pi, y_val_pi, n_repeats=5):
+        """Compute permutation importance for each feature."""
+        baseline_acc = np.mean(model.predict(X_val_pi) == y_val_pi)
+        n_features = X_val_pi.shape[1]
+        importances = np.zeros(n_features)
+
+        for j in range(n_features):
+            drops = []
+            for r in range(n_repeats):
+                rng_pi = np.random.RandomState(r + j * 1000)
+                X_perm = X_val_pi.copy()
+                # TODO: shuffle column j of X_perm
+                # Hint: rng_pi.shuffle(X_perm[:, j])
+                pass
+
+                # TODO: compute accuracy with shuffled feature
+                perm_acc = 0.0  # replace this
+
+                drops.append(baseline_acc - perm_acc)
+            importances[j] = np.mean(drops)
+
+        return importances  # higher = more important
+
+    print("Permutation importance skeleton ready — fill in the TODOs")
+    return (permutation_importance_manual,)
 
 
 @app.cell(hide_code=True)

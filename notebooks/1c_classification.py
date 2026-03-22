@@ -88,6 +88,58 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np, plt):
+    # Sigmoid function: sigma(z) = 1 / (1 + exp(-z))
+    def sigmoid(z):
+        return 1.0 / (1.0 + np.exp(-z))
+
+    # Plot it to see the squashing behavior
+    z_vals = np.linspace(-8, 8, 200)
+    fig_sig, ax_sig = plt.subplots(figsize=(7, 3))
+    ax_sig.plot(z_vals, sigmoid(z_vals), linewidth=2)
+    ax_sig.axhline(0.5, color="gray", linestyle="--", linewidth=0.8)
+    ax_sig.axvline(0, color="gray", linestyle="--", linewidth=0.8)
+    ax_sig.set_xlabel("z")
+    ax_sig.set_ylabel(r"$\sigma(z)$")
+    ax_sig.set_title("Sigmoid function")
+    plt.tight_layout()
+
+    # Verify the symmetry property: sigma(-z) = 1 - sigma(z)
+    z_test = np.array([-2.0, 0.0, 1.5, 4.0])
+    print("Symmetry check: sigma(-z) == 1 - sigma(z)?",
+          np.allclose(sigmoid(-z_test), 1 - sigmoid(z_test)))
+
+    # Verify the derivative: sigma'(z) = sigma(z) * (1 - sigma(z))
+    s = sigmoid(z_test)
+    print("Derivative at z =", z_test, ":", s * (1 - s))
+    fig_sig
+    return (sigmoid,)
+
+
+@app.cell
+def _(np, sigmoid):
+    # Decision boundary demo: w^T x = 0 is where P(y=1) = 0.5
+    w_demo = np.array([2.0, -1.0])  # weight vector
+    b_demo = 0.5                     # bias
+
+    # Points on either side of the boundary
+    x_pos = np.array([1.0, 0.0])     # w^T x + b = 2.5 > 0
+    x_neg = np.array([-1.0, 1.0])    # w^T x + b = -2.5 < 0
+
+    # Probabilities: further from boundary -> more confident
+    p_pos = sigmoid(w_demo @ x_pos + b_demo)
+    p_neg = sigmoid(w_demo @ x_neg + b_demo)
+    print(f"P(y=1 | x_pos) = {p_pos:.4f}  (confident positive)")
+    print(f"P(y=1 | x_neg) = {p_neg:.4f}  (confident negative)")
+
+    # A point near the boundary
+    x_boundary = np.array([0.0, 0.5])  # w^T x + b = 0
+    p_boundary = sigmoid(w_demo @ x_boundary + b_demo)
+    print(f"P(y=1 | x_boundary) = {p_boundary:.4f}  (uncertain)")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -146,6 +198,62 @@ def _(mo):
 
     L2 regularization shrinks coefficients toward zero, reducing overfitting. L1 produces sparse solutions — useful for feature selection. In `scikit-learn`, the `C` parameter is the inverse of $\lambda$: smaller `C` means more regularization.
     """)
+    return
+
+
+@app.cell
+def _(np, sigmoid):
+    # Binary cross-entropy loss: NLL = -sum[ y*log(p) + (1-y)*log(1-p) ]
+    def cross_entropy_loss(y_true, p_hat):
+        eps = 1e-12  # avoid log(0)
+        p_hat = np.clip(p_hat, eps, 1 - eps)
+        return -np.mean(y_true * np.log(p_hat) + (1 - y_true) * np.log(1 - p_hat))
+
+    # See how the loss penalizes confident wrong predictions
+    y_label = 1.0
+    probs = np.array([0.01, 0.1, 0.5, 0.9, 0.99])
+    losses = [-np.log(p) for p in probs]  # loss when y=1
+    print("True label = 1")
+    for p, l in zip(probs, losses):
+        print(f"  Predicted p={p:.2f} -> loss = {l:.3f}")
+
+    # Verify: sigmoid + cross-entropy gradient = X^T (p_hat - y)
+    X_demo = np.array([[1, 2], [1, -1], [1, 0.5]])  # 3 samples, 2 features
+    y_demo = np.array([1, 0, 1])
+    w_demo_ce = np.array([0.5, -0.3])
+    p_hat_demo = sigmoid(X_demo @ w_demo_ce)
+    grad = X_demo.T @ (p_hat_demo - y_demo) / len(y_demo)
+    print(f"\nGradient of NLL: {grad}")
+    return (cross_entropy_loss,)
+
+
+@app.cell
+def _(np, plt, sigmoid, cross_entropy_loss):
+    # Logistic regression from scratch via gradient descent
+    np.random.seed(0)
+    # Simple 1D dataset with bias term
+    X_gd = np.column_stack([np.ones(80), np.random.randn(80)])
+    w_true_gd = np.array([0.5, 2.0])
+    y_gd = (np.random.rand(80) < sigmoid(X_gd @ w_true_gd)).astype(float)
+
+    # Gradient descent: w <- w - lr * X^T (sigma(Xw) - y) / n
+    w_gd = np.zeros(2)
+    lr = 0.5
+    loss_history = []
+    for epoch in range(100):
+        p_hat_gd = sigmoid(X_gd @ w_gd)
+        loss_history.append(cross_entropy_loss(y_gd, p_hat_gd))
+        gradient = X_gd.T @ (p_hat_gd - y_gd) / len(y_gd)
+        w_gd -= lr * gradient
+
+    fig_loss, ax_loss = plt.subplots(figsize=(6, 3))
+    ax_loss.plot(loss_history, linewidth=2)
+    ax_loss.set_xlabel("Epoch")
+    ax_loss.set_ylabel("Cross-entropy loss")
+    ax_loss.set_title("Logistic regression gradient descent convergence")
+    plt.tight_layout()
+    print(f"Learned weights: {w_gd}  (true: {w_true_gd})")
+    fig_loss
     return
 
 
@@ -208,6 +316,36 @@ def _(mo):
     See [Bishop Section 4.3.4](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) and [Murphy Section 10.3](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf).
     """)
     return
+
+
+@app.cell
+def _(np):
+    # Softmax: P(y=k|x) = exp(z_k) / sum_j exp(z_j)
+    def softmax(z):
+        # Subtract max for numerical stability (doesn't change result)
+        z_stable = z - np.max(z, axis=-1, keepdims=True)
+        exp_z = np.exp(z_stable)
+        return exp_z / np.sum(exp_z, axis=-1, keepdims=True)
+
+    # Example: 3-class logits for one sample
+    logits = np.array([2.0, 1.0, 0.1])
+    probs_sm = softmax(logits)
+    print(f"Logits:        {logits}")
+    print(f"Probabilities: {probs_sm}")
+    print(f"Sum:           {probs_sm.sum():.6f}")
+
+    # Categorical cross-entropy for one sample (true class = 0)
+    true_class = 0
+    cat_ce = -np.log(probs_sm[true_class])
+    print(f"\nCross-entropy (true class {true_class}): {cat_ce:.4f}")
+
+    # Verify: for K=2, softmax reduces to sigmoid
+    logits_2 = np.array([1.5, 0.0])  # second logit is redundant
+    p_softmax = softmax(logits_2)[0]
+    p_sigmoid = 1 / (1 + np.exp(-(logits_2[0] - logits_2[1])))
+    print(f"\nK=2: softmax P(class 0) = {p_softmax:.6f}")
+    print(f"     sigmoid equivalent  = {p_sigmoid:.6f}")
+    return (softmax,)
 
 
 @app.cell(hide_code=True)
@@ -313,6 +451,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # LDA from scratch: compute discriminant function delta_k(x)
+    # Generate two Gaussian classes sharing one covariance
+    np.random.seed(42)
+    mu0 = np.array([0.0, 0.0])
+    mu1 = np.array([2.0, 1.0])
+    Sigma_shared = np.array([[1.0, 0.3], [0.3, 0.8]])
+
+    X0_lda = np.random.multivariate_normal(mu0, Sigma_shared, 50)
+    X1_lda = np.random.multivariate_normal(mu1, Sigma_shared, 50)
+
+    # Estimate parameters from data
+    mu0_hat = X0_lda.mean(axis=0)
+    mu1_hat = X1_lda.mean(axis=0)
+    Sigma_hat = 0.5 * (np.cov(X0_lda.T) + np.cov(X1_lda.T))
+    Sigma_inv = np.linalg.inv(Sigma_hat)
+
+    # Discriminant: delta_k(x) = x^T Sigma^{-1} mu_k - 0.5 mu_k^T Sigma^{-1} mu_k + log(pi_k)
+    # For equal priors, log(pi_k) cancels
+    # Fisher direction: w = Sigma^{-1} (mu1 - mu0)
+    w_fisher = Sigma_inv @ (mu1_hat - mu0_hat)
+    print(f"Fisher discriminant direction: {w_fisher}")
+    print(f"Classify by sign of w^T x + threshold")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: LDA""")
@@ -358,6 +523,33 @@ def _(mo):
 
     In log space, this is just a sum of log-probabilities — extremely fast to compute.
     """)
+    return
+
+
+@app.cell
+def _(np):
+    # Naive Bayes from scratch (Gaussian) for 2 features, 2 classes
+    # P(y=k|x) proportional to pi_k * prod_j N(x_j; mu_kj, sigma_kj^2)
+    np.random.seed(7)
+    # Class 0: feature means [0, 0], Class 1: feature means [1.5, 1]
+    X0_nb = np.random.randn(40, 2) + np.array([0, 0])
+    X1_nb = np.random.randn(40, 2) + np.array([1.5, 1])
+
+    # Estimate per-class, per-feature mean and variance (the "naive" part)
+    mu_nb = np.array([X0_nb.mean(axis=0), X1_nb.mean(axis=0)])
+    var_nb = np.array([X0_nb.var(axis=0), X1_nb.var(axis=0)])
+    prior_nb = np.array([0.5, 0.5])
+
+    # Predict: log P(y=k|x) = log pi_k + sum_j log N(x_j; mu_kj, var_kj)
+    x_new = np.array([0.8, 0.5])
+    log_posts = []
+    for k in range(2):
+        log_lik = -0.5 * np.sum((x_new - mu_nb[k])**2 / var_nb[k] + np.log(var_nb[k]))
+        log_posts.append(np.log(prior_nb[k]) + log_lik)
+    log_posts = np.array(log_posts)
+    pred_class = np.argmax(log_posts)
+    print(f"Log-posteriors: {log_posts}")
+    print(f"Predicted class: {pred_class}")
     return
 
 
@@ -421,6 +613,47 @@ def _(mo):
 
     See [ISLR Section 9.1-9.3](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) and [ESL Section 12.2](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf).
     """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # Hinge loss vs logistic loss: visual comparison
+    # Hinge: max(0, 1 - y*f(x)),  Logistic: log(1 + exp(-y*f(x)))
+    margins = np.linspace(-3, 3, 200)  # y * f(x) = functional margin
+    hinge = np.maximum(0, 1 - margins)
+    logistic_loss = np.log(1 + np.exp(-margins))
+    zero_one = (margins < 0).astype(float)  # ideal 0-1 loss
+
+    fig_hl, ax_hl = plt.subplots(figsize=(7, 4))
+    ax_hl.plot(margins, zero_one, "k--", label="0-1 loss", linewidth=1.5)
+    ax_hl.plot(margins, hinge, label="Hinge loss (SVM)", linewidth=2)
+    ax_hl.plot(margins, logistic_loss, label="Logistic loss", linewidth=2)
+    ax_hl.set_xlabel(r"Functional margin $y \cdot f(x)$")
+    ax_hl.set_ylabel("Loss")
+    ax_hl.set_title("Hinge loss is zero beyond margin = 1 (sparse support vectors)")
+    ax_hl.legend()
+    ax_hl.set_ylim(-0.1, 4)
+    plt.tight_layout()
+    fig_hl
+    return
+
+
+@app.cell
+def _(np):
+    # RBF kernel: K(x, z) = exp(-gamma ||x - z||^2)
+    # It computes inner products in infinite-dimensional space!
+    def rbf_kernel(X, gamma=1.0):
+        """Compute the RBF (Gaussian) kernel matrix."""
+        sq_dists = np.sum(X**2, axis=1, keepdims=True) - 2 * X @ X.T + np.sum(X**2, axis=1)
+        return np.exp(-gamma * sq_dists)
+
+    # Small example: 4 points
+    X_kern = np.array([[0, 0], [1, 0], [0, 1], [5, 5]])
+    K = rbf_kernel(X_kern, gamma=0.5)
+    print("RBF kernel matrix (nearby points -> values near 1):")
+    print(np.round(K, 3))
+    # Note: K[0,1] and K[0,2] are high (nearby), K[0,3] is near 0 (far away)
     return
 
 
@@ -631,6 +864,31 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Computing precision, recall, F1 from scratch using the confusion matrix
+    # Simulated predictions
+    y_true_eval = np.array([1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+    y_pred_eval = np.array([1, 1, 0, 0, 0, 0, 0, 0, 1, 0])
+
+    TP = np.sum((y_pred_eval == 1) & (y_true_eval == 1))
+    FP = np.sum((y_pred_eval == 1) & (y_true_eval == 0))
+    FN = np.sum((y_pred_eval == 0) & (y_true_eval == 1))
+    TN = np.sum((y_pred_eval == 0) & (y_true_eval == 0))
+
+    precision_manual = TP / (TP + FP)
+    recall_manual = TP / (TP + FN)
+    f1_manual = 2 * precision_manual * recall_manual / (precision_manual + recall_manual)
+    accuracy_manual = (TP + TN) / len(y_true_eval)
+
+    print(f"TP={TP}, FP={FP}, FN={FN}, TN={TN}")
+    print(f"Precision: {precision_manual:.3f}")
+    print(f"Recall:    {recall_manual:.3f}")
+    print(f"F1 score:  {f1_manual:.3f}")
+    print(f"Accuracy:  {accuracy_manual:.3f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""### Code: Evaluation Metrics and ROC Curve""")
@@ -738,6 +996,198 @@ def _(mo):
 
     10. For the breast cancer dataset, plot the ROC curves of all five classifiers on the same axes. Which has the highest AUC? At a false positive rate of 5%, which classifier has the best recall?
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    Now it is your turn. Implement the core algorithms from scratch. Each exercise gives you a problem statement and starter code -- fill in the missing parts.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Implement the Sigmoid and its Gradient
+
+    Write a numerically stable sigmoid function and verify that its derivative equals $\sigma(z)(1 - \sigma(z))$ by comparing to a finite-difference approximation.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def my_sigmoid(z):
+        # TODO: implement sigmoid with numerical stability
+        # Hint: for large negative z, exp(-z) overflows. Use np.clip or
+        # the identity sigma(z) = exp(z)/(1+exp(z)) for z < 0
+        pass
+
+    def my_sigmoid_grad(z):
+        # TODO: implement sigma'(z) = sigma(z) * (1 - sigma(z))
+        pass
+
+    # Test your implementation
+    z_exercise = np.array([-100, -1, 0, 1, 100])
+    # print("sigmoid:", my_sigmoid(z_exercise))
+    # print("gradient:", my_sigmoid_grad(z_exercise))
+
+    # Verify gradient with finite differences
+    # eps_fd = 1e-7
+    # numerical_grad = (my_sigmoid(z_exercise + eps_fd) - my_sigmoid(z_exercise - eps_fd)) / (2 * eps_fd)
+    # print("numerical grad:", numerical_grad)
+    # print("match:", np.allclose(my_sigmoid_grad(z_exercise), numerical_grad))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Binary Cross-Entropy Loss from Scratch
+
+    Implement the binary cross-entropy loss and show it penalizes confident wrong predictions more than uncertain ones.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def my_cross_entropy(y_true_ce, p_hat_ce):
+        # TODO: implement NLL = -mean[ y*log(p) + (1-y)*log(1-p) ]
+        # Hint: clip p_hat to avoid log(0)
+        pass
+
+    # Test: compare loss for confident-correct vs confident-wrong
+    # y_test_ce = np.array([1, 1, 0, 0])
+    # p_good = np.array([0.95, 0.9, 0.1, 0.05])   # good predictions
+    # p_bad  = np.array([0.05, 0.1, 0.9, 0.95])    # terrible predictions
+    # print(f"Loss (good predictions): {my_cross_entropy(y_test_ce, p_good):.4f}")
+    # print(f"Loss (bad predictions):  {my_cross_entropy(y_test_ce, p_bad):.4f}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Logistic Regression with Gradient Descent
+
+    Implement full logistic regression training from scratch. Use gradient descent with the update rule $w \leftarrow w - \eta \cdot X^T(\hat{p} - y) / n$.
+    """)
+    return
+
+
+@app.cell
+def _(np, plt, make_moons):
+    def fit_logistic_regression_gd(X_fit, y_fit, lr_fit=0.1, n_epochs=200):
+        """Train logistic regression via gradient descent. Return weights and loss history."""
+        n, d = X_fit.shape
+        w_fit = np.zeros(d)
+        losses = []
+
+        for _ in range(n_epochs):
+            # TODO: 1. compute predictions p_hat = sigmoid(X @ w)
+            # TODO: 2. compute cross-entropy loss, append to losses
+            # TODO: 3. compute gradient = X^T (p_hat - y) / n
+            # TODO: 4. update w = w - lr * gradient
+            pass
+
+        return w_fit, losses
+
+    # Generate data and test your implementation
+    # np.random.seed(42)
+    # X_ex, y_ex = make_moons(n_samples=200, noise=0.2, random_state=42)
+    # X_ex_bias = np.column_stack([np.ones(len(X_ex)), X_ex])  # add bias column
+    # w_learned, loss_curve = fit_logistic_regression_gd(X_ex_bias, y_ex, lr_fit=0.5, n_epochs=300)
+
+    # Plot convergence
+    # fig_ex, ax_ex = plt.subplots(figsize=(6, 3))
+    # ax_ex.plot(loss_curve)
+    # ax_ex.set_xlabel("Epoch"); ax_ex.set_ylabel("Loss")
+    # ax_ex.set_title("Training loss"); plt.tight_layout()
+    # fig_ex
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Softmax from Scratch
+
+    Implement the softmax function and categorical cross-entropy loss for a 3-class problem. Verify that probabilities sum to 1 and that the gradient has the right shape.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def my_softmax(z_sm):
+        # TODO: implement softmax with numerical stability (subtract max)
+        # z_sm shape: (n_samples, K) or (K,)
+        # Return: same shape, rows sum to 1
+        pass
+
+    def categorical_cross_entropy(y_classes, probs_cce):
+        # TODO: NLL = -mean[ log(probs[i, y[i]]) ] for each sample i
+        # y_classes: integer labels (n,), probs_cce: (n, K)
+        pass
+
+    # Test
+    # logits_ex = np.array([[2.0, 1.0, 0.1], [-1.0, 2.0, 0.5]])
+    # probs_ex = my_softmax(logits_ex)
+    # print("Probabilities:\n", probs_ex)
+    # print("Row sums:", probs_ex.sum(axis=1))
+    # y_ex_mc = np.array([0, 1])
+    # print("Cat. cross-entropy:", categorical_cross_entropy(y_ex_mc, probs_ex))
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: The Kernel Trick -- Manual Feature Map vs RBF Kernel
+
+    For `make_circles` data (not linearly separable), show that:
+    1. A linear classifier fails
+    2. Manually adding $x_1^2 + x_2^2$ as a feature makes it linearly separable
+    3. An RBF kernel SVM solves it without manual feature engineering
+    """)
+    return
+
+
+@app.cell
+def _(np, plt, make_circles, SVC, LogisticRegression):
+    # Generate concentric circles
+    X_circ, y_circ = make_circles(n_samples=200, noise=0.1, factor=0.4, random_state=42)
+
+    # TODO 1: Fit a linear logistic regression -- check accuracy
+    # lin_model = LogisticRegression(...)
+    # print(f"Linear accuracy: {lin_model.score(X_circ, y_circ):.3f}")
+
+    # TODO 2: Add radial feature phi(x) = x1^2 + x2^2, fit linear model
+    # r = (X_circ[:, 0]**2 + X_circ[:, 1]**2).reshape(-1, 1)
+    # X_circ_aug = np.hstack([X_circ, r])
+    # aug_model = LogisticRegression(...)
+    # print(f"Augmented accuracy: {aug_model.score(X_circ_aug, y_circ):.3f}")
+
+    # TODO 3: RBF kernel SVM (no manual features needed)
+    # rbf_model = SVC(kernel='rbf', ...)
+    # print(f"RBF SVM accuracy: {rbf_model.score(X_circ, y_circ):.3f}")
+
+    # Scatter plot to visualize the data
+    fig_circ, ax_circ = plt.subplots(figsize=(5, 5))
+    ax_circ.scatter(X_circ[y_circ == 0, 0], X_circ[y_circ == 0, 1], s=20, label="Class 0")
+    ax_circ.scatter(X_circ[y_circ == 1, 0], X_circ[y_circ == 1, 1], s=20, label="Class 1")
+    ax_circ.set_title("Concentric circles -- not linearly separable")
+    ax_circ.legend()
+    ax_circ.set_aspect("equal")
+    plt.tight_layout()
+    fig_circ
     return
 
 

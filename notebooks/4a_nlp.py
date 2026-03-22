@@ -9,6 +9,12 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -65,6 +71,65 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Tokenization demo: word-level, char-level, and a minimal BPE ---
+    sentence = "the cat sat on the mat"
+
+    # Word-level tokenization
+    words = sentence.split()
+    word_vocab = {w: i for i, w in enumerate(sorted(set(words)))}
+    word_ids = [word_vocab[w] for w in words]
+
+    # Character-level tokenization
+    char_vocab = {c: i for i, c in enumerate(sorted(set(sentence)))}
+    char_ids = [char_vocab[c] for c in sentence]
+
+    print("Word tokens:", words, "->", word_ids)
+    print("Char tokens:", list(sentence), "->", char_ids)
+    print(f"Word vocab size: {len(word_vocab)}, Char vocab size: {len(char_vocab)}")
+    return (word_vocab, char_vocab)
+
+
+@app.cell
+def _():
+    # --- Minimal Byte Pair Encoding (BPE) from scratch ---
+    def bpe_train(corpus, num_merges):
+        """Run BPE: repeatedly merge the most frequent adjacent pair."""
+        # Start with character-level tokens (space-separated within words)
+        tokens = [list(word) + ["</w>"] for word in corpus.split()]
+        merges = []
+        for _ in range(num_merges):
+            # Count adjacent pairs
+            pairs = {}
+            for word in tokens:
+                for a, b in zip(word, word[1:]):
+                    pairs[(a, b)] = pairs.get((a, b), 0) + 1
+            if not pairs:
+                break
+            best = max(pairs, key=pairs.get)
+            merges.append(best)
+            # Apply merge
+            new_tokens = []
+            for word in tokens:
+                merged, i = [], 0
+                while i < len(word):
+                    if i < len(word) - 1 and (word[i], word[i+1]) == best:
+                        merged.append(word[i] + word[i+1])
+                        i += 2
+                    else:
+                        merged.append(word[i])
+                        i += 1
+                new_tokens.append(merged)
+            tokens = new_tokens
+        return merges, tokens
+
+    merges, final_tokens = bpe_train("low lower newest widest", num_merges=5)
+    print("BPE merges (in order):", merges)
+    print("Final subword tokens:", final_tokens)
+    return (bpe_train,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -81,6 +146,35 @@ def _(mo):
     These embeddings are *static* --- "bank" gets the same vector whether it means a river bank or a financial bank. Modern transformer models produce *contextual* embeddings where each token's representation depends on its full context. But the distributional hypothesis underlying all of these is the same: meaning comes from usage patterns. See [Goodfellow Ch. 12](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for neural approaches to sequence modeling.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- Word embeddings: co-occurrence matrix and cosine similarity ---
+    corpus = ["the cat sat on the mat", "the dog sat on the rug", "the cat chased the dog"]
+    vocab = sorted(set(w for s in corpus for w in s.split()))
+    w2i = {w: i for i, w in enumerate(vocab)}
+
+    # Build co-occurrence matrix (window size = 1)
+    cooccur = np.zeros((len(vocab), len(vocab)))
+    for sent in corpus:
+        tokens = sent.split()
+        for i, tok in enumerate(tokens):
+            for j in range(max(0, i-1), min(len(tokens), i+2)):
+                if i != j:
+                    cooccur[w2i[tok], w2i[tokens[j]]] += 1
+
+    # Cosine similarity: sim(a,b) = a·b / (||a|| ||b||)
+    def cosine_sim(a, b):
+        return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8)
+
+    # "cat" and "dog" should be similar (appear in similar contexts)
+    sim_cat_dog = cosine_sim(cooccur[w2i["cat"]], cooccur[w2i["dog"]])
+    sim_cat_mat = cosine_sim(cooccur[w2i["cat"]], cooccur[w2i["mat"]])
+    print(f"Cosine similarity — cat vs dog: {sim_cat_dog:.3f}")
+    print(f"Cosine similarity — cat vs mat: {sim_cat_mat:.3f}")
+    print("(cat and dog are more similar — they share distributional context)")
+    return (cosine_sim, cooccur, w2i, vocab)
 
 
 @app.cell(hide_code=True)
@@ -107,6 +201,148 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Perplexity calculation from token probabilities ---
+    # Suppose a toy LM assigns these probs to each token in a sequence
+    token_probs = np.array([0.4, 0.6, 0.1, 0.8, 0.3])  # P(x_t | x_{<t})
+
+    # PPL = exp( -1/N * sum(log P(x_t | x_{<t})) )
+    N = len(token_probs)
+    ppl = np.exp(-np.sum(np.log(token_probs)) / N)
+    print(f"Token probs: {token_probs}")
+    print(f"Perplexity:  {ppl:.2f}")
+    print("Lower PPL = model is less 'surprised' by the sequence")
+    return (ppl,)
+
+
+@app.cell
+def _(np):
+    # --- Temperature scaling and top-k / top-p sampling ---
+    logits = np.array([2.0, 1.0, 0.5, -1.0, -2.0])
+    tokens = ["the", "cat", "dog", "moon", "xylophone"]
+
+    def softmax(x):
+        e = np.exp(x - np.max(x))
+        return e / e.sum()
+
+    # Temperature: divide logits by T before softmax
+    for T in [0.5, 1.0, 2.0]:
+        probs = softmax(logits / T)
+        print(f"T={T}: {dict(zip(tokens, probs.round(3)))}")
+
+    # Top-k: zero out all but top k before sampling
+    k = 3
+    top_k_idx = np.argsort(logits)[-k:]
+    masked = np.full_like(logits, -1e9)
+    masked[top_k_idx] = logits[top_k_idx]
+    print(f"\nTop-{k} probs: {dict(zip(tokens, softmax(masked).round(3)))}")
+
+    # Top-p (nucleus): keep smallest set with cumulative prob >= p
+    p = 0.9
+    probs = softmax(logits)
+    sorted_idx = np.argsort(probs)[::-1]
+    cumsum = np.cumsum(probs[sorted_idx])
+    cutoff = np.searchsorted(cumsum, p) + 1
+    nucleus_idx = sorted_idx[:cutoff]
+    print(f"Top-p={p} keeps: {[tokens[i] for i in nucleus_idx]}")
+    return (softmax,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## 4.5. TF-IDF: Classic Feature Engineering for Text
+
+    Before neural embeddings, **TF-IDF** (Term Frequency--Inverse Document Frequency) was the dominant way to represent documents as vectors. It remains useful as a sparse retrieval baseline and inside hybrid search systems.
+
+    For term $t$ in document $d$ from corpus $D$:
+
+    $$\text{TF}(t, d) = \frac{\text{count}(t, d)}{\text{total tokens in } d}, \qquad \text{IDF}(t, D) = \log \frac{|D|}{|\{d \in D : t \in d\}|}$$
+
+    $$\text{TF-IDF}(t, d) = \text{TF}(t, d) \times \text{IDF}(t, D)$$
+
+    Words that are frequent in a document but rare across the corpus get high TF-IDF scores --- these are the most "informative" words for that document.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # --- TF-IDF from scratch ---
+    docs = [
+        "the cat sat on the mat",
+        "the dog chased the cat",
+        "the bird flew over the mat",
+    ]
+    all_words = sorted(set(w for d in docs for w in d.split()))
+
+    # TF(t, d) = count(t, d) / len(d)
+    tf = np.zeros((len(docs), len(all_words)))
+    for i, doc in enumerate(docs):
+        words = doc.split()
+        for j, w in enumerate(all_words):
+            tf[i, j] = words.count(w) / len(words)
+
+    # IDF(t) = log(|D| / |{d : t in d}|)
+    idf = np.zeros(len(all_words))
+    for j, w in enumerate(all_words):
+        doc_freq = sum(1 for d in docs for _ in [] if w in d.split()) or sum(w in d.split() for d in docs)
+        idf[j] = np.log(len(docs) / doc_freq)
+
+    tfidf = tf * idf  # broadcast: each row scaled by idf
+    print("Vocabulary:", all_words)
+    print("\nTF-IDF matrix (rows=docs, cols=words):")
+    print(np.round(tfidf, 3))
+    print("\nHighest TF-IDF per doc:")
+    for i, doc in enumerate(docs):
+        best = all_words[np.argmax(tfidf[i])]
+        print(f"  Doc {i} ('{doc}'): most distinctive word = '{best}'")
+    return (tfidf,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## 4.6 Attention in NLP Context
+
+    The core idea of **attention** (Bahdanau et al., 2015) is to let a model dynamically focus on relevant parts of the input when producing each output element. In the NLP context, given a query $\mathbf{q}$ and a set of key-value pairs $(\mathbf{K}, \mathbf{V})$, scaled dot-product attention computes:
+
+    $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\!\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{d_k}}\right)\mathbf{V}$$
+
+    This mechanism is the core of the Transformer and powers every modern NLP model. The $\sqrt{d_k}$ scaling prevents dot products from growing too large and pushing softmax into saturated regions.
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    # --- Scaled dot-product attention (single head) ---
+    np.random.seed(42)
+    seq_len, d_k = 4, 8  # 4 tokens, embedding dim 8
+    Q = np.random.randn(seq_len, d_k)  # queries
+    K = np.random.randn(seq_len, d_k)  # keys
+    V = np.random.randn(seq_len, d_k)  # values
+
+    # scores = Q K^T / sqrt(d_k)
+    scores = Q @ K.T / np.sqrt(d_k)
+
+    # attention weights (softmax over keys for each query)
+    attn_weights = np.array([softmax(row) for row in scores])
+
+    # output = weighted sum of values
+    attn_output = attn_weights @ V
+
+    print("Attention weights (each row sums to 1):")
+    print(np.round(attn_weights, 3))
+    print(f"\nOutput shape: {attn_output.shape} (seq_len x d_k)")
+    return (attn_weights,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -128,6 +364,37 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Masked Language Modeling (MLM): the BERT pre-training objective ---
+    sentence_tokens = ["the", "cat", "sat", "on", "the", "mat"]
+    mask_prob = 0.15  # BERT masks ~15% of tokens
+
+    np.random.seed(7)
+    masked = sentence_tokens.copy()
+    masked_positions = []
+    for i in range(len(masked)):
+        if np.random.rand() < mask_prob or i == 2:  # force at least one mask
+            masked[i] = "[MASK]"
+            masked_positions.append(i)
+
+    # Simulate model output: probability distribution over small vocab
+    small_vocab = ["the", "cat", "sat", "on", "mat", "dog", "ran"]
+    fake_logits = np.random.randn(len(masked_positions), len(small_vocab))
+    # Make correct answer have highest logit (pretend model is good)
+    for idx, pos in enumerate(masked_positions):
+        correct_word = sentence_tokens[pos]
+        fake_logits[idx, small_vocab.index(correct_word)] += 3.0
+
+    probs = np.exp(fake_logits) / np.exp(fake_logits).sum(axis=1, keepdims=True)
+    print(f"Original:  {sentence_tokens}")
+    print(f"Masked:    {masked}")
+    for idx, pos in enumerate(masked_positions):
+        pred = small_vocab[np.argmax(probs[idx])]
+        print(f"  Position {pos}: predicted '{pred}' (correct: '{sentence_tokens[pos]}')")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -146,6 +413,29 @@ def _(mo):
     The key conceptual shift: GPT-3 showed that a sufficiently large language model can be *prompted* rather than *fine-tuned*. This opened the door to the current era of general-purpose AI assistants.
     """)
     return
+
+
+@app.cell
+def _(np, softmax):
+    # --- Causal (autoregressive) attention: the GPT masking pattern ---
+    np.random.seed(0)
+    seq_len_ar = 5
+    d = 4
+    Q_ar = np.random.randn(seq_len_ar, d)
+    K_ar = np.random.randn(seq_len_ar, d)
+    V_ar = np.random.randn(seq_len_ar, d)
+
+    scores_ar = Q_ar @ K_ar.T / np.sqrt(d)
+
+    # Causal mask: token i can only attend to tokens 0..i
+    causal_mask = np.triu(np.ones((seq_len_ar, seq_len_ar)), k=1)  # upper triangle = 1
+    scores_ar = np.where(causal_mask == 1, -1e9, scores_ar)
+
+    attn_causal = np.array([softmax(row) for row in scores_ar])
+    print("Causal attention weights (lower-triangular pattern):")
+    print(np.round(attn_causal, 3))
+    print("\nEach token can only attend to itself and earlier tokens.")
+    return (attn_causal,)
 
 
 @app.cell(hide_code=True)
@@ -186,6 +476,28 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Bag-of-words text classification (sentiment) ---
+    # Positive/negative word lists as a simple baseline
+    positive_words = {"good", "great", "love", "excellent", "wonderful", "best", "amazing"}
+    negative_words = {"bad", "terrible", "hate", "awful", "worst", "boring", "poor"}
+
+    reviews = [
+        "this movie was great and wonderful",
+        "terrible film awful acting worst ever",
+        "good story but bad ending",
+    ]
+
+    for review in reviews:
+        words = set(review.lower().split())
+        pos_score = len(words & positive_words)
+        neg_score = len(words & negative_words)
+        label = "POSITIVE" if pos_score > neg_score else ("NEGATIVE" if neg_score > pos_score else "MIXED")
+        print(f"'{review}' -> +{pos_score}/-{neg_score} -> {label}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -211,6 +523,39 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # --- Minimal RAG: embed, index, retrieve with cosine similarity ---
+    # Fake embeddings (in practice you'd use a real embedding model)
+    np.random.seed(99)
+    knowledge_base = [
+        "Python was created by Guido van Rossum in 1991.",
+        "The Eiffel Tower is 330 meters tall.",
+        "Transformers were introduced in the 2017 paper Attention Is All You Need.",
+        "Water boils at 100 degrees Celsius at sea level.",
+    ]
+    # Simulate embeddings (dim=16)
+    doc_embeddings = np.random.randn(len(knowledge_base), 16)
+    # Normalize for cosine similarity
+    doc_embeddings = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
+
+    # Query embedding (simulated — biased toward doc 2)
+    query = "What paper introduced transformers?"
+    query_emb = doc_embeddings[2] + np.random.randn(16) * 0.3
+    query_emb = query_emb / np.linalg.norm(query_emb)
+
+    # Retrieve: cosine similarity = dot product (since normalized)
+    similarities = doc_embeddings @ query_emb
+    top_k = 2
+    top_indices = np.argsort(similarities)[::-1][:top_k]
+
+    print(f"Query: '{query}'")
+    print(f"\nTop-{top_k} retrieved documents:")
+    for idx in top_indices:
+        print(f"  [{similarities[idx]:.3f}] {knowledge_base[idx]}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -229,6 +574,36 @@ def _(mo):
     For classification tasks, standard metrics apply: accuracy, precision, recall, F1, and AUC. See [ISLR Ch. 4](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) for classification fundamentals.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # --- BLEU and ROUGE-1 from scratch ---
+    from collections import Counter
+
+    def bleu_1(reference, hypothesis):
+        """Unigram BLEU (precision of hypothesis n-grams in reference)."""
+        ref_counts = Counter(reference.split())
+        hyp_counts = Counter(hypothesis.split())
+        clipped = sum(min(hyp_counts[w], ref_counts.get(w, 0)) for w in hyp_counts)
+        return clipped / max(sum(hyp_counts.values()), 1)
+
+    def rouge_1(reference, hypothesis):
+        """ROUGE-1: unigram recall (how many ref unigrams appear in hyp)."""
+        ref_tokens = set(reference.split())
+        hyp_tokens = set(hypothesis.split())
+        overlap = len(ref_tokens & hyp_tokens)
+        return overlap / max(len(ref_tokens), 1)
+
+    ref = "the cat sat on the mat"
+    hyp1 = "the cat sat on the mat"      # perfect
+    hyp2 = "a dog sat on a rug"           # partial overlap
+    hyp3 = "completely unrelated sentence" # no overlap
+
+    for hyp in [hyp1, hyp2, hyp3]:
+        print(f"Hyp: '{hyp}'")
+        print(f"  BLEU-1:  {bleu_1(ref, hyp):.3f}   ROUGE-1: {rouge_1(ref, hyp):.3f}")
+    return (bleu_1, rouge_1)
 
 
 @app.cell(hide_code=True)
@@ -281,7 +656,236 @@ def _(mo):
     **Advanced:**
     - **Build an LLM evaluation harness.** Implement multiple evaluation strategies (automated metrics, LLM-as-judge with structured rubrics, human evaluation interface). Compare how well each correlates with human preference.
     - **Multi-hop RAG with agentic retrieval.** Build a system that decomposes complex questions, retrieves evidence iteratively, and synthesizes answers. Evaluate on multi-hop QA benchmarks like HotpotQA.
+    """)
+    return
 
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## 13. Code It: Implementation Exercises
+
+    The exercises below ask you to implement core NLP concepts from scratch using only Python and NumPy. Fill in the `TODO` sections.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: N-gram Language Model
+
+    Build a bigram language model from a corpus. Compute the probability of a sentence and its perplexity.
+
+    Given a bigram model: $P(w_t | w_{t-1}) = \frac{\text{count}(w_{t-1}, w_t)}{\text{count}(w_{t-1})}$
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Exercise 1: Bigram language model
+    ex1_corpus = [
+        "the cat sat on the mat",
+        "the cat ate the fish",
+        "the dog sat on the rug",
+        "the dog ate the bone",
+    ]
+
+    def build_bigram_model(corpus):
+        """Build bigram counts from a corpus of sentences."""
+        bigram_counts = {}  # (w1, w2) -> count
+        unigram_counts = {}  # w1 -> count (as bigram prefix)
+        for sentence in corpus:
+            tokens = ["<s>"] + sentence.split() + ["</s>"]
+            for i in range(len(tokens) - 1):
+                # TODO: count bigrams and unigrams
+                pass
+        return bigram_counts, unigram_counts
+
+    def bigram_probability(sentence, bigram_counts, unigram_counts):
+        """Compute P(sentence) = product of bigram probabilities."""
+        tokens = ["<s>"] + sentence.split() + ["</s>"]
+        log_prob = 0.0
+        for i in range(len(tokens) - 1):
+            # TODO: compute log P(tokens[i+1] | tokens[i])
+            # Use add-1 (Laplace) smoothing to handle unseen bigrams
+            pass
+        return log_prob
+
+    def perplexity_from_logprob(log_prob, num_tokens):
+        """PPL = exp(-log_prob / N)"""
+        # TODO: compute and return perplexity
+        pass
+
+    # Test your implementation:
+    # bi_counts, uni_counts = build_bigram_model(ex1_corpus)
+    # test_sent = "the cat sat on the rug"
+    # lp = bigram_probability(test_sent, bi_counts, uni_counts)
+    # ppl_val = perplexity_from_logprob(lp, len(test_sent.split()) + 1)
+    # print(f"Log prob: {lp:.3f}, Perplexity: {ppl_val:.2f}")
+    return (build_bigram_model,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: TF-IDF Retrieval System
+
+    Implement a TF-IDF based document retrieval system. Given a query, rank documents by cosine similarity of their TF-IDF vectors.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Exercise 2: TF-IDF retrieval
+    ex2_docs = [
+        "machine learning is a subset of artificial intelligence",
+        "deep learning uses neural networks with many layers",
+        "natural language processing deals with text and speech",
+        "computer vision analyzes images and video data",
+        "reinforcement learning trains agents through reward signals",
+    ]
+    ex2_query = "neural networks for language understanding"
+
+    def build_tfidf_matrix(documents):
+        """Build TF-IDF matrix from a list of documents."""
+        # TODO: 1) build vocabulary from all documents
+        # TODO: 2) compute TF matrix (docs x vocab)
+        # TODO: 3) compute IDF vector
+        # TODO: 4) return tfidf matrix and vocabulary list
+        vocab = sorted(set(w for d in documents for w in d.split()))
+        tfidf_mat = np.zeros((len(documents), len(vocab)))
+        # ... fill in tfidf_mat ...
+        return tfidf_mat, vocab
+
+    def tfidf_retrieve(query, tfidf_mat, vocab, documents, top_k=3):
+        """Retrieve top-k documents by cosine similarity to query."""
+        # TODO: 1) compute query TF-IDF vector
+        # TODO: 2) compute cosine similarity with each document
+        # TODO: 3) return top-k (document, score) pairs
+        return []
+
+    # Test your implementation:
+    # mat, v = build_tfidf_matrix(ex2_docs)
+    # results = tfidf_retrieve(ex2_query, mat, v, ex2_docs)
+    # for doc, score in results:
+    #     print(f"  [{score:.3f}] {doc}")
+    return (build_tfidf_matrix,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Multi-Head Attention
+
+    Implement multi-head attention from scratch. Split Q, K, V into `num_heads` heads, apply scaled dot-product attention to each, and concatenate.
+
+    $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O$$
+
+    where $\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Exercise 3: Multi-head attention
+    def multi_head_attention(Q, K, V, num_heads):
+        """
+        Q, K, V: (seq_len, d_model)
+        Returns: (seq_len, d_model)
+        """
+        seq_len, d_model = Q.shape
+        assert d_model % num_heads == 0
+        d_k_head = d_model // num_heads
+
+        # TODO: 1) Initialize random projection matrices W_Q, W_K, W_V, W_O
+        #          Each W_Q_i, W_K_i, W_V_i is (d_model, d_k_head)
+        #          W_O is (d_model, d_model)
+
+        # TODO: 2) For each head:
+        #   a) Project: Q_i = Q @ W_Q_i, K_i = K @ W_K_i, V_i = V @ W_V_i
+        #   b) Compute scaled dot-product attention
+        #   c) Collect head outputs
+
+        # TODO: 3) Concatenate all heads -> (seq_len, d_model)
+
+        # TODO: 4) Apply output projection W_O
+
+        output = np.zeros((seq_len, d_model))  # placeholder
+        return output
+
+    # Test:
+    # np.random.seed(42)
+    # seq, dm = 6, 16
+    # Q_test = np.random.randn(seq, dm)
+    # K_test = np.random.randn(seq, dm)
+    # V_test = np.random.randn(seq, dm)
+    # out = multi_head_attention(Q_test, K_test, V_test, num_heads=4)
+    # print(f"Output shape: {out.shape}")  # should be (6, 16)
+    return (multi_head_attention,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: BM25 Retrieval
+
+    Implement BM25, the classic sparse retrieval algorithm still used in hybrid search systems. BM25 scores a document $d$ against a query $q$:
+
+    $$\text{BM25}(q, d) = \sum_{t \in q} \text{IDF}(t) \cdot \frac{f(t, d) \cdot (k_1 + 1)}{f(t, d) + k_1 \cdot \left(1 - b + b \cdot \frac{|d|}{\text{avgdl}}\right)}$$
+
+    where $f(t,d)$ is term frequency, $k_1=1.5$, $b=0.75$.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # Exercise 4: BM25 retrieval
+    ex4_docs = [
+        "the transformer architecture revolutionized natural language processing",
+        "attention mechanisms allow models to focus on relevant input parts",
+        "recurrent neural networks process sequences step by step",
+        "convolutional networks are primarily used for image processing",
+        "language models predict the next token in a sequence",
+    ]
+
+    def bm25_score(query, documents, k1=1.5, b=0.75):
+        """Score each document against the query using BM25."""
+        scores = np.zeros(len(documents))
+        doc_lens = [len(d.split()) for d in documents]
+        avgdl = np.mean(doc_lens)
+        N = len(documents)
+
+        query_terms = query.lower().split()
+        for term in query_terms:
+            # TODO: 1) compute IDF(term) = log((N - df + 0.5) / (df + 0.5))
+            #          where df = number of docs containing term
+
+            # TODO: 2) for each document, compute BM25 contribution of this term
+
+            pass
+
+        return scores
+
+    # Test:
+    # ex4_query = "attention in language models"
+    # scores = bm25_score(ex4_query, ex4_docs)
+    # ranked = sorted(enumerate(scores), key=lambda x: -x[1])
+    # print(f"Query: '{ex4_query}'")
+    # for idx, s in ranked:
+    #     print(f"  [{s:.3f}] {ex4_docs[idx]}")
+    return (bm25_score,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ---
 
     *Next steps: If you have not yet covered 3A --- Attention & Transformers, go there first --- transformers are the foundation of everything in modern NLP. If you want to go cross-modal, see Path B --- Computer Vision for how these same ideas apply to visual understanding, or explore Path C --- Generative Models for the generation side in depth.*

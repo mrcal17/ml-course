@@ -112,7 +112,92 @@ def _(mo):
     So the columns of $V$ are the eigenvectors of $S$ (i.e., the principal components), and the squared singular values $\sigma_k^2/(N-1)$ are the eigenvalues (i.e., the variances). The SVD computes PCA without ever forming $X^\top X$, which is both faster and more numerically stable for high-dimensional data.
 
     See [MML 10.4](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) for the SVD-based derivation.
+    """)
+    return
 
+
+@app.cell
+def _(np):
+    # PCA from scratch: centering and covariance matrix
+    # Generate simple 2D data to see each step
+    rng_pca = np.random.RandomState(42)
+    X_demo = rng_pca.randn(100, 2) @ np.array([[2, 0.8], [0.8, 1]])
+
+    # Step 1: Center the data (subtract mean)
+    X_centered = X_demo - X_demo.mean(axis=0)
+
+    # Step 2: Covariance matrix S = X^T X / (N-1)
+    N = X_centered.shape[0]
+    S = X_centered.T @ X_centered / (N - 1)
+    print("Covariance matrix S:")
+    print(S)
+    return (S, X_centered, X_demo, rng_pca)
+
+
+@app.cell
+def _(S, np):
+    # PCA from scratch: eigendecomposition of the covariance matrix
+    # Sw = lambda * w  =>  eigenvectors are principal directions
+    eigenvalues, eigenvectors = np.linalg.eigh(S)
+
+    # eigh returns in ascending order; flip to descending
+    idx = np.argsort(eigenvalues)[::-1]
+    eigenvalues = eigenvalues[idx]
+    eigenvectors = eigenvectors[:, idx]
+
+    print("Eigenvalues (variance per component):", eigenvalues)
+    print("Explained variance ratio:", eigenvalues / eigenvalues.sum())
+    print("PC1 direction:", eigenvectors[:, 0])
+    return (eigenvalues, eigenvectors)
+
+
+@app.cell
+def _(X_centered, eigenvalues, eigenvectors, np, plt):
+    # PCA from scratch: project data onto principal components
+    # Project: Z = X_centered @ V  (each column of V is a PC direction)
+    Z_pca = X_centered @ eigenvectors  # N x D projected coordinates
+
+    # Reconstruct using only 1st component: X_hat = Z[:, :1] @ V[:, :1].T
+    X_hat_1pc = Z_pca[:, :1] @ eigenvectors[:, :1].T
+
+    fig_pca_demo, ax_pca_demo = plt.subplots(figsize=(6, 5))
+    ax_pca_demo.scatter(X_centered[:, 0], X_centered[:, 1], alpha=0.4, s=15, label="Original")
+    ax_pca_demo.scatter(X_hat_1pc[:, 0], X_hat_1pc[:, 1], alpha=0.4, s=15, label="1-PC reconstruction")
+    # Draw PC directions scaled by sqrt(eigenvalue)
+    for i in range(2):
+        ax_pca_demo.arrow(0, 0, eigenvectors[0, i]*np.sqrt(eigenvalues[i]),
+                          eigenvectors[1, i]*np.sqrt(eigenvalues[i]),
+                          head_width=0.1, color='red', linewidth=2)
+    ax_pca_demo.set_aspect('equal')
+    ax_pca_demo.legend()
+    ax_pca_demo.set_title("PCA from scratch: data, PCs, and 1-PC reconstruction")
+    fig_pca_demo
+    return (Z_pca,)
+
+
+@app.cell
+def _(X_centered, eigenvalues, eigenvectors, np):
+    # PCA via SVD (the numerically stable way)
+    # X = U Sigma V^T  =>  columns of V are eigenvectors of X^T X
+    U_svd, sigma_svd, Vt_svd = np.linalg.svd(X_centered, full_matrices=False)
+
+    # Eigenvalues from singular values: lambda_k = sigma_k^2 / (N-1)
+    N_svd = X_centered.shape[0]
+    eigenvalues_svd = sigma_svd**2 / (N_svd - 1)
+
+    print("Eigenvalues (from eigh): ", eigenvalues)
+    print("Eigenvalues (from SVD):  ", eigenvalues_svd)
+    print("Match:", np.allclose(eigenvalues, eigenvalues_svd))
+
+    # V from SVD should match eigenvectors (up to sign)
+    print("PC1 from SVD:", Vt_svd[0])
+    print("PC1 from eigh:", eigenvectors[:, 0])
+    return (Vt_svd,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### How Many Components to Keep?
 
     This is a modeling decision, not a mathematical one. Common heuristics:
@@ -132,6 +217,23 @@ def _(mo):
     See [Bishop 12.3](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) for kernel PCA, and [ISLR 12.2](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) for a gentler treatment of standard PCA.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # Explained variance: choosing how many components to keep
+    # Simulate eigenvalues from a 10D dataset
+    eigenvalues_example = np.array([5.2, 3.1, 1.8, 0.9, 0.4, 0.2, 0.1, 0.05, 0.02, 0.01])
+    total_var = eigenvalues_example.sum()
+
+    # Cumulative explained variance ratio
+    cumulative_ratio = np.cumsum(eigenvalues_example) / total_var
+    # Find K for 95% threshold
+    K_95 = np.argmax(cumulative_ratio >= 0.95) + 1
+    print(f"Eigenvalues: {eigenvalues_example}")
+    print(f"Cumulative ratios: {np.round(cumulative_ratio, 3)}")
+    print(f"Components for 95% variance: {K_95}")
+    return (K_95,)
 
 
 @app.cell
@@ -260,7 +362,63 @@ def _(mo):
     **Convergence guarantee.** Each step either decreases $J$ or leaves it unchanged. The assignment step decreases $J$ by assigning each point to its nearest centroid. The update step decreases $J$ because the mean minimizes sum-of-squared distances (you proved this flavor of result in your statistical estimation module). Since $J$ is bounded below by 0 and strictly decreases at each step, the algorithm must converge in a finite number of iterations.
 
     But convergence is to a **local** minimum, not necessarily the global one. K-means is non-convex.
+    """)
+    return
 
+
+@app.cell
+def _(np):
+    # K-Means from scratch
+    def kmeans_scratch(X, K, max_iters=100, seed=42):
+        rng_km = np.random.RandomState(seed)
+        N_km = X.shape[0]
+
+        # Initialize: pick K random data points as centroids
+        centroids_km = X[rng_km.choice(N_km, K, replace=False)]
+
+        for iteration in range(max_iters):
+            # Assignment step: argmin_k ||x_i - mu_k||^2
+            # Compute distances: (N, K) matrix
+            dists = np.linalg.norm(X[:, None] - centroids_km[None, :], axis=2)
+            labels_km = np.argmin(dists, axis=1)
+
+            # Update step: mu_k = mean of points in cluster k
+            new_centroids = np.array([X[labels_km == k].mean(axis=0) for k in range(K)])
+
+            # Check convergence
+            if np.allclose(new_centroids, centroids_km):
+                break
+            centroids_km = new_centroids
+
+        # Inertia: J = sum of squared distances to assigned centroid
+        inertia = sum(np.sum((X[labels_km == k] - centroids_km[k])**2) for k in range(K))
+        return labels_km, centroids_km, inertia, iteration + 1
+
+    return (kmeans_scratch,)
+
+
+@app.cell
+def _(kmeans_scratch, make_blobs, np, plt):
+    # Run our from-scratch K-Means on synthetic data
+    X_ks, y_ks_true = make_blobs(n_samples=200, centers=3, cluster_std=1.0, random_state=0)
+
+    labels_ks, centroids_ks, inertia_ks, iters_ks = kmeans_scratch(X_ks, K=3)
+
+    fig_ks, ax_ks = plt.subplots(figsize=(6, 5))
+    for c in range(3):
+        mask = labels_ks == c
+        ax_ks.scatter(X_ks[mask, 0], X_ks[mask, 1], s=20, alpha=0.7, label=f"Cluster {c}")
+    ax_ks.scatter(centroids_ks[:, 0], centroids_ks[:, 1], c='black', marker='X',
+                  s=200, edgecolors='white', linewidths=2, label='Centroids')
+    ax_ks.set_title(f"K-Means from scratch | Inertia={inertia_ks:.1f} | {iters_ks} iterations")
+    ax_ks.legend(fontsize=8)
+    fig_ks
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### Initialization Matters: K-Means++
 
     Bad initialization can lead to terrible clusterings. K-means++ is a principled initialization that spreads out the initial centroids:
@@ -282,6 +440,35 @@ def _(mo):
 
     See [ISLR 12.4.1](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) and [ESL 14.3.6](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) for K-means, and [Bishop 9.1](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) for the connection between K-means and EM.
     """)
+    return
+
+
+@app.cell
+def _(kmeans_scratch, make_blobs, np, plt):
+    # Silhouette score from scratch for one K value
+    X_sil, _ = make_blobs(n_samples=150, centers=3, cluster_std=1.0, random_state=42)
+    labels_sil, _, _, _ = kmeans_scratch(X_sil, K=3, seed=42)
+
+    def silhouette_scratch(X, labels):
+        """Compute mean silhouette score: s(i) = (b(i) - a(i)) / max(a(i), b(i))"""
+        n = len(X)
+        sil_vals = np.zeros(n)
+        for i in range(n):
+            # a(i): mean distance to same-cluster points
+            same = labels == labels[i]
+            same[i] = False
+            a_i = np.mean(np.linalg.norm(X[same] - X[i], axis=1)) if same.sum() > 0 else 0
+            # b(i): min over other clusters of mean distance
+            b_i = np.inf
+            for k in set(labels):
+                if k == labels[i]:
+                    continue
+                other = labels == k
+                b_i = min(b_i, np.mean(np.linalg.norm(X[other] - X[i], axis=1)))
+            sil_vals[i] = (b_i - a_i) / max(a_i, b_i) if max(a_i, b_i) > 0 else 0
+        return np.mean(sil_vals)
+
+    print(f"Silhouette score (from scratch): {silhouette_scratch(X_sil, labels_sil):.3f}")
     return
 
 
@@ -459,7 +646,81 @@ def _(mo):
     $$\mu_k = \frac{\sum_i r_{ik} \, x_i}{\sum_i r_{ik}}, \qquad \Sigma_k = \frac{\sum_i r_{ik} \, (x_i - \mu_k)(x_i - \mu_k)^\top}{\sum_i r_{ik}}, \qquad \pi_k = \frac{\sum_i r_{ik}}{N}$$
 
     Repeat until convergence.
+    """)
+    return
 
+
+@app.cell
+def _(np):
+    # EM for GMM from scratch — helper: multivariate Gaussian PDF
+    def gaussian_pdf(X, mu, Sigma):
+        """N(x | mu, Sigma) for each row of X. Returns (N,) array."""
+        D = X.shape[1]
+        diff = X - mu  # (N, D)
+        Sigma_inv = np.linalg.inv(Sigma)
+        # Mahalanobis: (x-mu)^T Sigma^{-1} (x-mu) for each row
+        maha = np.sum(diff @ Sigma_inv * diff, axis=1)
+        log_norm = -0.5 * (D * np.log(2 * np.pi) + np.log(np.linalg.det(Sigma)))
+        return np.exp(log_norm - 0.5 * maha)
+
+    return (gaussian_pdf,)
+
+
+@app.cell
+def _(gaussian_pdf, np):
+    # EM for GMM from scratch — full algorithm
+    def em_gmm(X, K, max_iters=100, seed=42):
+        rng_em = np.random.RandomState(seed)
+        N_em, D_em = X.shape
+
+        # Initialize: random means from data, identity covariances, uniform weights
+        idx_em = rng_em.choice(N_em, K, replace=False)
+        mus = X[idx_em].copy()
+        Sigmas = np.array([np.eye(D_em) for _ in range(K)])
+        pis = np.ones(K) / K
+
+        for _ in range(max_iters):
+            # --- E-step: compute responsibilities r_ik = pi_k * N(x_i|mu_k,Sig_k) / sum_j ---
+            resp = np.zeros((N_em, K))
+            for k in range(K):
+                resp[:, k] = pis[k] * gaussian_pdf(X, mus[k], Sigmas[k])
+            resp /= resp.sum(axis=1, keepdims=True)  # normalize rows
+
+            # --- M-step: update parameters using responsibilities as weights ---
+            N_k = resp.sum(axis=0)  # effective number of points per cluster
+            for k in range(K):
+                mus[k] = (resp[:, k:k+1] * X).sum(axis=0) / N_k[k]
+                diff = X - mus[k]
+                Sigmas[k] = (resp[:, k:k+1] * diff).T @ diff / N_k[k]
+            pis = N_k / N_em
+
+        labels_em = np.argmax(resp, axis=1)
+        return mus, Sigmas, pis, resp, labels_em
+
+    return (em_gmm,)
+
+
+@app.cell
+def _(em_gmm, make_blobs, plt):
+    # Test our EM-GMM on synthetic data
+    X_em_test, _ = make_blobs(n_samples=300, centers=3, cluster_std=0.8, random_state=0)
+    mus_fit, Sigmas_fit, pis_fit, resp_fit, labels_em_fit = em_gmm(X_em_test, K=3)
+
+    print("Recovered mixing weights:", pis_fit.round(3))
+    print("Recovered means:\n", mus_fit.round(2))
+
+    fig_em, ax_em = plt.subplots(figsize=(6, 5))
+    ax_em.scatter(X_em_test[:, 0], X_em_test[:, 1], c=labels_em_fit, cmap='viridis', s=15, alpha=0.6)
+    ax_em.scatter(mus_fit[:, 0], mus_fit[:, 1], c='red', marker='*', s=300, edgecolors='black', label='Fitted means')
+    ax_em.set_title("EM-GMM from scratch")
+    ax_em.legend()
+    fig_em
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### Why EM Works
 
     EM maximizes the log-likelihood indirectly by constructing and maximizing a lower bound — the **evidence lower bound (ELBO)**. At each iteration, the E-step tightens the bound (makes it touch the log-likelihood at the current parameters), and the M-step maximizes this tight bound. The log-likelihood is guaranteed to increase (or stay the same) at every iteration.
@@ -648,6 +909,28 @@ def _(mo):
 
 
 @app.cell
+def _(gaussian_pdf, np):
+    # Anomaly detection via GMM density — from scratch
+    # Compute p(x) = sum_k pi_k * N(x|mu_k, Sigma_k), flag low-density points
+    rng_anom = np.random.RandomState(0)
+    X_normal = rng_anom.randn(200, 2)  # normal data
+    X_anom_pts = rng_anom.uniform(-5, 5, size=(10, 2))  # outliers
+    X_all = np.vstack([X_normal, X_anom_pts])
+
+    # Fit a single Gaussian (simplest density model)
+    mu_fit = X_all.mean(axis=0)
+    Sigma_fit = np.cov(X_all.T)
+    densities = gaussian_pdf(X_all, mu_fit, Sigma_fit)
+
+    # Flag bottom 5% as anomalies
+    threshold_pct = np.percentile(densities, 5)
+    is_anomaly = densities < threshold_pct
+    print(f"Threshold density: {threshold_pct:.6f}")
+    print(f"Anomalies detected: {is_anomaly.sum()} / {len(X_all)}")
+    return
+
+
+@app.cell
 def _(StandardScaler, make_blobs, np, plt):
     from sklearn.ensemble import IsolationForest
     from sklearn.mixture import GaussianMixture as GM_anom
@@ -770,6 +1053,240 @@ def _(mo):
 
     9. **EM from scratch.** Implement the EM algorithm for a 2D GMM with $K = 3$ components from scratch in NumPy. Generate synthetic data from a known mixture, fit your model, and verify that the recovered parameters are close to the true ones. Compare with `sklearn.mixture.GaussianMixture`.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It
+
+    Implementation exercises to solidify your understanding. Each exercise gives you a problem and skeleton code — fill in the missing parts.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: PCA from Scratch on Real Data
+
+    Implement PCA on the digits dataset using only numpy. Do not use sklearn's PCA. Steps:
+    1. Center the data (subtract mean)
+    2. Compute the covariance matrix
+    3. Eigendecompose it
+    4. Project onto the top K components
+    5. Compute the explained variance ratio
+
+    Verify your result matches sklearn's PCA.
+    """)
+    return
+
+
+@app.cell
+def _(np, load_digits, StandardScaler, PCA):
+    # EXERCISE 1: PCA from scratch on digits
+    _digits_ex = load_digits()
+    X_ex1 = StandardScaler().fit_transform(_digits_ex.data)
+
+    # Step 1: Center the data
+    # X_c = ...
+
+    # Step 2: Covariance matrix S = X^T X / (N-1)
+    # S_ex1 = ...
+
+    # Step 3: Eigendecompose (use np.linalg.eigh, then sort descending)
+    # evals_ex1, evecs_ex1 = ...
+
+    # Step 4: Project onto top 2 components
+    # Z_ex1 = ...
+
+    # Step 5: Explained variance ratio
+    # evr_ex1 = evals_ex1 / evals_ex1.sum()
+
+    # Verify: compare with sklearn
+    # pca_check = PCA(n_components=2).fit(X_ex1)
+    # print("Your explained variance ratio (top 2):", evr_ex1[:2])
+    # print("Sklearn explained variance ratio:     ", pca_check.explained_variance_ratio_)
+
+    # Placeholder so cell runs
+    print("Fill in the code above, then uncomment the verification block.")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: PCA via SVD
+
+    Redo Exercise 1, but use `np.linalg.svd` instead of eigendecomposing the covariance matrix. Recall:
+    - $X = U \Sigma V^T$
+    - Principal components are rows of $V^T$ (or columns of $V$)
+    - Eigenvalues of the covariance matrix are $\sigma_k^2 / (N-1)$
+
+    Verify that both approaches give the same eigenvalues and the same projected coordinates (up to sign flips).
+    """)
+    return
+
+
+@app.cell
+def _(np, load_digits, StandardScaler):
+    # EXERCISE 2: PCA via SVD
+    _digits_ex2 = load_digits()
+    X_ex2 = StandardScaler().fit_transform(_digits_ex2.data)
+    X_c_ex2 = X_ex2 - X_ex2.mean(axis=0)
+    N_ex2 = X_c_ex2.shape[0]
+
+    # SVD: X = U @ diag(sigma) @ Vt
+    # U_ex2, sigma_ex2, Vt_ex2 = ...
+
+    # Eigenvalues from singular values
+    # evals_svd = sigma_ex2**2 / (N_ex2 - 1)
+
+    # Project onto top 2: Z = X_c @ V[:, :2]  (V = Vt.T)
+    # Z_svd = ...
+
+    # Compare with eigendecomposition approach from Exercise 1
+    # print("Top 2 eigenvalues (SVD):", evals_svd[:2])
+
+    print("Fill in the SVD-based PCA code above.")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: K-Means with K-Means++ Initialization
+
+    Implement K-means++ initialization from scratch, then plug it into a K-means loop.
+
+    K-means++ rule:
+    1. Pick first centroid uniformly at random from the data
+    2. For each subsequent centroid, pick point $x$ with probability $\propto D(x)^2$, where $D(x)$ = distance to nearest existing centroid
+    """)
+    return
+
+
+@app.cell
+def _(np, make_blobs, plt):
+    # EXERCISE 3: K-Means++ initialization + K-Means
+    X_ex3, _ = make_blobs(n_samples=300, centers=4, cluster_std=1.0, random_state=42)
+
+    def kmeans_pp_init(X, K, seed=42):
+        """K-means++ initialization. Returns (K, D) array of centroids."""
+        rng = np.random.RandomState(seed)
+        N, D = X.shape
+        centroids = np.empty((K, D))
+
+        # Pick first centroid uniformly at random
+        centroids[0] = X[rng.randint(N)]
+
+        for k in range(1, K):
+            # Compute D(x)^2 = min distance^2 to any existing centroid
+            # dists_sq = ...
+            # probs = dists_sq / dists_sq.sum()
+            # centroids[k] = X[rng.choice(N, p=probs)]
+            pass  # Replace with your implementation
+
+        return centroids
+
+    # Then run K-Means using these centroids
+    # centroids_init = kmeans_pp_init(X_ex3, K=4)
+    # ... assignment + update loop ...
+
+    print("Implement kmeans_pp_init, then run K-Means with it.")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Reconstruction Error vs. Number of Components
+
+    Write code that:
+    1. Runs PCA from scratch (using SVD) for K = 1, 2, ..., 20
+    2. For each K, reconstructs the data: $\hat{X} = Z_K V_K^T + \bar{x}$
+    3. Computes the mean squared reconstruction error
+    4. Plots MSE vs. K
+
+    You should see MSE decrease and eventually flatten — this is the "elbow" in reconstruction space.
+    """)
+    return
+
+
+@app.cell
+def _(np, load_digits, StandardScaler, plt):
+    # EXERCISE 4: Reconstruction error curve
+    _digits_ex4 = load_digits()
+    X_ex4 = StandardScaler().fit_transform(_digits_ex4.data)
+    X_mean_ex4 = X_ex4.mean(axis=0)
+    X_c_ex4 = X_ex4 - X_mean_ex4
+
+    # SVD once
+    # U4, s4, Vt4 = np.linalg.svd(X_c_ex4, full_matrices=False)
+
+    # mse_list = []
+    # for K in range(1, 21):
+    #     # Project to K dims and reconstruct
+    #     # Z_k = X_c_ex4 @ Vt4[:K].T
+    #     # X_hat = Z_k @ Vt4[:K]
+    #     # mse = np.mean((X_c_ex4 - X_hat)**2)
+    #     # mse_list.append(mse)
+
+    # plt.plot(range(1, 21), mse_list, 'o-')
+    # plt.xlabel("Number of components K")
+    # plt.ylabel("Mean Squared Reconstruction Error")
+    # plt.title("Reconstruction Error vs. K")
+
+    print("Uncomment and fill in the reconstruction error computation.")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: EM for a 1D Gaussian Mixture
+
+    Implement EM for a simple 1D, 2-component Gaussian mixture. This is easier than the 2D case and lets you focus on the algorithm logic.
+
+    Generate data: 100 points from $N(-3, 1)$ and 100 points from $N(3, 1.5^2)$. Then recover the parameters.
+    """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    # EXERCISE 5: 1D EM for a 2-component Gaussian mixture
+    rng_ex5 = np.random.RandomState(42)
+    # True parameters
+    X1_ex5 = rng_ex5.normal(-3, 1.0, size=100)
+    X2_ex5 = rng_ex5.normal(3, 1.5, size=100)
+    X_ex5 = np.concatenate([X1_ex5, X2_ex5])
+
+    # Initialize parameters
+    # mu1, mu2 = -1.0, 1.0         # initial guesses for means
+    # sig1, sig2 = 1.0, 1.0        # initial guesses for std devs
+    # pi1, pi2 = 0.5, 0.5          # initial mixing weights
+
+    # for _ in range(50):
+    #     # E-step: compute responsibilities
+    #     # r1 = pi1 * N(X_ex5 | mu1, sig1^2) / (pi1*N(...) + pi2*N(...))
+    #     # r2 = 1 - r1
+    #
+    #     # M-step: update parameters
+    #     # N1, N2 = r1.sum(), r2.sum()
+    #     # mu1 = (r1 * X_ex5).sum() / N1
+    #     # mu2 = (r2 * X_ex5).sum() / N2
+    #     # sig1 = np.sqrt((r1 * (X_ex5 - mu1)**2).sum() / N1)
+    #     # sig2 = np.sqrt((r2 * (X_ex5 - mu2)**2).sum() / N2)
+    #     # pi1, pi2 = N1/len(X_ex5), N2/len(X_ex5)
+
+    # print(f"Recovered: mu1={mu1:.2f}, mu2={mu2:.2f}, sig1={sig1:.2f}, sig2={sig2:.2f}")
+    # print(f"True:      mu1=-3.00, mu2=3.00, sig1=1.00, sig2=1.50")
+
+    print("Uncomment the EM loop and fill in the E-step computation.")
     return
 
 

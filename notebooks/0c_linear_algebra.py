@@ -11,6 +11,13 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -57,6 +64,26 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Norms in numpy: ||x||_1, ||x||_2, ||x||_inf
+    x = np.array([3.0, -4.0, 1.0, -2.0])
+
+    l1 = np.linalg.norm(x, ord=1)       # sum of absolute values
+    l2 = np.linalg.norm(x, ord=2)       # Euclidean length
+    linf = np.linalg.norm(x, ord=np.inf) # max absolute value
+
+    print(f"x = {x}")
+    print(f"L1  norm: {l1:.4f}  (= |3|+|4|+|1|+|2| = 10)")
+    print(f"L2  norm: {l2:.4f}  (= sqrt(9+16+1+4) = sqrt(30))")
+    print(f"Linf norm: {linf:.4f}  (= max(3,4,1,2) = 4)")
+
+    # Unit-normalizing a vector (used everywhere: cosine similarity, etc.)
+    x_unit = x / np.linalg.norm(x)
+    print(f"\nUnit vector: {np.round(x_unit, 4)}, norm = {np.linalg.norm(x_unit):.4f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -80,6 +107,29 @@ def _(mo):
 
     See [MML Section 2.4: Vector Spaces and Subspaces](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) for the formal treatment.
     """)
+    return
+
+
+@app.cell
+def _(np):
+    # Inner product and cosine similarity: x^T y = ||x|| ||y|| cos(theta)
+    a = np.array([1.0, 2.0, 3.0])
+    b = np.array([4.0, 5.0, 6.0])
+
+    dot_product = a @ b  # x^T y
+    cos_sim = dot_product / (np.linalg.norm(a) * np.linalg.norm(b))  # cosine similarity
+    angle_rad = np.arccos(np.clip(cos_sim, -1, 1))
+
+    print(f"a = {a}, b = {b}")
+    print(f"a^T b = {dot_product:.4f}")
+    print(f"Cosine similarity = {cos_sim:.4f}")
+    print(f"Angle between a and b = {np.degrees(angle_rad):.2f} degrees")
+
+    # Orthogonal vectors have cos(theta) = 0
+    c = np.array([1.0, 0.0])
+    d = np.array([0.0, 1.0])
+    print(f"\nc = {c}, d = {d}")
+    print(f"c^T d = {c @ d:.1f}  (orthogonal)")
     return
 
 
@@ -109,6 +159,32 @@ def _(mo):
 @app.cell
 def _(mo):
     mo.image(src="../animations/rendered/LinearTransformation2D.gif")
+    return
+
+
+@app.cell
+def _(np):
+    # Matrix transformations in R^2: rotation, scaling, shearing, projection
+    theta = np.pi / 4  # 45 degrees
+
+    # Rotation matrix
+    R = np.array([[np.cos(theta), -np.sin(theta)],
+                  [np.sin(theta),  np.cos(theta)]])
+
+    # Scaling matrix
+    S = np.array([[2, 0],
+                  [0, 0.5]])
+
+    # Apply to a vector
+    v = np.array([1.0, 0.0])
+    print(f"Original vector:  {v}")
+    print(f"After rotation:   {np.round(R @ v, 4)}  (45 deg)")
+    print(f"After scaling:    {S @ v}  (stretch x by 2, shrink y by 0.5)")
+
+    # Composition: rotate then scale vs scale then rotate
+    print(f"\nS @ R @ v = {np.round(S @ R @ v, 4)}")
+    print(f"R @ S @ v = {np.round(R @ S @ v, 4)}")
+    print("These differ -- matrix multiplication is not commutative!")
     return
 
 
@@ -142,6 +218,28 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Rank and pseudo-inverse
+    # Full-rank matrix
+    M_full = np.array([[1, 2], [3, 4]])
+    print(f"Full-rank matrix:\n{M_full}")
+    print(f"Rank = {np.linalg.matrix_rank(M_full)}")
+
+    # Rank-deficient matrix (row 2 = 2 * row 1)
+    M_deficient = np.array([[1, 2], [2, 4]])
+    print(f"\nRank-deficient matrix:\n{M_deficient}")
+    print(f"Rank = {np.linalg.matrix_rank(M_deficient)}")
+
+    # Pseudo-inverse: A+ = (A^T A)^{-1} A^T for overdetermined systems
+    A_tall = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
+    A_pinv = np.linalg.pinv(A_tall)  # Moore-Penrose pseudo-inverse
+    print(f"\nA (3x2):\n{A_tall}")
+    print(f"A+ (2x3):\n{np.round(A_pinv, 4)}")
+    print(f"A+ @ A = I? {np.allclose(A_pinv @ A_tall, np.eye(2))}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -165,6 +263,33 @@ def _(mo):
 
     Understanding these three regimes is essential for understanding why regularization exists and when you need it. See [MML Section 2.7: Solving Systems of Linear Equations](file:///C:/Users/landa/ml-course/textbooks/MML.pdf).
     """)
+    return
+
+
+@app.cell
+def _(np):
+    # Three cases of Ax = b
+
+    # Case 1: Exact (square, full rank) -- unique solution
+    A_exact = np.array([[2, 1], [1, 3]], dtype=float)
+    b_exact = np.array([5, 7], dtype=float)
+    x_exact = np.linalg.solve(A_exact, b_exact)  # x = A^{-1} b
+    print(f"Exact system (2x2): x = {x_exact}")
+
+    # Case 2: Overdetermined (more equations than unknowns) -- least squares
+    A_over = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
+    b_over = np.array([1.1, 1.9, 3.2], dtype=float)
+    x_ls, residuals, rank, sv = np.linalg.lstsq(A_over, b_over, rcond=None)
+    print(f"\nOverdetermined (3x2): x_ls = {np.round(x_ls, 4)}")
+    print(f"  Residual norm = {np.linalg.norm(A_over @ x_ls - b_over):.6f}")
+
+    # Case 3: Underdetermined (fewer equations than unknowns) -- min-norm solution
+    A_under = np.array([[1, 1, 1]], dtype=float)
+    b_under = np.array([3.0])
+    x_minnorm = np.linalg.pinv(A_under) @ b_under  # minimum-norm solution
+    print(f"\nUnderdetermined (1x3): x_minnorm = {np.round(x_minnorm, 4)}")
+    print(f"  A @ x = {A_under @ x_minnorm}  (satisfies equation)")
+    print(f"  ||x|| = {np.linalg.norm(x_minnorm):.4f}  (smallest possible norm)")
     return
 
 
@@ -208,6 +333,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Projection: P = A (A^T A)^{-1} A^T
+    A_proj = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
+    y_proj = np.array([1.0, 2.0, 4.0])
+
+    # Projection matrix (hat matrix)
+    P = A_proj @ np.linalg.solve(A_proj.T @ A_proj, A_proj.T)
+    y_hat_proj = P @ y_proj
+    residual_proj = y_proj - y_hat_proj
+
+    print(f"y     = {y_proj}")
+    print(f"y_hat = {np.round(y_hat_proj, 4)}  (projection onto col(X))")
+    print(f"resid = {np.round(residual_proj, 4)}")
+    print(f"\nResidual orthogonal to col(X)?")
+    print(f"  X[:,0] . resid = {A_proj[:, 0] @ residual_proj:.1e}")
+    print(f"  X[:,1] . resid = {A_proj[:, 1] @ residual_proj:.1e}")
+
+    # QR decomposition: A = QR, solve Rx = Q^T b
+    Q, R_qr = np.linalg.qr(A_proj)
+    w_qr = np.linalg.solve(R_qr, Q.T @ y_proj)  # back-substitution
+    w_ols = np.linalg.solve(A_proj.T @ A_proj, A_proj.T @ y_proj)
+    print(f"\nOLS via normal equations: {np.round(w_ols, 6)}")
+    print(f"OLS via QR:              {np.round(w_qr, 6)}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -245,6 +397,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # Eigendecomposition: A v = lambda v
+    # Diagonalization: A = P D P^{-1}, so A^k = P D^k P^{-1}
+    A_eig = np.array([[2, 1], [1, 2]], dtype=float)
+    eigenvalues_demo, P_eig = np.linalg.eig(A_eig)
+    D_eig = np.diag(eigenvalues_demo)
+
+    print(f"A = \n{A_eig}")
+    print(f"Eigenvalues: {eigenvalues_demo}")
+    print(f"Eigenvectors (cols of P):\n{np.round(P_eig, 4)}")
+
+    # Verify: A v = lambda v
+    for i in range(2):
+        lhs = A_eig @ P_eig[:, i]
+        rhs = eigenvalues_demo[i] * P_eig[:, i]
+        print(f"\nA @ v{i} = {np.round(lhs, 4)},  lambda*v{i} = {np.round(rhs, 4)}")
+
+    # Matrix power via diagonalization: A^5 = P D^5 P^{-1}
+    k = 5
+    Ak_direct = np.linalg.matrix_power(A_eig, k)
+    Ak_diag = P_eig @ np.diag(eigenvalues_demo**k) @ np.linalg.inv(P_eig)
+    print(f"\nA^{k} (direct):\n{Ak_direct}")
+    print(f"A^{k} (via P D^k P^-1):\n{np.round(Ak_diag, 4)}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -268,9 +447,7 @@ def _(mo):
 
 
 @app.cell
-def _():
-    import numpy as np
-
+def _(np):
     # Demonstrate eigendecomposition of a symmetric matrix
     A = np.array([[4, 2], [2, 3]], dtype=float)
     eigenvalues, eigenvectors = np.linalg.eigh(A)  # eigh for symmetric matrices
@@ -288,6 +465,26 @@ def _():
 
     # Verify positive definiteness
     print(f"\nAll eigenvalues > 0: {np.all(eigenvalues > 0)} (positive definite)")
+    return
+
+
+@app.cell
+def _(np):
+    # Positive definiteness: test x^T A x > 0 for random vectors
+    A_pd = np.array([[4, 2], [2, 3]], dtype=float)
+    rng_pd = np.random.default_rng(0)
+    test_vectors = rng_pd.standard_normal((5, 2))
+
+    print("Testing x^T A x > 0 for random vectors:")
+    for i in range(5):
+        x_test = test_vectors[i]
+        quad_form = x_test @ A_pd @ x_test
+        print(f"  x={np.round(x_test, 3)} -> x^T A x = {quad_form:.4f} > 0? {quad_form > 0}")
+
+    # A PSD matrix (not PD): has a zero eigenvalue
+    A_psd = np.array([[1, 1], [1, 1]], dtype=float)
+    eigs_psd = np.linalg.eigvalsh(A_psd)
+    print(f"\nPSD matrix eigenvalues: {eigs_psd}  (one is zero -> PSD, not PD)")
     return
 
 
@@ -323,28 +520,26 @@ def _(mo):
 
 
 @app.cell
-def _():
-    def _():
-        import numpy as np
+def _(np):
+    # SVD: A = U Sigma V^T
+    A_svd = np.array([[3, 0], [0, 2], [0, 0]], dtype=float)
+    U_svd, S_svd, Vt_svd = np.linalg.svd(A_svd, full_matrices=True)
 
-        # SVD demonstration
-        A = np.array([[3, 0], [0, 2], [0, 0]], dtype=float)
-        U, S, Vt = np.linalg.svd(A, full_matrices=True)
+    print(f"A (3x2) = \n{A_svd}\n")
+    print(f"U (3x3) = \n{np.round(U_svd, 4)}\n")
+    print(f"Singular values: {S_svd}")
+    print(f"V^T (2x2) = \n{np.round(Vt_svd, 4)}\n")
 
-        print(f"A = \n{A}\n")
-        print(f"U = \n{np.round(U, 4)}\n")
-        print(f"Singular values: {S}")
-        print(f"V^T = \n{np.round(Vt, 4)}\n")
+    # Reconstruct: U @ Sigma @ V^T
+    Sigma_full = np.zeros_like(A_svd, dtype=float)
+    np.fill_diagonal(Sigma_full, S_svd)
+    A_svd_recon = U_svd @ Sigma_full @ Vt_svd
+    print(f"Reconstruction matches: {np.allclose(A_svd, A_svd_recon)}")
 
-        # Reconstruct A from SVD
-        Sigma = np.zeros_like(A, dtype=float)
-        np.fill_diagonal(Sigma, S)
-        A_reconstructed = U @ Sigma @ Vt
-        print(f"U @ Sigma @ V^T = \n{np.round(A_reconstructed, 4)}")
-        return print(f"Reconstruction matches: {np.allclose(A, A_reconstructed)}")
-
-
-    _()
+    # Verify: singular values = sqrt(eigenvalues of A^T A)
+    eigs_ATA = np.linalg.eigvalsh(A_svd.T @ A_svd)[::-1]
+    print(f"\nsqrt(eig(A^T A)) = {np.round(np.sqrt(eigs_ATA), 4)}")
+    print(f"Singular values  = {S_svd}")
     return
 
 
@@ -363,28 +558,25 @@ def _(mo):
 
 
 @app.cell
-def _():
-    def _():
-        import numpy as np
+def _(np):
+    # Low-rank approximation: A_k = sum of top-k singular triplets
+    rng_lr = np.random.default_rng(42)
+    # Create a rank-2 matrix with some noise
+    true_U_lr = rng_lr.standard_normal((10, 2))
+    true_V_lr = rng_lr.standard_normal((8, 2))
+    A_lr = true_U_lr @ true_V_lr.T + 0.1 * rng_lr.standard_normal((10, 8))
 
-        # Low-rank approximation demo
-        rng = np.random.default_rng(42)
-        # Create a rank-2 matrix with some noise
-        true_U = rng.standard_normal((10, 2))
-        true_V = rng.standard_normal((8, 2))
-        A = true_U @ true_V.T + 0.1 * rng.standard_normal((10, 8))
+    U_lr, S_lr, Vt_lr = np.linalg.svd(A_lr, full_matrices=False)
+    print(f"Singular values: {np.round(S_lr, 3)}")
 
-        U, S, Vt = np.linalg.svd(A, full_matrices=False)
-        print(f"Singular values: {np.round(S, 3)}")
-
-        # Energy captured by top-k singular values
-        total_energy = np.sum(S**2)
-        for k in range(1, min(len(S), 6) + 1):
-            energy_k = np.sum(S[:k]**2) / total_energy
-        return print(f"  Rank-{k}: {energy_k:.4f} of total energy")
-
-
-    _()
+    # Energy captured by top-k singular values
+    total_energy = np.sum(S_lr**2)
+    for k in range(1, min(len(S_lr), 6) + 1):
+        energy_k = np.sum(S_lr[:k]**2) / total_energy
+        # Rank-k approximation: A_k = U[:,:k] @ diag(S[:k]) @ Vt[:k,:]
+        A_k = U_lr[:, :k] @ np.diag(S_lr[:k]) @ Vt_lr[:k, :]
+        approx_err = np.linalg.norm(A_lr - A_k, 'fro') / np.linalg.norm(A_lr, 'fro')
+        print(f"  Rank-{k}: {energy_k:.4f} energy, {approx_err:.4f} relative error")
     return
 
 
@@ -411,41 +603,35 @@ def _(mo):
 
 
 @app.cell
-def _():
-    def _():
-        import numpy as np
+def _(np):
+    # PCA via eigendecomposition vs SVD -- verify they give the same result
+    rng_pca = np.random.default_rng(42)
+    X_pca = rng_pca.standard_normal((100, 5))
+    X_centered = X_pca - X_pca.mean(axis=0)
 
-        # PCA via eigendecomposition vs SVD -- verify they give the same result
-        rng = np.random.default_rng(42)
-        X = rng.standard_normal((100, 5))
-        X_centered = X - X.mean(axis=0)
+    # Method 1: Eigendecomposition of covariance matrix
+    C = (X_centered.T @ X_centered) / (X_centered.shape[0] - 1)
+    eig_vals, eig_vecs = np.linalg.eigh(C)
+    # Sort by descending eigenvalue
+    idx = np.argsort(eig_vals)[::-1]
+    eig_vals = eig_vals[idx]
+    eig_vecs = eig_vecs[:, idx]
 
-        # Method 1: Eigendecomposition of covariance matrix
-        C = (X_centered.T @ X_centered) / (X_centered.shape[0] - 1)
-        eig_vals, eig_vecs = np.linalg.eigh(C)
-        # Sort by descending eigenvalue
-        idx = np.argsort(eig_vals)[::-1]
-        eig_vals = eig_vals[idx]
-        eig_vecs = eig_vecs[:, idx]
+    # Method 2: SVD of centered data matrix
+    U_pca, S_pca, Vt_pca = np.linalg.svd(X_centered, full_matrices=False)
+    svd_eig_vals = S_pca**2 / (X_centered.shape[0] - 1)
 
-        # Method 2: SVD of centered data matrix
-        U, S, Vt = np.linalg.svd(X_centered, full_matrices=False)
-        svd_eig_vals = S**2 / (X_centered.shape[0] - 1)
+    print("Eigenvalues from covariance matrix:")
+    print(f"  {np.round(eig_vals, 6)}")
+    print("Eigenvalues from SVD (sigma^2 / (n-1)):")
+    print(f"  {np.round(svd_eig_vals, 6)}")
+    print(f"\nMatch: {np.allclose(eig_vals, svd_eig_vals)}")
 
-        print("Eigenvalues from covariance matrix:")
-        print(f"  {np.round(eig_vals, 6)}")
-        print("Eigenvalues from SVD (sigma^2 / (n-1)):")
-        print(f"  {np.round(svd_eig_vals, 6)}")
-        print(f"\nMatch: {np.allclose(eig_vals, svd_eig_vals)}")
-
-        # Principal components match (up to sign)
-        print("\nPrincipal components match (up to sign flips):")
-        for i in range(5):
-            match = np.allclose(np.abs(eig_vecs[:, i]), np.abs(Vt[i, :]))
-        return print(f"  PC{i+1}: {match}")
-
-
-    _()
+    # Principal components match (up to sign)
+    print("\nPrincipal components match (up to sign flips):")
+    for i in range(5):
+        match = np.allclose(np.abs(eig_vecs[:, i]), np.abs(Vt_pca[i, :]))
+        print(f"  PC{i+1}: {match}")
     return
 
 
@@ -495,34 +681,28 @@ def _(mo):
 
 
 @app.cell
-def _():
-    def _():
-        import numpy as np
+def _(np):
+    # Trace and determinant demonstrations
+    A_td = np.array([[4, 2], [2, 3]], dtype=float)
+    eigenvalues_td = np.linalg.eigvalsh(A_td)
 
-        # Trace and determinant demonstrations
-        A = np.array([[4, 2], [2, 3]], dtype=float)
-        eigenvalues = np.linalg.eigvalsh(A)
+    print(f"A = \n{A_td}\n")
+    print(f"Eigenvalues: {eigenvalues_td}")
+    print(f"Trace(A) = {np.trace(A_td):.4f}")
+    print(f"Sum of eigenvalues = {np.sum(eigenvalues_td):.4f}")
+    print(f"Det(A) = {np.linalg.det(A_td):.4f}")
+    print(f"Product of eigenvalues = {np.prod(eigenvalues_td):.4f}")
 
-        print(f"A = \n{A}\n")
-        print(f"Eigenvalues: {eigenvalues}")
-        print(f"Trace(A) = {np.trace(A):.4f}")
-        print(f"Sum of eigenvalues = {np.sum(eigenvalues):.4f}")
-        print(f"Det(A) = {np.linalg.det(A):.4f}")
-        print(f"Product of eigenvalues = {np.prod(eigenvalues):.4f}")
+    # Cyclic property: tr(AB) = tr(BA)
+    B_td = np.array([[1, 3], [2, 4]], dtype=float)
+    print(f"\ntr(AB) = {np.trace(A_td @ B_td):.4f}")
+    print(f"tr(BA) = {np.trace(B_td @ A_td):.4f}")
 
-        # Cyclic property: tr(AB) = tr(BA)
-        B = np.array([[1, 3], [2, 4]], dtype=float)
-        print(f"\ntr(AB) = {np.trace(A @ B):.4f}")
-        print(f"tr(BA) = {np.trace(B @ A):.4f}")
-
-        # Frobenius norm via trace
-        frob_norm_sq = np.linalg.norm(A, 'fro')**2
-        trace_ata = np.trace(A.T @ A)
-        print(f"\n||A||_F^2 = {frob_norm_sq:.4f}")
-        return print(f"tr(A^T A) = {trace_ata:.4f}")
-
-
-    _()
+    # Frobenius norm via trace: ||A||_F^2 = tr(A^T A)
+    frob_norm_sq = np.linalg.norm(A_td, 'fro')**2
+    trace_ata = np.trace(A_td.T @ A_td)
+    print(f"\n||A||_F^2 = {frob_norm_sq:.4f}")
+    print(f"tr(A^T A) = {trace_ata:.4f}")
     return
 
 
@@ -541,20 +721,18 @@ def _(mo):
 
 
 @app.cell
-def _():
-    import numpy as np
-
-    A = np.array([[1, 2], [3, 4]])
-    B = np.array([[5, 6], [7, 8]])
+def _(np):
+    A_kh = np.array([[1, 2], [3, 4]])
+    B_kh = np.array([[5, 6], [7, 8]])
 
     # Kronecker product
-    kron = np.kron(A, B)
-    print(f"A = \n{A}\n")
-    print(f"B = \n{B}\n")
+    kron = np.kron(A_kh, B_kh)
+    print(f"A = \n{A_kh}\n")
+    print(f"B = \n{B_kh}\n")
     print(f"Kronecker product A (x) B = \n{kron}\n")
 
     # Hadamard (elementwise) product
-    hadamard = A * B  # elementwise in NumPy
+    hadamard = A_kh * B_kh  # elementwise in NumPy
     print(f"Hadamard product A (*) B = \n{hadamard}")
     return
 
@@ -586,47 +764,41 @@ def _(mo):
 
 
 @app.cell
-def _():
-    def _():
-        import numpy as np
-        import matplotlib.pyplot as plt
+def _(np):
+    import matplotlib.pyplot as plt
 
-        # End-to-end demo: OLS as projection
-        rng = np.random.default_rng(42)
+    # End-to-end demo: OLS as projection
+    rng_ols = np.random.default_rng(42)
 
-        # Generate data: y = 2x + 1 + noise
-        n = 50
-        x = rng.uniform(0, 5, n)
-        y = 2 * x + 1 + rng.standard_normal(n) * 0.8
+    # Generate data: y = 2x + 1 + noise
+    n_ols = 50
+    x_ols = rng_ols.uniform(0, 5, n_ols)
+    y_ols = 2 * x_ols + 1 + rng_ols.standard_normal(n_ols) * 0.8
 
-        # Design matrix with intercept
-        X = np.column_stack([np.ones(n), x])
+    # Design matrix with intercept
+    X_ols = np.column_stack([np.ones(n_ols), x_ols])
 
-        # OLS solution: w = (X^T X)^{-1} X^T y
-        w_hat = np.linalg.solve(X.T @ X, X.T @ y)
-        print(f"w_hat: {w_hat}")
-        y_hat = X @ w_hat
-        residuals = y - y_hat
+    # OLS solution: w = (X^T X)^{-1} X^T y
+    w_hat_ols = np.linalg.solve(X_ols.T @ X_ols, X_ols.T @ y_ols)
+    y_hat_ols = X_ols @ w_hat_ols
+    residuals_ols = y_ols - y_hat_ols
 
-        print(f"Estimated coefficients: intercept={w_hat[0]:.3f}, slope={w_hat[1]:.3f}")
-        print(f"Residuals orthogonal to X columns:")
-        print(f"  X[:,0]^T @ residuals = {X[:, 0] @ residuals:.10f}")
-        print(f"  X[:,1]^T @ residuals = {X[:, 1] @ residuals:.10f}")
+    print(f"Estimated coefficients: intercept={w_hat_ols[0]:.3f}, slope={w_hat_ols[1]:.3f}")
+    print(f"Residuals orthogonal to X columns:")
+    print(f"  X[:,0]^T @ residuals = {X_ols[:, 0] @ residuals_ols:.10f}")
+    print(f"  X[:,1]^T @ residuals = {X_ols[:, 1] @ residuals_ols:.10f}")
 
-        fig, ax = plt.subplots(figsize=(8, 5))
-        ax.scatter(x, y, alpha=0.6, label='Data')
-        x_line = np.linspace(0, 5, 100)
-        ax.plot(x_line, w_hat[0] + w_hat[1] * x_line, 'r-', linewidth=2,
-                label=f'OLS: y = {w_hat[1]:.2f}x + {w_hat[0]:.2f}')
-        ax.set_xlabel('x')
-        ax.set_ylabel('y')
-        ax.set_title('Ordinary Least Squares as Projection')
-        ax.legend()
-        ax.grid(True, alpha=0.3)
-        return fig
-
-
-    _()
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.scatter(x_ols, y_ols, alpha=0.6, label='Data')
+    x_line = np.linspace(0, 5, 100)
+    ax.plot(x_line, w_hat_ols[0] + w_hat_ols[1] * x_line, 'r-', linewidth=2,
+            label=f'OLS: y = {w_hat_ols[1]:.2f}x + {w_hat_ols[0]:.2f}')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_title('Ordinary Least Squares as Projection')
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    fig
     return
 
 
@@ -652,30 +824,24 @@ def _(mo):
 
 
 @app.cell
-def _():
-    def _():
-        import numpy as np
+def _(np):
+    # Exercise 2 solution scaffold
+    X_ex2 = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
+    y_ex2 = np.array([1, 2, 4], dtype=float)
 
-        # Exercise 2 solution scaffold
-        X = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
-        y = np.array([1, 2, 4], dtype=float)
+    # (a) Compute w_hat
+    w_hat_ex2 = np.linalg.solve(X_ex2.T @ X_ex2, X_ex2.T @ y_ex2)
+    print(f"w_hat = {w_hat_ex2}")
 
-        # (a) Compute w_hat
-        w_hat = np.linalg.solve(X.T @ X, X.T @ y)
-        print(f"w_hat = {w_hat}")
+    # (b) Compute y_hat
+    y_hat_ex2 = X_ex2 @ w_hat_ex2
+    print(f"y_hat = {y_hat_ex2}")
 
-        # (b) Compute y_hat
-        y_hat = X @ w_hat
-        print(f"y_hat = {y_hat}")
-
-        # (c) Verify orthogonality
-        residual = y - y_hat
-        print(f"residual = {residual}")
-        print(f"X[:,0] . residual = {X[:, 0] @ residual:.10f}")
-        return print(f"X[:,1] . residual = {X[:, 1] @ residual:.10f}")
-
-
-    _()
+    # (c) Verify orthogonality
+    residual_ex2 = y_ex2 - y_hat_ex2
+    print(f"residual = {residual_ex2}")
+    print(f"X[:,0] . residual = {X_ex2[:, 0] @ residual_ex2:.10f}")
+    print(f"X[:,1] . residual = {X_ex2[:, 1] @ residual_ex2:.10f}")
     return
 
 
@@ -704,24 +870,229 @@ def _(mo):
 
 
 @app.cell
-def _():
-    import numpy as np
-
+def _(np):
     # Exercise 6: Condition number and regularization
-    X = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
-    XtX = X.T @ X
+    X_ex6 = np.array([[1, 1], [1, 2], [1, 3]], dtype=float)
+    XtX_ex6 = X_ex6.T @ X_ex6
 
-    S = np.linalg.svd(XtX, compute_uv=False)
-    kappa = S[0] / S[-1]
-    print(f"X^T X = \n{XtX}")
-    print(f"Condition number: {kappa:.4f}\n")
+    S_ex6 = np.linalg.svd(XtX_ex6, compute_uv=False)
+    kappa_ex6 = S_ex6[0] / S_ex6[-1]
+    print(f"X^T X = \n{XtX_ex6}")
+    print(f"Condition number: {kappa_ex6:.4f}\n")
 
     for lam in [0.1, 1, 10]:
-        XtX_reg = XtX + lam * np.eye(2)
+        XtX_reg = XtX_ex6 + lam * np.eye(2)
         S_reg = np.linalg.svd(XtX_reg, compute_uv=False)
         kappa_reg = S_reg[0] / S_reg[-1]
         print(f"lambda={lam:5.1f} -> condition number: {kappa_reg:.4f}")
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    The exercises below test your ability to translate linear algebra concepts into working numpy code. Each problem gives a brief description; fill in the skeleton.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 1: Gram-Schmidt Orthogonalization
+
+    Implement the classical Gram-Schmidt process. Given a matrix whose columns are linearly independent vectors, produce an orthonormal basis for their span.
+
+    **Input:** Matrix $A$ with linearly independent columns.
+    **Output:** Matrix $Q$ with orthonormal columns spanning the same space.
+
+    Recall the algorithm: for each vector $\mathbf{a}_k$, subtract its projections onto all previously computed basis vectors, then normalize.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def gram_schmidt(A):
+        """Classical Gram-Schmidt: returns Q with orthonormal columns."""
+        m, n = A.shape
+        Q = np.zeros((m, n))
+        for k in range(n):
+            v = A[:, k].copy()
+            # Subtract projections onto previous basis vectors
+            for j in range(k):
+                v -= (Q[:, j] @ A[:, k]) * Q[:, j]
+            Q[:, k] = v / np.linalg.norm(v)
+        return Q
+
+    # Test it
+    A_gs = np.array([[1, 1, 0],
+                     [1, 0, 1],
+                     [0, 1, 1]], dtype=float)
+    Q_gs = gram_schmidt(A_gs)
+    print(f"Q =\n{np.round(Q_gs, 4)}\n")
+    print(f"Q^T Q (should be I):\n{np.round(Q_gs.T @ Q_gs, 10)}")
+    return (gram_schmidt,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 2: Power Iteration for Dominant Eigenvector
+
+    Implement the power iteration method to find the largest eigenvalue and its eigenvector for a symmetric matrix. This is the simplest eigensolver and the idea behind Google's original PageRank.
+
+    **Algorithm:** Start with a random vector $\mathbf{b}_0$. Repeat: $\mathbf{b}_{k+1} = A\mathbf{b}_k / \|A\mathbf{b}_k\|$. The vector converges to the eigenvector with the largest absolute eigenvalue, and $\lambda \approx \mathbf{b}^\top A \mathbf{b}$ (Rayleigh quotient).
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def power_iteration(A, num_iters=100):
+        """Find dominant eigenvector via power iteration."""
+        rng = np.random.default_rng(42)
+        b = rng.standard_normal(A.shape[0])
+        b = b / np.linalg.norm(b)
+
+        for _ in range(num_iters):
+            Ab = A @ b
+            b = Ab / np.linalg.norm(Ab)
+
+        # Rayleigh quotient: eigenvalue estimate
+        eigenvalue = b @ A @ b
+        return eigenvalue, b
+
+    # Test: compare with numpy
+    A_pow = np.array([[4, 2], [2, 3]], dtype=float)
+    lam_pow, v_pow = power_iteration(A_pow)
+    lam_true, V_true = np.linalg.eigh(A_pow)
+
+    print(f"Power iteration:  lambda = {lam_pow:.6f}, v = {np.round(v_pow, 6)}")
+    print(f"numpy eigh:       lambda = {lam_true[-1]:.6f}, v = {np.round(V_true[:, -1], 6)}")
+    print(f"Eigenvalue match: {np.isclose(lam_pow, lam_true[-1])}")
+    return (power_iteration,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 3: Ridge Regression from Scratch
+
+    Implement ridge regression: $\hat{\mathbf{w}} = (X^\top X + \lambda I)^{-1} X^\top \mathbf{y}$.
+
+    Compare the ridge solution for several values of $\lambda$ against OLS ($\lambda=0$). Observe how increasing $\lambda$ shrinks the coefficients toward zero and improves the condition number.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def ridge_regression(X, y, lam):
+        """Ridge regression: w = (X^T X + lambda I)^{-1} X^T y"""
+        d = X.shape[1]
+        # Solve (X^T X + lambda I) w = X^T y
+        w = np.linalg.solve(X.T @ X + lam * np.eye(d), X.T @ y)
+        return w
+
+    # Generate synthetic data
+    rng_ridge = np.random.default_rng(42)
+    n_r, d_r = 50, 5
+    X_ridge = rng_ridge.standard_normal((n_r, d_r))
+    w_true = np.array([3.0, -1.0, 0.5, 0.0, 0.0])  # last two are zero
+    y_ridge = X_ridge @ w_true + 0.5 * rng_ridge.standard_normal(n_r)
+
+    print(f"True weights:       {w_true}")
+    print(f"{'lambda':>10s} | {'||w||':>8s} | {'cond(X^TX+lI)':>14s} | weights")
+    print("-" * 75)
+    for lam_r in [0, 0.01, 0.1, 1.0, 10.0]:
+        w_r = ridge_regression(X_ridge, y_ridge, lam_r)
+        cond = np.linalg.cond(X_ridge.T @ X_ridge + lam_r * np.eye(d_r))
+        print(f"{lam_r:10.2f} | {np.linalg.norm(w_r):8.4f} | {cond:14.2f} | {np.round(w_r, 3)}")
+    return (ridge_regression,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 4: Image Compression via Truncated SVD
+
+    Use SVD to compress a synthetic "image" (matrix). Reconstruct it with increasing rank $k$ and measure the relative Frobenius error $\|A - A_k\|_F / \|A\|_F$.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    # SVD image compression: reconstruct matrix with top-k singular values
+    rng_img = np.random.default_rng(42)
+
+    # Create a structured 50x50 "image" (low-rank + noise)
+    rows = np.arange(50).reshape(-1, 1)
+    cols = np.arange(50).reshape(1, -1)
+    image = np.sin(rows * 0.2) * np.cos(cols * 0.15) + 0.05 * rng_img.standard_normal((50, 50))
+
+    U_img, S_img, Vt_img = np.linalg.svd(image, full_matrices=False)
+    norm_original = np.linalg.norm(image, 'fro')
+
+    print(f"Image shape: {image.shape}, rank: {np.linalg.matrix_rank(image)}")
+    print(f"Top 10 singular values: {np.round(S_img[:10], 3)}\n")
+    print(f"{'k':>3s} | {'rel error':>10s} | {'energy':>8s} | {'compression':>12s}")
+    print("-" * 45)
+    total_energy_img = np.sum(S_img**2)
+    for k_img in [1, 2, 5, 10, 25]:
+        # Rank-k reconstruction: U[:,:k] @ diag(S[:k]) @ Vt[:k,:]
+        recon = U_img[:, :k_img] @ np.diag(S_img[:k_img]) @ Vt_img[:k_img, :]
+        rel_err = np.linalg.norm(image - recon, 'fro') / norm_original
+        energy = np.sum(S_img[:k_img]**2) / total_energy_img
+        # Storage: k*(50+50+1) vs 50*50
+        storage_ratio = k_img * (50 + 50 + 1) / (50 * 50)
+        print(f"{k_img:3d} | {rel_err:10.6f} | {energy:8.4f} | {storage_ratio:11.1%}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Code It 5: Cosine Similarity Search
+
+    Given a "database" of unit-normalized vectors (think word embeddings), implement a function that finds the $k$ most similar vectors to a query using cosine similarity. This is the core operation behind nearest-neighbor search in embedding spaces.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def cosine_knn(database, query, k=3):
+        """Find k most similar vectors by cosine similarity.
+
+        database: (n, d) array of unit-normalized vectors
+        query: (d,) unit-normalized vector
+        Returns indices and similarities of top-k matches.
+        """
+        # Cosine similarity = dot product for unit vectors
+        similarities = database @ query
+        top_k_idx = np.argsort(similarities)[::-1][:k]
+        return top_k_idx, similarities[top_k_idx]
+
+    # Simulate a small embedding database
+    rng_cos = np.random.default_rng(42)
+    n_vecs, dim = 1000, 50
+    db = rng_cos.standard_normal((n_vecs, dim))
+    db = db / np.linalg.norm(db, axis=1, keepdims=True)  # unit normalize
+
+    query_vec = db[42] + 0.1 * rng_cos.standard_normal(dim)  # perturbed version of vector 42
+    query_vec = query_vec / np.linalg.norm(query_vec)
+
+    indices, sims = cosine_knn(db, query_vec, k=5)
+    print("Top-5 most similar vectors to perturbed version of vector 42:")
+    for rank, (idx, sim) in enumerate(zip(indices, sims)):
+        print(f"  #{rank+1}: index={idx}, cosine_sim={sim:.4f}")
+    return (cosine_knn,)
 
 
 @app.cell(hide_code=True)

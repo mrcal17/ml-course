@@ -9,6 +9,12 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -79,6 +85,38 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: Bahdanau-style attention in numpy** --- score, normalize, and compute the context vector.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def softmax(x, axis=-1):
+        """Numerically stable softmax."""
+        e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
+        return e_x / e_x.sum(axis=axis, keepdims=True)
+
+    # Encoder hidden states: 5 source positions, dim=4
+    h_enc = np.random.randn(5, 4)
+    # Decoder state at one time step
+    s_dec = np.random.randn(1, 4)
+
+    # Score via dot product: e_i = s_dec . h_i
+    scores = (s_dec @ h_enc.T).squeeze(0)  # shape (5,)
+    # Normalize into attention weights
+    alpha = softmax(scores)                # shape (5,), sums to 1
+    # Context vector: weighted sum of encoder states
+    context = alpha @ h_enc                # shape (4,)
+
+    print("Attention weights:", np.round(alpha, 3))
+    print("Context vector:   ", np.round(context, 3))
+    return (softmax,)
+
+
 @app.cell
 def _(mo):
     mo.md(r"""
@@ -132,6 +170,70 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    **Code: Q, K, V projections and scaled dot-product attention in numpy.**
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    # Input: 3 tokens, embedding dim d=4, projection dim d_k=2
+    X_sa = np.array([[1, 0, 1, 0],
+                     [0, 1, 0, 1],
+                     [1, 1, 0, 0]], dtype=float)
+
+    d_k_sa = 2
+    # Random learned projection matrices (d x d_k)
+    W_Q_sa = np.random.randn(4, d_k_sa) * 0.5
+    W_K_sa = np.random.randn(4, d_k_sa) * 0.5
+    W_V_sa = np.random.randn(4, d_k_sa) * 0.5
+
+    # Project: Q = X @ W_Q, etc.
+    Q_sa = X_sa @ W_Q_sa   # (3, 2)
+    K_sa = X_sa @ W_K_sa   # (3, 2)
+    V_sa = X_sa @ W_V_sa   # (3, 2)
+
+    # Scaled dot-product attention
+    scores_sa = (Q_sa @ K_sa.T) / np.sqrt(d_k_sa)  # (3, 3) scaled scores
+    weights_sa = softmax(scores_sa, axis=-1)         # row-wise softmax
+    output_sa = weights_sa @ V_sa                    # (3, 2) attention output
+
+    print("Attention weights (each row sums to 1):")
+    print(np.round(weights_sa, 3))
+    print("\nOutput (weighted mix of V):")
+    print(np.round(output_sa, 3))
+    return (output_sa, weights_sa,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: Demonstrating why the scaling factor matters.**
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    # Show softmax saturation without scaling
+    d_k_demo = 512
+    q_demo = np.random.randn(1, d_k_demo)
+    K_demo = np.random.randn(8, d_k_demo)
+
+    raw_dots = q_demo @ K_demo.T  # variance ~ d_k
+    scaled_dots = raw_dots / np.sqrt(d_k_demo)
+
+    print(f"Unscaled dot products — std: {raw_dots.std():.1f}")
+    print(f"  softmax: {np.round(softmax(raw_dots), 4)}")
+    print(f"\nScaled dot products — std: {scaled_dots.std():.1f}")
+    print(f"  softmax: {np.round(softmax(scaled_dots), 4)}")
+    print("\nNotice: unscaled softmax is nearly one-hot (peaked).")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ### A Concrete Numerical Example
 
     Let us walk through self-attention with a tiny example. Suppose we have 3 tokens with embedding dimension $d = 4$ and $d_k = 2$.
@@ -158,6 +260,36 @@ def _(mo):
 
     This is the heart of the Transformer. Everything else is supporting structure around this operation.
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: Reproducing the concrete numerical example above, step by step.**
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    # Exact matrices from the worked example
+    X_ex = np.array([[1,0,1,0],[0,1,0,1],[1,1,0,0]], dtype=float)
+    W_Q_ex = np.array([[1,0],[0,1],[1,0],[0,1]], dtype=float)
+    W_K_ex = np.array([[0,1],[1,0],[0,1],[1,0]], dtype=float)
+    W_V_ex = np.array([[1,1],[1,0],[0,1],[0,1]], dtype=float)
+
+    Q_ex = X_ex @ W_Q_ex;  K_ex = X_ex @ W_K_ex;  V_ex = X_ex @ W_V_ex
+    scores_ex = Q_ex @ K_ex.T                       # raw scores
+    scaled_ex = scores_ex / np.sqrt(2)               # scale by sqrt(d_k)
+    alpha_ex = softmax(scaled_ex, axis=-1)           # attention weights
+    out_ex = alpha_ex @ V_ex                         # final output
+
+    print("Q:\n", Q_ex)
+    print("K:\n", K_ex)
+    print("Scores (QK^T):\n", scores_ex)
+    print("Attention weights:\n", np.round(alpha_ex, 2))
+    print("Output (alpha @ V):\n", np.round(out_ex, 2))
     return
 
 
@@ -195,6 +327,53 @@ def _(mo):
     See [Murphy PML1 S15.4.3](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) for further discussion of multi-head attention.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: Multi-head attention in numpy** --- split into heads, attend independently, concatenate.
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    def multihead_attention(X_mh, n_heads, W_Q_mh, W_K_mh, W_V_mh, W_O_mh):
+        """Multi-head attention: X is (n, d), returns (n, d)."""
+        n, d = X_mh.shape
+        d_k_h = d // n_heads  # per-head dimension
+
+        Q_mh = X_mh @ W_Q_mh  # (n, d)
+        K_mh = X_mh @ W_K_mh
+        V_mh = X_mh @ W_V_mh
+
+        # Reshape into (n_heads, n, d_k) — split the last dim
+        Q_h = Q_mh.reshape(n, n_heads, d_k_h).transpose(1, 0, 2)  # (h, n, d_k)
+        K_h = K_mh.reshape(n, n_heads, d_k_h).transpose(1, 0, 2)
+        V_h = V_mh.reshape(n, n_heads, d_k_h).transpose(1, 0, 2)
+
+        # Scaled dot-product attention per head
+        scores_mh = Q_h @ K_h.transpose(0, 2, 1) / np.sqrt(d_k_h)  # (h, n, n)
+        attn_mh = softmax(scores_mh, axis=-1)
+        head_outs = attn_mh @ V_h  # (h, n, d_k)
+
+        # Concatenate heads: (n, h*d_k) = (n, d)
+        concat = head_outs.transpose(1, 0, 2).reshape(n, d)
+        return concat @ W_O_mh  # final projection (n, d)
+
+    # Demo: 4 tokens, d=8, 2 heads
+    _d, _h = 8, 2
+    _X = np.random.randn(4, _d)
+    _WQ = np.random.randn(_d, _d) * 0.3
+    _WK = np.random.randn(_d, _d) * 0.3
+    _WV = np.random.randn(_d, _d) * 0.3
+    _WO = np.random.randn(_d, _d) * 0.3
+
+    mha_out = multihead_attention(_X, _h, _WQ, _WK, _WV, _WO)
+    print(f"Input shape:  {_X.shape}")
+    print(f"Output shape: {mha_out.shape}")  # same (4, 8)
+    return (multihead_attention,)
 
 
 @app.cell(hide_code=True)
@@ -264,6 +443,103 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    **Code: Layer normalization in numpy** --- normalize each token's features to zero mean, unit variance.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def layer_norm(x, gamma=None, beta=None, eps=1e-5):
+        """LayerNorm: normalize across the last (feature) dimension."""
+        mean = x.mean(axis=-1, keepdims=True)
+        var = x.var(axis=-1, keepdims=True)
+        x_norm = (x - mean) / np.sqrt(var + eps)
+        if gamma is not None:
+            x_norm = gamma * x_norm + beta
+        return x_norm
+
+    # Demo: 3 tokens, dim=4
+    _x_ln = np.array([[2.0, 4.0, 6.0, 8.0],
+                       [1.0, 1.0, 1.0, 1.0],
+                       [0.0, 10., 0.0, 10.]], dtype=float)
+    _normed = layer_norm(_x_ln)
+    print("Before LayerNorm:\n", _x_ln)
+    print("After LayerNorm:\n", np.round(_normed, 3))
+    print("Row means (should be ~0):", np.round(_normed.mean(axis=-1), 6))
+    return (layer_norm,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: Position-wise FFN in numpy** --- expand to 4x width, apply ReLU, project back.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def ffn(x, W1, b1, W2, b2):
+        """Position-wise FFN: x @ W1 + b1 -> ReLU -> @ W2 + b2."""
+        hidden = np.maximum(0, x @ W1 + b1)  # ReLU activation
+        return hidden @ W2 + b2
+
+    # Demo: d=4, d_ff=16 (4x expansion)
+    _d_ffn, _d_ff = 4, 16
+    _W1 = np.random.randn(_d_ffn, _d_ff) * 0.3
+    _b1 = np.zeros(_d_ff)
+    _W2 = np.random.randn(_d_ff, _d_ffn) * 0.3
+    _b2 = np.zeros(_d_ffn)
+
+    _x_ffn = np.random.randn(3, _d_ffn)  # 3 tokens
+    _out_ffn = ffn(_x_ffn, _W1, _b1, _W2, _b2)
+    print(f"FFN input shape:  {_x_ffn.shape}")
+    print(f"FFN output shape: {_out_ffn.shape}")  # same (3, 4)
+    return (ffn,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: A full Transformer encoder block in numpy** --- attention + residual + layernorm + FFN + residual + layernorm.
+    """)
+    return
+
+
+@app.cell
+def _(ffn, layer_norm, multihead_attention, np):
+    def transformer_block_np(X_tb, n_heads_tb, params):
+        """One encoder block: MHA -> Add&Norm -> FFN -> Add&Norm."""
+        # Sub-layer 1: multi-head self-attention + residual + layernorm
+        attn_out_tb = multihead_attention(
+            X_tb, n_heads_tb,
+            params["WQ"], params["WK"], params["WV"], params["WO"]
+        )
+        z_tb = layer_norm(X_tb + attn_out_tb)  # residual + norm
+
+        # Sub-layer 2: FFN + residual + layernorm
+        ffn_out_tb = ffn(z_tb, params["W1"], params["b1"], params["W2"], params["b2"])
+        out_tb = layer_norm(z_tb + ffn_out_tb)  # residual + norm
+        return out_tb
+
+    # Init random params for d=8, 2 heads, d_ff=32
+    _dtb = 8
+    _params = {
+        "WQ": np.random.randn(_dtb, _dtb)*0.2, "WK": np.random.randn(_dtb, _dtb)*0.2,
+        "WV": np.random.randn(_dtb, _dtb)*0.2, "WO": np.random.randn(_dtb, _dtb)*0.2,
+        "W1": np.random.randn(_dtb, 32)*0.2, "b1": np.zeros(32),
+        "W2": np.random.randn(32, _dtb)*0.2, "b2": np.zeros(_dtb),
+    }
+    _x_tb = np.random.randn(5, _dtb)
+    _out_tb = transformer_block_np(_x_tb, 2, _params)
+    print(f"Encoder block: {_x_tb.shape} -> {_out_tb.shape}")
+    return (transformer_block_np,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ---
 
     ## 5. Positional Encoding --- Giving Transformers a Sense of Order
@@ -311,6 +587,40 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    **Code: Sinusoidal positional encoding** --- each position gets a unique fingerprint of sin/cos waves at different frequencies.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def sinusoidal_pe(max_len, d_model):
+        """PE(pos, 2i) = sin(pos / 10000^(2i/d)), PE(pos, 2i+1) = cos(...)."""
+        pe = np.zeros((max_len, d_model))
+        pos = np.arange(max_len)[:, None]             # (max_len, 1)
+        div = 10000 ** (np.arange(0, d_model, 2) / d_model)  # denominator
+        pe[:, 0::2] = np.sin(pos / div)               # even dims
+        pe[:, 1::2] = np.cos(pos / div)               # odd dims
+        return pe
+
+    pe_demo = sinusoidal_pe(50, 16)
+    print(f"PE shape: {pe_demo.shape}  (50 positions, 16 dims)")
+    print(f"PE[0,:4] = {np.round(pe_demo[0, :4], 3)}")
+    print(f"PE[1,:4] = {np.round(pe_demo[1, :4], 3)}")
+    print(f"PE[49,:4]= {np.round(pe_demo[49, :4], 3)}")
+
+    # Each position has a unique encoding
+    # The dot product between nearby positions is higher than distant ones
+    sim_1_2 = pe_demo[1] @ pe_demo[2]
+    sim_1_40 = pe_demo[1] @ pe_demo[40]
+    print(f"\nDot product PE[1]·PE[2]  = {sim_1_2:.2f} (nearby)")
+    print(f"Dot product PE[1]·PE[40] = {sim_1_40:.2f} (distant)")
+    return (sinusoidal_pe,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ---
 
     ## 6. Masked Self-Attention --- Preventing the Future from Leaking
@@ -328,6 +638,41 @@ def _(mo):
     This is used in all decoder models and is what makes autoregressive generation possible during training. During inference, the model generates one token at a time anyway, but during training, causal masking allows us to compute all positions in parallel while still preventing information leakage.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: Causal (look-ahead) mask and masked attention in numpy.**
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    def masked_attention(Q_m, K_m, V_m, causal=True):
+        """Scaled dot-product attention with optional causal mask."""
+        n_m, d_k_m = Q_m.shape
+        scores_m = (Q_m @ K_m.T) / np.sqrt(d_k_m)
+
+        if causal:
+            # Upper triangle = -inf  ->  softmax(-inf) = 0
+            mask_m = np.triu(np.full((n_m, n_m), -np.inf), k=1)
+            scores_m = scores_m + mask_m
+
+        weights_m = softmax(scores_m, axis=-1)
+        return weights_m @ V_m, weights_m
+
+    # 5 tokens, d_k=4
+    _Q_m = np.random.randn(5, 4)
+    _K_m = np.random.randn(5, 4)
+    _V_m = np.random.randn(5, 4)
+
+    _, causal_weights = masked_attention(_Q_m, _K_m, _V_m, causal=True)
+    print("Causal attention weights (lower-triangular):")
+    print(np.round(causal_weights, 2))
+    print("\nUpper triangle is zero — no token sees the future.")
+    return (masked_attention,)
 
 
 @app.cell(hide_code=True)
@@ -440,6 +785,48 @@ def _(mo):
 
     The maximum sequence length a model can process --- its context window --- is a critical practical parameter. Early Transformers were limited to 512 or 1,024 tokens. Modern models support 128K tokens or more. Longer contexts enable processing entire documents, codebases, or long conversations, but require careful engineering (RoPE scaling, Flash Attention, KV cache management).
     """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    **Code: KV cache simulation** --- generate tokens one at a time, appending to cached keys/values.
+    """)
+    return
+
+
+@app.cell
+def _(np, softmax):
+    # Simulate autoregressive generation with a KV cache
+    _d_kv = 4
+    _W_Q_kv = np.random.randn(_d_kv, _d_kv) * 0.3
+    _W_K_kv = np.random.randn(_d_kv, _d_kv) * 0.3
+    _W_V_kv = np.random.randn(_d_kv, _d_kv) * 0.3
+
+    K_cache = np.empty((0, _d_kv))  # start empty
+    V_cache = np.empty((0, _d_kv))
+
+    # Pretend we generate 5 tokens
+    embeddings = np.random.randn(5, _d_kv)
+    for t in range(5):
+        x_t = embeddings[t:t+1]       # current token embedding (1, d)
+        q_t = x_t @ _W_Q_kv           # query for this step only
+        k_t = x_t @ _W_K_kv
+        v_t = x_t @ _W_V_kv
+
+        # Append to cache
+        K_cache = np.vstack([K_cache, k_t])
+        V_cache = np.vstack([V_cache, v_t])
+
+        # Attend: q_t against all cached keys
+        scores_kv = (q_t @ K_cache.T) / np.sqrt(_d_kv)  # (1, t+1)
+        attn_kv = softmax(scores_kv, axis=-1)
+        out_kv = attn_kv @ V_cache  # (1, d)
+
+        print(f"Step {t}: attend over {K_cache.shape[0]} cached positions")
+
+    print(f"\nFinal KV cache size: {K_cache.shape}")
     return
 
 
@@ -683,6 +1070,243 @@ def _(mo):
     10. **Attention visualization.** Using the code above, run the `MultiHeadAttention` module on a random input and extract the attention weights from each head. Do different heads produce different attention patterns even before training? Why or why not?
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    Work through these exercises to build Transformer components from scratch in numpy. Each exercise gives you a skeleton with `TODO` placeholders to fill in.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Scaled Dot-Product Attention from Scratch
+
+    Implement the full attention formula: $\text{Attention}(Q,K,V) = \text{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$
+
+    Fill in the four TODOs below. Use only numpy operations.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def attention_exercise(Q_ex1, K_ex1, V_ex1):
+        """Implement scaled dot-product attention."""
+        d_k_ex1 = Q_ex1.shape[-1]
+
+        # TODO 1: Compute raw scores — dot product of Q and K^T
+        scores_ex1 = None
+
+        # TODO 2: Scale by sqrt(d_k)
+        scaled_ex1 = None
+
+        # TODO 3: Apply softmax row-wise (hint: subtract max for stability, then exp and normalize)
+        e_x = np.exp(scaled_ex1 - np.max(scaled_ex1, axis=-1, keepdims=True))
+        weights_ex1 = e_x / e_x.sum(axis=-1, keepdims=True)
+
+        # TODO 4: Compute output — weighted sum of V
+        output_ex1 = None
+
+        return output_ex1, weights_ex1
+
+    # Test with the identity matrices from Practice Exercise 6:
+    _I = np.eye(2)
+    # _out, _w = attention_exercise(_I, _I, _I)
+    # print("Output:\n", np.round(_out, 3))
+    # print("Weights:\n", np.round(_w, 3))
+    return (attention_exercise,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Multi-Head Attention
+
+    Implement multi-head attention by splitting Q, K, V into `n_heads` chunks, running attention on each, and concatenating. Fill in the TODOs.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def multihead_exercise(X_ex2, n_heads_ex2, W_Q_ex2, W_K_ex2, W_V_ex2, W_O_ex2):
+        """Multi-head attention from scratch."""
+        n_ex2, d_ex2 = X_ex2.shape
+        d_k_ex2 = d_ex2 // n_heads_ex2
+
+        # Project inputs
+        Q_ex2 = X_ex2 @ W_Q_ex2
+        K_ex2 = X_ex2 @ W_K_ex2
+        V_ex2 = X_ex2 @ W_V_ex2
+
+        # TODO 1: Reshape Q into (n_heads, n, d_k)
+        # Hint: reshape to (n, n_heads, d_k) then transpose axes
+        Q_heads = None
+
+        # TODO 2: Same for K and V
+        K_heads = None
+        V_heads = None
+
+        # TODO 3: Compute attention for each head
+        # scores shape: (n_heads, n, n), then softmax, then @ V_heads
+        head_outputs = None  # shape: (n_heads, n, d_k)
+
+        # TODO 4: Concatenate heads back to (n, d) and apply W_O
+        # Hint: transpose to (n, n_heads, d_k) then reshape to (n, d)
+        concat = None
+        output_ex2 = None
+
+        return output_ex2
+
+    # Uncomment to test:
+    # _d, _h = 8, 2
+    # _X = np.random.randn(4, _d)
+    # _out = multihead_exercise(_X, _h,
+    #     np.random.randn(_d,_d)*0.3, np.random.randn(_d,_d)*0.3,
+    #     np.random.randn(_d,_d)*0.3, np.random.randn(_d,_d)*0.3)
+    # print("Output shape:", _out.shape)  # should be (4, 8)
+    return (multihead_exercise,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Sinusoidal Positional Encoding
+
+    Implement the sinusoidal PE formula. Even dimensions get sin, odd dimensions get cos.
+
+    $$PE_{(\text{pos}, 2i)} = \sin\!\left(\frac{\text{pos}}{10000^{2i/d}}\right), \quad PE_{(\text{pos}, 2i+1)} = \cos\!\left(\frac{\text{pos}}{10000^{2i/d}}\right)$$
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def positional_encoding_exercise(max_len_ex3, d_model_ex3):
+        """Build the sinusoidal positional encoding matrix."""
+        pe_ex3 = np.zeros((max_len_ex3, d_model_ex3))
+        positions = np.arange(max_len_ex3)[:, None]  # (max_len, 1)
+
+        # TODO 1: Compute the denominator: 10000^(2i/d) for i = 0, 1, ..., d/2 - 1
+        div_term = None
+
+        # TODO 2: Fill even columns with sin(pos / div_term)
+        pe_ex3[:, 0::2] = None
+
+        # TODO 3: Fill odd columns with cos(pos / div_term)
+        pe_ex3[:, 1::2] = None
+
+        return pe_ex3
+
+    # Uncomment to test:
+    # _pe = positional_encoding_exercise(20, 8)
+    # print("PE shape:", _pe.shape)
+    # print("PE[0]:", np.round(_pe[0], 3))
+    # print("PE[1]:", np.round(_pe[1], 3))
+    return (positional_encoding_exercise,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Causal Masking
+
+    Implement masked self-attention for autoregressive decoding. The key step: add $-\infty$ to scores for positions where $j > i$ before softmax.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def causal_attention_exercise(Q_ex4, K_ex4, V_ex4):
+        """Scaled dot-product attention with causal mask."""
+        n_ex4, d_k_ex4 = Q_ex4.shape
+
+        # Compute scaled scores
+        scores_ex4 = (Q_ex4 @ K_ex4.T) / np.sqrt(d_k_ex4)
+
+        # TODO 1: Create causal mask — upper triangle filled with -inf
+        # Hint: use np.triu with k=1 to get the strict upper triangle
+        causal_mask_ex4 = None
+
+        # TODO 2: Add the mask to scores
+        masked_scores_ex4 = None
+
+        # TODO 3: Apply softmax row-wise
+        e_x4 = np.exp(masked_scores_ex4 - np.max(masked_scores_ex4, axis=-1, keepdims=True))
+        weights_ex4 = e_x4 / e_x4.sum(axis=-1, keepdims=True)
+
+        return weights_ex4 @ V_ex4, weights_ex4
+
+    # Uncomment to test:
+    # _Q = np.random.randn(4, 3)
+    # _K = np.random.randn(4, 3)
+    # _V = np.random.randn(4, 3)
+    # _, _w = causal_attention_exercise(_Q, _K, _V)
+    # print("Causal weights (upper triangle should be 0):")
+    # print(np.round(_w, 3))
+    return (causal_attention_exercise,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: Full Transformer Encoder Block
+
+    Combine everything: multi-head attention, residual connections, layer normalization, and FFN into one encoder block. This is the core repeating unit of the Transformer.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def encoder_block_exercise(X_ex5, n_heads_ex5, W_Q_ex5, W_K_ex5, W_V_ex5, W_O_ex5,
+                                W1_ex5, b1_ex5, W2_ex5, b2_ex5):
+        """One Transformer encoder block: MHA -> Add&Norm -> FFN -> Add&Norm."""
+
+        def _layer_norm(x_ln):
+            mu = x_ln.mean(axis=-1, keepdims=True)
+            var = x_ln.var(axis=-1, keepdims=True)
+            return (x_ln - mu) / np.sqrt(var + 1e-5)
+
+        def _softmax(x_sm, axis=-1):
+            e = np.exp(x_sm - np.max(x_sm, axis=axis, keepdims=True))
+            return e / e.sum(axis=axis, keepdims=True)
+
+        # TODO 1: Compute multi-head attention output (you can reuse your multihead logic)
+        # For simplicity, you can do single-head attention: Q=X@WQ, K=X@WK, V=X@WV
+        # scores -> scale -> softmax -> @ V -> @ W_O
+        attn_out = None
+
+        # TODO 2: Residual connection + layer norm
+        z_ex5 = None
+
+        # TODO 3: FFN — W1 with ReLU, then W2
+        ffn_out = None
+
+        # TODO 4: Second residual connection + layer norm
+        out_ex5 = None
+
+        return out_ex5
+
+    # Uncomment to test:
+    # _d = 8
+    # _x = np.random.randn(5, _d)
+    # _out = encoder_block_exercise(_x, 1,
+    #     np.random.randn(_d,_d)*0.2, np.random.randn(_d,_d)*0.2,
+    #     np.random.randn(_d,_d)*0.2, np.random.randn(_d,_d)*0.2,
+    #     np.random.randn(_d,32)*0.2, np.zeros(32),
+    #     np.random.randn(32,_d)*0.2, np.zeros(_d))
+    # print("Output shape:", _out.shape)  # should be (5, 8)
+    return (encoder_block_exercise,)
 
 
 @app.cell(hide_code=True)

@@ -9,6 +9,12 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -71,6 +77,31 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo, np):
+    # Discounted return: G = sum_{t=0}^{T} gamma^t * R_t
+    rewards = np.array([1.0, 0.0, 0.0, 0.0, 10.0])  # reward at each step
+    gamma = 0.9
+
+    # Compute discounted return from each timestep
+    T = len(rewards)
+    G = np.zeros(T)
+    G[-1] = rewards[-1]
+    for t in range(T - 2, -1, -1):
+        G[t] = rewards[t] + gamma * G[t + 1]  # G_t = R_t + gamma * G_{t+1}
+
+    mo.md(f"""
+    **Code: Discounted Returns**
+
+    Rewards: `{rewards.tolist()}`, gamma = `{gamma}`
+
+    Discounted return from each timestep: `{np.round(G, 3).tolist()}`
+
+    Notice how the big reward at t=4 propagates backward, discounted by gamma each step.
+    """)
+    return (G,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -119,6 +150,51 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo, np):
+    # Bellman equation: V(s) = sum_a pi(a|s) * sum_s' P(s'|s,a) * [R(s,a,s') + gamma * V(s')]
+    # 3-state MDP: states 0, 1, 2; two actions: 0 (left), 1 (right)
+
+    n_states, n_actions = 3, 2
+    gamma_bellman = 0.9
+
+    # Transition probabilities P[s, a, s'] — deterministic for clarity
+    P = np.zeros((n_states, n_actions, n_states))
+    P[0, 0, 0] = 1.0;  P[0, 1, 1] = 1.0  # state 0: left->0, right->1
+    P[1, 0, 0] = 1.0;  P[1, 1, 2] = 1.0  # state 1: left->0, right->2
+    P[2, 0, 1] = 1.0;  P[2, 1, 2] = 1.0  # state 2: left->1, right->2
+
+    # Rewards R[s, a, s']
+    R = np.zeros((n_states, n_actions, n_states))
+    R[1, 1, 2] = 1.0   # reward for reaching state 2 from state 1
+    R[0, 1, 1] = 0.5   # small reward for moving right from state 0
+
+    # Uniform random policy: pi(a|s) = 0.5 for all s, a
+    pi = np.ones((n_states, n_actions)) / n_actions
+
+    # Solve Bellman equation iteratively (policy evaluation)
+    V = np.zeros(n_states)
+    for _ in range(100):
+        V_new = np.zeros(n_states)
+        for s in range(n_states):
+            for a in range(n_actions):
+                for s_next in range(n_states):
+                    # Bellman equation: weighted sum over actions and transitions
+                    V_new[s] += pi[s, a] * P[s, a, s_next] * (R[s, a, s_next] + gamma_bellman * V[s_next])
+        V = V_new
+
+    mo.md(f"""
+    **Code: Bellman Equation — Policy Evaluation**
+
+    3-state MDP with uniform random policy (pi = 0.5 for each action).
+
+    Converged state values: V = `{np.round(V, 3).tolist()}`
+
+    State 2 has the highest value because the reward is for reaching it.
+    """)
+    return (P, R, V, gamma_bellman, n_actions, n_states, pi)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -153,6 +229,42 @@ def _(mo):
     return
 
 
+@app.cell
+def _(P, R, gamma_bellman, mo, n_actions, n_states, np):
+    # Value iteration: V(s) <- max_a sum_s' P(s'|s,a) * [R(s,a,s') + gamma * V(s')]
+    V_star = np.zeros(n_states)
+    for _vi in range(100):
+        V_new_vi = np.zeros(n_states)
+        for s in range(n_states):
+            action_values = np.zeros(n_actions)
+            for a in range(n_actions):
+                for s_next in range(n_states):
+                    action_values[a] += P[s, a, s_next] * (R[s, a, s_next] + gamma_bellman * V_star[s_next])
+            V_new_vi[s] = np.max(action_values)  # Bellman optimality: max over actions
+        V_star = V_new_vi
+
+    # Extract optimal policy: greedy w.r.t. V*
+    optimal_policy = np.zeros(n_states, dtype=int)
+    for s in range(n_states):
+        action_values = np.zeros(n_actions)
+        for a in range(n_actions):
+            for s_next in range(n_states):
+                action_values[a] += P[s, a, s_next] * (R[s, a, s_next] + gamma_bellman * V_star[s_next])
+        optimal_policy[s] = np.argmax(action_values)
+
+    action_names = ["left", "right"]
+    mo.md(f"""
+    **Code: Value Iteration**
+
+    Optimal values: V* = `{np.round(V_star, 3).tolist()}`
+
+    Optimal policy: `{[action_names[a] for a in optimal_policy]}`
+
+    The agent learns to go right from every state to reach the reward.
+    """)
+    return (V_star,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -176,6 +288,52 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo, np):
+    # First-visit Monte Carlo policy evaluation on a simple chain MDP
+    # States: 0 -> 1 -> 2 -> 3 (terminal), reward +1 at terminal
+    rng_mc = np.random.default_rng(42)
+    n_states_mc = 4  # state 3 is terminal
+    gamma_mc = 0.9
+    n_episodes_mc = 500
+
+    returns_per_state = {s: [] for s in range(n_states_mc - 1)}
+
+    for _ in range(n_episodes_mc):
+        # Generate episode: random walk right with p=0.7, left with p=0.3
+        s = 0
+        episode = []
+        while s < n_states_mc - 1:
+            a = 1 if rng_mc.random() < 0.7 else 0  # mostly go right
+            s_next = min(s + 1, n_states_mc - 1) if a == 1 else max(s - 1, 0)
+            r = 1.0 if s_next == n_states_mc - 1 else 0.0
+            episode.append((s, r))
+            s = s_next
+
+        # Compute returns backward and record first visits
+        G_mc = 0.0
+        visited = set()
+        for s_ep, r_ep in reversed(episode):
+            G_mc = r_ep + gamma_mc * G_mc
+            if s_ep not in visited:  # first-visit MC
+                visited.add(s_ep)
+                returns_per_state[s_ep].append(G_mc)
+
+    V_mc = {s: np.mean(rets) if rets else 0 for s, rets in returns_per_state.items()}
+
+    mo.md(f"""
+    **Code: First-Visit Monte Carlo**
+
+    Chain MDP: 0 -> 1 -> 2 -> 3(terminal, reward=1). Policy: go right 70%, left 30%.
+
+    MC value estimates after {n_episodes_mc} episodes:
+    V(0) = `{V_mc[0]:.3f}`, V(1) = `{V_mc[1]:.3f}`, V(2) = `{V_mc[2]:.3f}`
+
+    Values increase closer to the terminal reward, as expected.
+    """)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -194,6 +352,42 @@ def _(mo):
     Compare this to the MC update, which would be $V(s) \leftarrow V(s) + \alpha[G - V(s)]$, where $G$ is the actual return at the end of the episode. TD replaces the actual return $G$ with the bootstrapped estimate $R + \gamma V(s')$. This means TD can update after every single step, not just at the end of an episode.
 
     **Bias-variance tradeoff.** TD introduces bias because $V(s')$ is itself an estimate, not the true value. MC is unbiased because $G$ is a sample of the true return. But MC has high variance because $G$ depends on the entire trajectory --- every random action and transition until the episode ends. TD's estimates depend on fewer random variables (just the immediate reward and next state), so they have lower variance. In practice, TD's lower variance usually wins, especially in continuing tasks where MC is not even applicable. See [Sutton & Barto, Section 6.2](file:///C:/Users/landa/ml-course/textbooks/Sutton-RL.pdf) for the comparison.
+    """)
+    return
+
+
+@app.cell
+def _(mo, np):
+    # TD(0) policy evaluation on the same chain MDP
+    rng_td = np.random.default_rng(42)
+    n_states_td = 4  # state 3 is terminal
+    gamma_td = 0.9
+    alpha_td = 0.1
+
+    V_td = np.zeros(n_states_td)
+    td_errors = []
+
+    for _ in range(500):
+        s = 0
+        while s < n_states_td - 1:
+            a = 1 if rng_td.random() < 0.7 else 0
+            s_next = min(s + 1, n_states_td - 1) if a == 1 else max(s - 1, 0)
+            r = 1.0 if s_next == n_states_td - 1 else 0.0
+
+            # TD(0) update: V(s) += alpha * [R + gamma * V(s') - V(s)]
+            td_error = r + gamma_td * V_td[s_next] - V_td[s]
+            V_td[s] += alpha_td * td_error
+            td_errors.append(td_error)
+            s = s_next
+
+    mo.md(f"""
+    **Code: TD(0) Learning**
+
+    Same chain MDP, same policy. TD updates *every step* (no waiting for episode end).
+
+    TD value estimates: V(0) = `{V_td[0]:.3f}`, V(1) = `{V_td[1]:.3f}`, V(2) = `{V_td[2]:.3f}`
+
+    Mean |TD error| over last 100 steps: `{np.mean(np.abs(td_errors[-100:])):.4f}` (should be small when converged)
     """)
     return
 
@@ -228,6 +422,46 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo, np):
+    # Tabular Q-learning on a 5-state chain: 0-1-2-3-4, goal=4
+    rng_q = np.random.default_rng(0)
+    n_s, n_a = 5, 2  # actions: 0=left, 1=right
+    Q_table = np.zeros((n_s, n_a))
+    alpha_q, gamma_q, epsilon_q = 0.1, 0.9, 0.1
+
+    for _ in range(1000):
+        s = 0
+        while s != n_s - 1:
+            # Epsilon-greedy action selection
+            if rng_q.random() < epsilon_q:
+                a = rng_q.integers(n_a)
+            else:
+                a = np.argmax(Q_table[s])
+
+            s_next = max(0, s - 1) if a == 0 else min(n_s - 1, s + 1)
+            r = 1.0 if s_next == n_s - 1 else -0.01
+
+            # Q-learning update: use max over next actions (off-policy)
+            Q_table[s, a] += alpha_q * (r + gamma_q * np.max(Q_table[s_next]) - Q_table[s, a])
+            s = s_next
+
+    learned_policy = ["left" if np.argmax(Q_table[s]) == 0 else "right" for s in range(n_s - 1)]
+    mo.md(f"""
+    **Code: Tabular Q-Learning**
+
+    5-state chain, goal at state 4. Epsilon-greedy exploration (eps={epsilon_q}).
+
+    Learned Q-table (rows=states, cols=[left, right]):
+    ```
+    {np.array2string(np.round(Q_table, 3), separator=', ')}
+    ```
+
+    Learned policy: `{learned_policy}` — agent goes right from every state.
+    """)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -253,6 +487,50 @@ def _(mo):
 
     - **Double DQN** addresses the overestimation bias in Q-learning. Standard Q-learning uses $\max_{a'} Q(s', a')$ as the target, which systematically overestimates values because it uses the same network to both select and evaluate the best action. Double DQN decouples these: use the online network to select $a^* = \arg\max_{a'} Q(s', a'; \theta)$, but evaluate it with the target network: $Q(s', a^*; \theta^{-})$.
     - **Dueling DQN** separates the network into two streams: one estimates $V(s)$, the other estimates the advantage $A(s,a) = Q(s,a) - V(s)$. They combine at the end: $Q(s,a) = V(s) + A(s,a)$. This is beneficial because many states have similar values regardless of action --- the network can learn the state value separately from the relative advantage of each action.
+    """)
+    return
+
+
+@app.cell
+def _(mo, np):
+    # Experience replay buffer — the core DQN data structure
+    class ReplayBuffer:
+        def __init__(self, capacity):
+            self.capacity = capacity
+            self.buffer = []
+            self.pos = 0
+
+        def push(self, transition):
+            """Store (s, a, r, s_next, done) tuple"""
+            if len(self.buffer) < self.capacity:
+                self.buffer.append(transition)
+            else:
+                self.buffer[self.pos] = transition  # overwrite oldest
+            self.pos = (self.pos + 1) % self.capacity
+
+        def sample(self, batch_size, rng):
+            """Sample random mini-batch — breaks temporal correlations"""
+            idxs = rng.integers(0, len(self.buffer), size=batch_size)
+            return [self.buffer[i] for i in idxs]
+
+    # Demo: fill buffer and sample a batch
+    rng_buf = np.random.default_rng(42)
+    buf = ReplayBuffer(capacity=1000)
+    for i in range(50):
+        buf.push((i % 5, i % 2, np.random.randn(), (i + 1) % 5, i == 49))
+
+    batch = buf.sample(4, rng_buf)
+    mo.md(f"""
+    **Code: Experience Replay Buffer**
+
+    Buffer stores transitions `(s, a, r, s', done)` and samples random mini-batches.
+
+    Buffer size: {len(buf.buffer)} transitions. Sample batch of 4:
+    ```
+    {chr(10).join(str(t) for t in batch)}
+    ```
+
+    Random sampling breaks correlations between consecutive transitions.
     """)
     return
 
@@ -318,6 +596,85 @@ def _(mo):
     return
 
 
+@app.cell
+def _(mo, np):
+    # REINFORCE gradient estimate (softmax policy, tabular)
+    # Policy: pi(a|s) = softmax(theta[s, :])
+    rng_pg = np.random.default_rng(42)
+    n_s_pg, n_a_pg = 3, 2
+    theta_pg = np.zeros((n_s_pg, n_a_pg))
+
+    def softmax(x):
+        e = np.exp(x - np.max(x))
+        return e / e.sum()
+
+    # Simulate one episode: states 0->1->2(terminal), reward at end
+    episode_pg = [(0, 1, 0.0), (1, 1, 1.0)]  # (state, action, reward)
+    gamma_pg = 0.9
+
+    # Compute returns G_t backward
+    returns_pg = np.zeros(len(episode_pg))
+    returns_pg[-1] = episode_pg[-1][2]
+    for t in range(len(episode_pg) - 2, -1, -1):
+        returns_pg[t] = episode_pg[t][2] + gamma_pg * returns_pg[t + 1]
+
+    # Compute REINFORCE gradient: sum_t grad_log_pi(a_t|s_t) * G_t
+    grad_theta = np.zeros_like(theta_pg)
+    for t, (s, a, r) in enumerate(episode_pg):
+        probs = softmax(theta_pg[s])
+        # grad log pi(a|s) = e_a - pi  (for softmax parameterization)
+        grad_log_pi = -probs.copy()
+        grad_log_pi[a] += 1.0
+        grad_theta[s] += grad_log_pi * returns_pg[t]  # weight by return
+
+    mo.md(f"""
+    **Code: REINFORCE Gradient**
+
+    Softmax policy over 2 actions, 3 states. One episode: s0->s1->terminal (reward=1).
+
+    Returns: `{np.round(returns_pg, 3).tolist()}`
+
+    Policy gradient (per state-action):
+    ```
+    {np.array2string(np.round(grad_theta, 3), separator=', ')}
+    ```
+
+    Positive gradient for action 1 (right) = gradient ascent will increase its probability.
+    """)
+    return
+
+
+@app.cell
+def _(mo, np):
+    # PPO clipped objective — the key computation
+    def ppo_clipped_objective(ratio, advantage, epsilon=0.2):
+        """
+        ratio = pi_new(a|s) / pi_old(a|s)
+        advantage = A(s, a)
+        Returns clipped surrogate objective (per sample)
+        """
+        clipped_ratio = np.clip(ratio, 1 - epsilon, 1 + epsilon)
+        return np.minimum(ratio * advantage, clipped_ratio * advantage)
+
+    # Demo: show how clipping prevents large updates
+    ratios = np.linspace(0.5, 2.0, 100)
+    adv_pos = ppo_clipped_objective(ratios, advantage=1.0)
+    adv_neg = ppo_clipped_objective(ratios, advantage=-1.0)
+
+    mo.md(f"""
+    **Code: PPO Clipped Objective**
+
+    When advantage > 0 (good action): objective is capped at ratio = 1.2
+    - At ratio=1.5: unclipped = {1.5 * 1.0:.1f}, clipped = {ppo_clipped_objective(np.array([1.5]), 1.0)[0]:.1f}
+
+    When advantage < 0 (bad action): objective is capped at ratio = 0.8
+    - At ratio=0.5: unclipped = {0.5 * -1.0:.1f}, clipped = {ppo_clipped_objective(np.array([0.5]), -1.0)[0]:.1f}
+
+    The clip prevents the policy from changing too much in one update.
+    """)
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -354,6 +711,41 @@ def _(mo):
     $$L_{\text{DPO}}(\theta) = -\mathbb{E}_{(x, y_w, y_l)}\left[\log \sigma\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)\right]$$
 
     where $y_w$ is the preferred (winning) response and $y_l$ is the dispreferred (losing) response. This is a standard supervised loss --- no RL loop, no reward model, no PPO. It is simpler and, in many settings, performs comparably to RLHF. DPO has become widely adopted as a lightweight alternative to full RLHF.
+    """)
+    return
+
+
+@app.cell
+def _(mo, np):
+    # Bradley-Terry preference model & DPO loss
+    def sigmoid(x):
+        return 1.0 / (1.0 + np.exp(-x))
+
+    # Reward model scores for two responses
+    r_win, r_lose = 2.5, 1.0
+    # P(y_win preferred) = sigma(r_win - r_lose)
+    p_prefer = sigmoid(r_win - r_lose)
+
+    # DPO loss: L = -log(sigma(beta * (log_ratio_win - log_ratio_lose)))
+    beta_dpo = 0.1
+    # Simulated log-probability ratios: log(pi_theta(y|x) / pi_ref(y|x))
+    log_ratio_win = 0.5   # policy slightly prefers winner vs reference
+    log_ratio_lose = -0.3  # policy slightly dislikes loser vs reference
+
+    dpo_loss = -np.log(sigmoid(beta_dpo * (log_ratio_win - log_ratio_lose)))
+
+    mo.md(f"""
+    **Code: Bradley-Terry Model & DPO Loss**
+
+    Reward model scores: r(win)={r_win}, r(lose)={r_lose}
+    P(win preferred) = sigma({r_win}-{r_lose}) = **{p_prefer:.3f}**
+
+    DPO loss (no reward model needed):
+    - log(pi/pi_ref) for winner: {log_ratio_win}, for loser: {log_ratio_lose}
+    - beta = {beta_dpo}
+    - DPO loss = **{dpo_loss:.4f}**
+
+    Lower loss = policy better separates preferred from dispreferred responses.
     """)
     return
 
@@ -443,6 +835,282 @@ def _(mo):
     7. **Exploration-exploitation.** Implement the $\varepsilon$-greedy, UCB (Upper Confidence Bound), and Thompson Sampling strategies for a 10-armed bandit problem. Run 10,000 steps and plot average reward over time for each strategy. Which performs best? Refer to [Sutton & Barto, Chapter 2](file:///C:/Users/landa/ml-course/textbooks/Sutton-RL.pdf).
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    The exercises below give you skeleton code with `TODO` placeholders. Fill in the missing pieces to implement core RL algorithms from scratch in numpy.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Policy Evaluation via the Bellman Equation
+
+    Given a 4-state MDP (states 0-3, two actions, known transitions and rewards), implement iterative policy evaluation. Sweep through all states and apply the Bellman update until values converge within a tolerance.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def policy_evaluation_exercise(P_ex, R_ex, pi_ex, gamma_ex, tol=1e-6):
+        """
+        Iterative policy evaluation.
+
+        Args:
+            P_ex: transition probs, shape (n_states, n_actions, n_states)
+            R_ex: rewards, shape (n_states, n_actions, n_states)
+            pi_ex: policy, shape (n_states, n_actions) — pi[s,a] = P(a|s)
+            gamma_ex: discount factor
+            tol: convergence tolerance
+
+        Returns:
+            V: value function, shape (n_states,)
+        """
+        n_states_ex = P_ex.shape[0]
+        V_ex = np.zeros(n_states_ex)
+
+        for _iteration in range(10000):
+            V_old = V_ex.copy()
+            for s in range(n_states_ex):
+                # TODO: Compute V_ex[s] using the Bellman equation
+                # V(s) = sum_a pi(a|s) * sum_s' P(s'|s,a) * [R(s,a,s') + gamma * V(s')]
+                V_ex[s] = 0.0  # Replace this line
+
+            # Check convergence
+            if np.max(np.abs(V_ex - V_old)) < tol:
+                break
+
+        return V_ex
+
+    # Test MDP
+    _P_test = np.zeros((4, 2, 4))
+    _P_test[0, 0, 0] = 1; _P_test[0, 1, 1] = 1
+    _P_test[1, 0, 0] = 1; _P_test[1, 1, 2] = 1
+    _P_test[2, 0, 1] = 1; _P_test[2, 1, 3] = 1
+    _P_test[3, 0, 3] = 1; _P_test[3, 1, 3] = 1  # terminal
+    _R_test = np.zeros((4, 2, 4))
+    _R_test[2, 1, 3] = 10.0  # big reward for reaching state 3
+    _pi_test = np.ones((4, 2)) / 2  # uniform random
+
+    _V_result = policy_evaluation_exercise(_P_test, _R_test, _pi_test, 0.9)
+    print(f"Your V: {np.round(_V_result, 3)}")
+    # Expected: state 3 should have 0 (terminal), states closer should have positive values
+    return (policy_evaluation_exercise,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Tabular Q-Learning on a Gridworld
+
+    Implement Q-learning with epsilon-greedy exploration on a 4x4 gridworld. The agent starts at (0,0), goal is at (3,3) with reward +1, every step costs -0.01. Actions: up/down/left/right.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def q_learning_gridworld(n_episodes_ex=2000, alpha_ex=0.1, gamma_ex=0.95,
+                             epsilon_ex=0.1, grid_size=4):
+        """
+        Tabular Q-learning on a gridworld.
+
+        Returns:
+            Q: learned Q-table, shape (grid_size*grid_size, 4)
+            episode_rewards: total reward per episode
+        """
+        rng_ex = np.random.default_rng(42)
+        n_states_ex = grid_size * grid_size
+        n_actions_ex = 4  # 0=up, 1=down, 2=left, 3=right
+        Q_ex = np.zeros((n_states_ex, n_actions_ex))
+        goal = n_states_ex - 1
+        episode_rewards_ex = []
+
+        # Movement deltas: up, down, left, right
+        dx = [-1, 1, 0, 0]
+        dy = [0, 0, -1, 1]
+
+        def step(state, action):
+            row, col = state // grid_size, state % grid_size
+            nr, nc = row + dx[action], col + dy[action]
+            nr, nc = max(0, min(grid_size-1, nr)), max(0, min(grid_size-1, nc))
+            next_state = nr * grid_size + nc
+            reward = 1.0 if next_state == goal else -0.01
+            done = next_state == goal
+            return next_state, reward, done
+
+        for _ep in range(n_episodes_ex):
+            s = 0
+            total_reward = 0
+            for _step_count in range(200):
+                # TODO: Implement epsilon-greedy action selection
+                # With probability epsilon, pick random action; else pick argmax Q[s]
+                a = 0  # Replace this line
+
+                s_next, r, done = step(s, a)
+                total_reward += r
+
+                # TODO: Q-learning update
+                # Q[s,a] += alpha * (r + gamma * max_a' Q[s',a'] - Q[s,a])
+                pass  # Replace this line
+
+                s = s_next
+                if done:
+                    break
+            episode_rewards_ex.append(total_reward)
+
+        return Q_ex, episode_rewards_ex
+
+    _Q_grid, _rewards_grid = q_learning_gridworld()
+    print(f"Mean reward (last 100 eps): {np.mean(_rewards_grid[-100:]):.3f}")
+    # Should be close to 0.94 (reward 1 minus ~6 steps * 0.01) when converged
+    return (q_learning_gridworld,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: REINFORCE with Baseline
+
+    Implement the REINFORCE policy gradient algorithm with a value-function baseline on a simple bandit-like problem. The environment has 1 state and 3 actions with different expected rewards.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def reinforce_with_baseline(n_iters=1000, alpha_policy=0.1, alpha_value=0.01,
+                                gamma_rf=0.99):
+        """
+        REINFORCE with a learned value-function baseline.
+        Environment: 1 state, 3 actions with rewards N(mu_a, 1).
+        True means: [0.2, 0.8, 0.5]
+
+        Returns:
+            theta: policy parameters, shape (3,)
+            policy_history: action probabilities over time
+        """
+        rng_rf = np.random.default_rng(42)
+        true_means = np.array([0.2, 0.8, 0.5])
+        n_actions_rf = len(true_means)
+
+        theta_rf = np.zeros(n_actions_rf)  # softmax policy params
+        V_baseline = 0.0  # scalar baseline (one state)
+        policy_history_rf = []
+
+        def softmax_rf(x):
+            e = np.exp(x - np.max(x))
+            return e / e.sum()
+
+        for _it in range(n_iters):
+            probs = softmax_rf(theta_rf)
+            policy_history_rf.append(probs.copy())
+
+            # TODO: Sample action from policy (use rng_rf.choice with p=probs)
+            a = 0  # Replace this line
+
+            # TODO: Get reward (sample from N(true_means[a], 1))
+            r = 0.0  # Replace this line
+
+            # TODO: Compute advantage = reward - baseline
+            advantage = 0.0  # Replace this line
+
+            # TODO: Update policy params: theta[a] += alpha * advantage * (1 - probs[a])
+            #        and theta[other] -= alpha * advantage * probs[other]
+            # (This is grad log softmax(a) * advantage)
+            pass  # Replace this line
+
+            # TODO: Update baseline: V_baseline += alpha_value * (r - V_baseline)
+            pass  # Replace this line
+
+        return theta_rf, np.array(policy_history_rf)
+
+    _theta_rf, _hist_rf = reinforce_with_baseline()
+    _final_probs = np.exp(_theta_rf - np.max(_theta_rf))
+    _final_probs = _final_probs / _final_probs.sum()
+    print(f"Final policy: {np.round(_final_probs, 3)}")
+    # Should converge to mostly selecting action 1 (highest mean reward = 0.8)
+    return (reinforce_with_baseline,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Multi-Armed Bandit — Exploration Strategies
+
+    Implement and compare three exploration strategies: epsilon-greedy, UCB (Upper Confidence Bound), and a simple softmax (Boltzmann) exploration on a 5-armed bandit.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def bandit_comparison(n_steps=5000, n_arms=5):
+        """
+        Compare exploration strategies on a k-armed bandit.
+        True arm means drawn from N(0, 1).
+
+        Returns:
+            rewards_dict: dict mapping strategy name -> array of rewards per step
+        """
+        rng_bandit = np.random.default_rng(123)
+        true_values = rng_bandit.standard_normal(n_arms)
+        print(f"True arm values: {np.round(true_values, 2)}")
+
+        results = {}
+
+        # --- Epsilon-greedy ---
+        Q_eg = np.zeros(n_arms)
+        N_eg = np.zeros(n_arms)
+        rewards_eg = []
+        epsilon_bandit = 0.1
+        for t in range(n_steps):
+            # TODO: epsilon-greedy action selection
+            # With prob epsilon pick random arm, else pick argmax Q_eg
+            a = 0  # Replace
+
+            r = true_values[a] + rng_bandit.standard_normal()
+            N_eg[a] += 1
+            # TODO: Incremental mean update: Q[a] += (1/N[a]) * (r - Q[a])
+            pass  # Replace
+
+            rewards_eg.append(r)
+        results["epsilon-greedy"] = np.array(rewards_eg)
+
+        # --- UCB ---
+        Q_ucb = np.zeros(n_arms)
+        N_ucb = np.zeros(n_arms)
+        rewards_ucb = []
+        c_ucb = 2.0
+        for t in range(n_steps):
+            # TODO: UCB action selection
+            # If any arm unvisited, pick it. Otherwise:
+            # a = argmax_a [ Q[a] + c * sqrt(ln(t+1) / N[a]) ]
+            a = 0  # Replace
+
+            r = true_values[a] + rng_bandit.standard_normal()
+            N_ucb[a] += 1
+            Q_ucb[a] += (1 / N_ucb[a]) * (r - Q_ucb[a])
+            rewards_ucb.append(r)
+        results["UCB"] = np.array(rewards_ucb)
+
+        # Print summary
+        for name, rews in results.items():
+            print(f"{name}: mean reward (last 500) = {np.mean(rews[-500:]):.3f}")
+
+        return results
+
+    _bandit_results = bandit_comparison()
+    return (bandit_comparison,)
 
 
 if __name__ == "__main__":

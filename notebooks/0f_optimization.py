@@ -43,6 +43,31 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # The ML optimization pattern in code:
+    # 1. Model: linear prediction y_hat = X @ theta
+    # 2. Loss: mean squared error L(theta) = (1/N) * ||y - X@theta||^2
+    # 3. Optimize: find theta that minimizes L
+
+    np.random.seed(0)
+    X = np.column_stack([np.ones(50), np.random.randn(50)])  # 50 samples, 2 features
+    theta_true = np.array([3.0, 1.5])
+    y = X @ theta_true + 0.3 * np.random.randn(50)
+
+    # Loss function: maps parameters -> scalar
+    def mse_loss(theta, X, y):
+        residuals = y - X @ theta
+        return np.mean(residuals ** 2)
+
+    # Evaluate loss at a few guesses
+    for guess in [np.array([0.0, 0.0]), np.array([3.0, 1.0]), theta_true]:
+        print(f"theta={guess} -> loss={mse_loss(guess, X, y):.4f}")
+    return (mse_loss,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -109,6 +134,52 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Checking convexity: verify f(lambda*x + (1-lambda)*y) <= lambda*f(x) + (1-lambda)*f(y)
+    f = lambda x: x**2  # convex
+    g = lambda x: -x**2  # NOT convex (concave)
+
+    x, y = -2.0, 3.0
+    lam = 0.4
+    mid = lam * x + (1 - lam) * y  # point on line segment
+
+    print("f(x) = x^2 (convex):")
+    print(f"  f(midpoint)     = {f(mid):.4f}")
+    print(f"  weighted average = {lam * f(x) + (1 - lam) * f(y):.4f}")
+    print(f"  f(mid) <= avg?   {f(mid) <= lam * f(x) + (1 - lam) * f(y)}")
+
+    print("\ng(x) = -x^2 (concave):")
+    print(f"  g(midpoint)     = {g(mid):.4f}")
+    print(f"  weighted average = {lam * g(x) + (1 - lam) * g(y):.4f}")
+    print(f"  g(mid) <= avg?   {g(mid) <= lam * g(x) + (1 - lam) * g(y)}")
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Hessian check: OLS Hessian is 2*X^T*X, should be PSD
+    np.random.seed(1)
+    X = np.random.randn(20, 3)
+    H_ols = 2 * X.T @ X  # Hessian of ||y - Xθ||^2
+
+    eigenvalues = np.linalg.eigvalsh(H_ols)
+    print(f"OLS Hessian eigenvalues: {eigenvalues.round(4)}")
+    print(f"All >= 0? {np.all(eigenvalues >= -1e-10)}  => OLS is convex")
+
+    # Add L2 regularization: Hessian becomes 2(X^T X + lambda*I)
+    lam = 1.0
+    H_ridge = 2 * (X.T @ X + lam * np.eye(3))
+    eig_ridge = np.linalg.eigvalsh(H_ridge)
+    print(f"\nRidge Hessian eigenvalues: {eig_ridge.round(4)}")
+    print(f"All > 0?  {np.all(eig_ridge > 0)}  => Ridge is strongly convex")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -152,27 +223,48 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ### Convergence Guarantees
+@app.cell
+def _():
+    import numpy as np
 
-    For a convex function with $L$-Lipschitz continuous gradients (i.e., $\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|$), gradient descent with $\alpha = 1/L$ satisfies:
+    # Gradient descent from scratch on f(x) = x^2
+    # gradient: f'(x) = 2x
+    # update:   x_{t+1} = x_t - alpha * 2 * x_t
 
-    $$f(\theta_t) - f(\theta^*) \leq \frac{L \|\theta_0 - \theta^*\|^2}{2t}$$
+    def gradient_descent_1d(f_grad, x0, lr, n_steps):
+        """Vanilla GD: theta <- theta - lr * grad."""
+        x = x0
+        history = [x]
+        for _ in range(n_steps):
+            g = f_grad(x)       # compute gradient
+            x = x - lr * g      # take step downhill
+            history.append(x)
+        return np.array(history)
 
-    This is $O(1/t)$ convergence. For **strongly convex** functions with parameter $m$, you get **linear** (exponential) convergence:
+    f_grad = lambda x: 2 * x  # gradient of x^2
+    path = gradient_descent_1d(f_grad, x0=5.0, lr=0.1, n_steps=20)
+    print("GD on f(x)=x^2, lr=0.1, start=5.0:")
+    print(f"  Steps 0-4: {path[:5].round(4)}")
+    print(f"  Final x = {path[-1]:.6f}, f(x) = {path[-1]**2:.6f}")
+    return
 
-    $$f(\theta_t) - f(\theta^*) \leq \left(1 - \frac{m}{L}\right)^t \cdot (f(\theta_0) - f(\theta^*))$$
 
-    The ratio $\kappa = L/m$ is the **condition number** — it measures how "elongated" the loss surface is. A large condition number means narrow ravines in the landscape, and gradient descent struggles because it zigzags back and forth across the ravine instead of sliding down it. This is exactly the pathology that momentum methods (Section 5) fix.
+@app.cell
+def _():
+    import numpy as np
 
-    ### The Contour Plot Perspective
+    # Learning rate comparison: too small, just right, too large
+    f_grad = lambda x: 2 * x  # gradient of x^2
 
-    Visualize the loss function via its contour lines (level sets). For a well-conditioned quadratic, the contours are nearly circular and gradient descent takes a nearly straight path to the center. For an ill-conditioned one, the contours are highly elongated ellipses, and gradient descent zigzags because the gradient is perpendicular to the contour — it points toward the nearest contour wall, not toward the center of the ellipses.
-
-    See [MML 7.1](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) for gradient descent with worked examples and convergence discussion.
-    """)
+    for lr, label in [(0.01, "too small"), (0.1, "just right"), (1.05, "too large")]:
+        x = 5.0
+        for t in range(20):
+            x = x - lr * f_grad(x)
+            if abs(x) > 1e6:
+                print(f"lr={lr:5.2f} ({label:>10s}): DIVERGED at step {t}")
+                break
+        else:
+            print(f"lr={lr:5.2f} ({label:>10s}): x={x:.6f}, f(x)={x**2:.6f}")
     return
 
 
@@ -258,6 +350,64 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ### Convergence Guarantees
+
+    For a convex function with $L$-Lipschitz continuous gradients (i.e., $\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\|$), gradient descent with $\alpha = 1/L$ satisfies:
+
+    $$f(\theta_t) - f(\theta^*) \leq \frac{L \|\theta_0 - \theta^*\|^2}{2t}$$
+
+    This is $O(1/t)$ convergence. For **strongly convex** functions with parameter $m$, you get **linear** (exponential) convergence:
+
+    $$f(\theta_t) - f(\theta^*) \leq \left(1 - \frac{m}{L}\right)^t \cdot (f(\theta_0) - f(\theta^*))$$
+
+    The ratio $\kappa = L/m$ is the **condition number** — it measures how "elongated" the loss surface is. A large condition number means narrow ravines in the landscape, and gradient descent struggles because it zigzags back and forth across the ravine instead of sliding down it. This is exactly the pathology that momentum methods (Section 5) fix.
+
+    ### The Contour Plot Perspective
+
+    Visualize the loss function via its contour lines (level sets). For a well-conditioned quadratic, the contours are nearly circular and gradient descent takes a nearly straight path to the center. For an ill-conditioned one, the contours are highly elongated ellipses, and gradient descent zigzags because the gradient is perpendicular to the contour — it points toward the nearest contour wall, not toward the center of the ellipses.
+
+    See [MML 7.1](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) for gradient descent with worked examples and convergence discussion.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Convergence rate depends on condition number kappa = L / m
+    # Well-conditioned (kappa=2) vs ill-conditioned (kappa=50)
+
+    def gd_quadratic(A, x0, n_steps=50):
+        """GD on f(x) = 0.5 * x^T A x with lr = 1/L."""
+        L = np.max(np.linalg.eigvalsh(A))  # Lipschitz constant
+        lr = 1.0 / L
+        x = x0.copy()
+        losses = [0.5 * x @ A @ x]
+        for _ in range(n_steps):
+            g = A @ x              # gradient of 0.5 * x^T A x
+            x = x - lr * g         # GD step with optimal fixed lr
+            losses.append(0.5 * x @ A @ x)
+        return np.array(losses)
+
+    x0 = np.array([10.0, 10.0])
+    # Well-conditioned: eigenvalues 1 and 2 -> kappa = 2
+    losses_good = gd_quadratic(np.diag([1.0, 2.0]), x0)
+    # Ill-conditioned: eigenvalues 1 and 50 -> kappa = 50
+    losses_bad = gd_quadratic(np.diag([1.0, 50.0]), x0)
+
+    print("Steps to reach loss < 0.01:")
+    good_steps = np.argmax(losses_good < 0.01)
+    bad_steps = np.argmax(losses_bad < 0.01)
+    print(f"  kappa=2:  {good_steps} steps")
+    print(f"  kappa=50: {bad_steps} steps")
+    print(f"High condition number -> {bad_steps/good_steps:.1f}x slower convergence")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ---
 
     ## 4. Stochastic Gradient Descent (SGD)
@@ -325,6 +475,65 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # SGD vs full-batch GD on linear regression
+    np.random.seed(42)
+    N, d = 200, 2
+    X = np.random.randn(N, d)
+    theta_true = np.array([3.0, -1.0])
+    y = X @ theta_true + 0.5 * np.random.randn(N)
+
+    # Full gradient: average over ALL samples
+    def full_gradient(theta, X, y):
+        return -(2 / len(y)) * X.T @ (y - X @ theta)
+
+    # Mini-batch gradient: average over a random subset
+    def minibatch_gradient(theta, X, y, batch_size=32):
+        idx = np.random.choice(len(y), batch_size, replace=False)
+        return -(2 / batch_size) * X[idx].T @ (y[idx] - X[idx] @ theta)
+
+    theta_gd = np.zeros(d)
+    theta_sgd = np.zeros(d)
+    lr = 0.01
+
+    for t in range(200):
+        theta_gd  -= lr * full_gradient(theta_gd, X, y)
+        theta_sgd -= lr * minibatch_gradient(theta_sgd, X, y, batch_size=16)
+
+    print(f"True theta:      {theta_true}")
+    print(f"Full-batch GD:   {theta_gd.round(4)}")
+    print(f"SGD (B=16):      {theta_sgd.round(4)}")
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Learning rate schedules in code
+    T = 100  # total steps
+
+    def step_decay(t, lr0=0.1, drop_every=30, factor=0.1):
+        return lr0 * (factor ** (t // drop_every))
+
+    def cosine_anneal(t, lr0=0.1, T=100):
+        return lr0 * 0.5 * (1 + np.cos(np.pi * t / T))
+
+    def warmup_linear(t, lr0=0.1, warmup=10, T=100):
+        if t < warmup:
+            return lr0 * t / warmup  # linear warmup
+        return lr0 * (1 - (t - warmup) / (T - warmup))  # linear decay
+
+    steps = np.arange(T)
+    for name, fn in [("Step decay", step_decay), ("Cosine", cosine_anneal), ("Warmup+decay", warmup_linear)]:
+        lrs = [fn(t) for t in steps]
+        print(f"{name:>14s}: lr[0]={lrs[0]:.4f}, lr[50]={lrs[50]:.4f}, lr[99]={lrs[99]:.4f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -369,6 +578,44 @@ def _(mo):
 
     See [MML 7.1.2](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) and [Boyd 9.3](file:///C:/Users/landa/ml-course/textbooks/Boyd-ConvexOptimization.pdf) for convergence analysis.
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Momentum from scratch on f(x,y) = x^2 + 50*y^2 (ill-conditioned, kappa=50)
+    def gd_no_momentum(lr=0.01, n_steps=100):
+        x = np.array([10.0, 10.0])
+        losses = []
+        for _ in range(n_steps):
+            g = np.array([2*x[0], 100*x[1]])  # grad of x^2 + 50*y^2
+            x = x - lr * g
+            losses.append(x[0]**2 + 50*x[1]**2)
+        return losses
+
+    def gd_with_momentum(lr=0.01, beta=0.9, n_steps=100):
+        x = np.array([10.0, 10.0])
+        v = np.zeros(2)  # velocity initialized to zero
+        losses = []
+        for _ in range(n_steps):
+            g = np.array([2*x[0], 100*x[1]])
+            v = beta * v + g       # accumulate velocity
+            x = x - lr * v         # step with momentum
+            losses.append(x[0]**2 + 50*x[1]**2)
+        return losses
+
+    losses_plain = gd_no_momentum()
+    losses_mom = gd_with_momentum()
+
+    print("Steps to reach loss < 1.0:")
+    plain_s = next((i for i, l in enumerate(losses_plain) if l < 1.0), None)
+    mom_s = next((i for i, l in enumerate(losses_mom) if l < 1.0), None)
+    print(f"  Vanilla GD:      {plain_s if plain_s else '>100'}")
+    print(f"  GD + Momentum:   {mom_s if mom_s else '>100'}")
+    print(f"  Final loss (GD):       {losses_plain[-1]:.4f}")
+    print(f"  Final loss (Momentum): {losses_mom[-1]:.6f}")
     return
 
 
@@ -445,6 +692,36 @@ def _(mo):
 
     See [Murphy PML1 8.4](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) for a comparative treatment of all these methods.
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Adam from scratch on f(x,y) = x^2 + 50*y^2
+    def adam_optimize(f_grad, x0, lr=0.1, beta1=0.9, beta2=0.999, eps=1e-8, n_steps=100):
+        x = x0.copy()
+        m = np.zeros_like(x)  # first moment (mean of gradients)
+        s = np.zeros_like(x)  # second moment (mean of squared gradients)
+        losses = []
+        for t in range(1, n_steps + 1):
+            g = f_grad(x)
+            m = beta1 * m + (1 - beta1) * g       # update biased first moment
+            s = beta2 * s + (1 - beta2) * g**2     # update biased second moment
+            m_hat = m / (1 - beta1**t)             # bias correction
+            s_hat = s / (1 - beta2**t)             # bias correction
+            x = x - lr * m_hat / (np.sqrt(s_hat) + eps)  # adaptive step
+            losses.append(x[0]**2 + 50*x[1]**2)
+        return losses
+
+    grad_f = lambda x: np.array([2*x[0], 100*x[1]])
+    x0 = np.array([10.0, 10.0])
+
+    losses_adam = adam_optimize(grad_f, x0, lr=0.5)
+    print(f"Adam: loss after 20 steps = {losses_adam[19]:.6f}")
+    print(f"Adam: loss after 50 steps = {losses_adam[49]:.6f}")
+    print(f"Adam: loss after 100 steps = {losses_adam[99]:.8f}")
     return
 
 
@@ -590,6 +867,28 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Lagrange multipliers: minimize f(x,y) = x + y subject to x^2 + y^2 = 1
+    # Lagrangian: L = x + y + lambda*(x^2 + y^2 - 1)
+    # Grad_x L = 1 + 2*lambda*x = 0 => x = -1/(2*lambda)
+    # Grad_y L = 1 + 2*lambda*y = 0 => y = -1/(2*lambda)
+    # Constraint: x^2 + y^2 = 1 => 2/(4*lambda^2) = 1 => lambda = +/- 1/sqrt(2)
+
+    lam = 1 / np.sqrt(2)  # take positive root (minimizer)
+    x_star = -1 / (2 * lam)
+    y_star = -1 / (2 * lam)
+
+    print("Minimize f(x,y) = x + y  subject to  x^2 + y^2 = 1")
+    print(f"Solution: x* = {x_star:.4f}, y* = {y_star:.4f}")
+    print(f"f(x*,y*) = {x_star + y_star:.4f}")
+    print(f"Constraint check: x*^2 + y*^2 = {x_star**2 + y_star**2:.4f}")
+    print(f"Lagrange multiplier lambda = {lam:.4f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -627,6 +926,33 @@ def _(mo):
     return
 
 
+@app.cell
+def _():
+    import numpy as np
+
+    # Newton's method vs GD on f(x) = 0.5 * x^T A x
+    # Newton: x <- x - H^{-1} g  (one step for quadratics!)
+    A = np.array([[10.0, 2.0], [2.0, 3.0]])
+    x0 = np.array([10.0, 10.0])
+
+    # Newton's method
+    x_newton = x0.copy()
+    g = A @ x_newton
+    H_inv = np.linalg.inv(A)
+    x_newton = x_newton - H_inv @ g  # single Newton step
+    print(f"Newton after 1 step:  x = {x_newton.round(6)}, loss = {0.5 * x_newton @ A @ x_newton:.6f}")
+
+    # Gradient descent needs many steps
+    x_gd = x0.copy()
+    L = np.max(np.linalg.eigvalsh(A))
+    lr = 1.0 / L
+    for t in range(50):
+        x_gd = x_gd - lr * (A @ x_gd)
+    print(f"GD after 50 steps:    x = {x_gd.round(6)}, loss = {0.5 * x_gd @ A @ x_gd:.6f}")
+    print("\nNewton solves quadratics in one step; GD needs many iterations.")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -660,6 +986,28 @@ def _(mo):
 
     For a probabilistic perspective on optimization in the context of neural networks, see [Bishop 5.2](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) and [Murphy PML1 Ch 13](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf).
     """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    # Saddle points vs local minima in high dimensions
+    # At a critical point, the Hessian has d eigenvalues.
+    # Probability ALL are positive (local min) shrinks exponentially with d.
+
+    np.random.seed(7)
+    for d in [2, 10, 50, 200]:
+        # Simulate: random symmetric matrix eigenvalues (like a random critical point)
+        n_trials = 1000
+        n_local_min = 0
+        for _ in range(n_trials):
+            eigs = np.random.randn(d)  # random eigenvalues
+            if np.all(eigs > 0):       # local min requires ALL positive
+                n_local_min += 1
+        frac = n_local_min / n_trials
+        print(f"d={d:>3d}: P(local min) ~ {frac:.4f}  (saddle points dominate as d grows)")
     return
 
 
@@ -820,6 +1168,254 @@ def _():
         print(f"  m_hat = {m_hat:.6f}, s_hat = {s_hat:.6f}")
         print(f"  x = {x:.6f}, f(x) = {x**2:.6f}")
         print()
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    Put the optimization theory into practice. Each exercise gives you a problem and starter code — fill in the missing pieces.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Implement Gradient Descent for Linear Regression
+
+    Implement GD to fit a linear regression model. The loss is $\mathcal{L}(\theta) = \frac{1}{N}\|y - X\theta\|^2$ and the gradient is $\nabla \mathcal{L} = -\frac{2}{N} X^\top(y - X\theta)$.
+
+    Compare your result against the closed-form solution $\theta^* = (X^\top X)^{-1} X^\top y$.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    np.random.seed(99)
+    N, d = 100, 3
+    X = np.random.randn(N, d)
+    theta_true = np.array([2.0, -1.0, 0.5])
+    y = X @ theta_true + 0.2 * np.random.randn(N)
+
+    # TODO: implement gradient descent
+    theta = np.zeros(d)
+    lr = 0.01
+    for t in range(500):
+        # Compute gradient: grad = -(2/N) * X^T @ (y - X @ theta)
+        grad = ...  # FILL IN
+        theta = ...  # FILL IN: GD update
+
+    # Closed-form solution for comparison
+    theta_exact = np.linalg.solve(X.T @ X, X.T @ y)
+
+    print(f"Your GD result:      {theta.round(4) if not isinstance(theta, type(...)) else 'NOT IMPLEMENTED'}")
+    print(f"Closed-form result:  {theta_exact.round(4)}")
+    print(f"True theta:          {theta_true}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Implement SGD with Mini-Batches
+
+    Modify your GD implementation to use mini-batch stochastic gradients. Run for 3 epochs and compare the convergence path to full-batch GD.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    np.random.seed(42)
+    N, d = 200, 3
+    X = np.random.randn(N, d)
+    theta_true = np.array([1.0, -2.0, 3.0])
+    y = X @ theta_true + 0.3 * np.random.randn(N)
+
+    theta = np.zeros(d)
+    lr = 0.01
+    batch_size = 32
+
+    losses = []
+    for epoch in range(3):
+        # TODO: shuffle the data each epoch
+        perm = ...  # FILL IN: random permutation of indices
+
+        for start in range(0, N, batch_size):
+            # TODO: select mini-batch
+            idx = ...  # FILL IN: slice from perm
+            X_batch = ...  # FILL IN
+            y_batch = ...  # FILL IN
+
+            # TODO: compute mini-batch gradient and update
+            grad = ...  # FILL IN
+            theta = ...  # FILL IN
+
+            loss = np.mean((y - X @ theta) ** 2)
+            losses.append(loss)
+
+    print(f"Final theta: {theta.round(4) if not isinstance(theta, type(...)) else 'NOT IMPLEMENTED'}")
+    print(f"True theta:  {theta_true}")
+    print(f"Final loss:  {losses[-1]:.4f}" if losses else "No losses recorded")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Implement Momentum from Scratch
+
+    Add momentum to gradient descent and compare convergence on an ill-conditioned quadratic $f(x) = \frac{1}{2} x^\top A x$ where $A$ has condition number 50.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    A = np.diag([1.0, 50.0])  # condition number = 50
+    x0 = np.array([10.0, 10.0])
+    lr = 0.01
+    beta = 0.9
+    n_steps = 200
+
+    # Vanilla GD
+    x_gd = x0.copy()
+    losses_gd = []
+    for _ in range(n_steps):
+        g = A @ x_gd
+        x_gd = x_gd - lr * g
+        losses_gd.append(0.5 * x_gd @ A @ x_gd)
+
+    # TODO: GD with momentum
+    x_mom = x0.copy()
+    v = np.zeros(2)  # velocity
+    losses_mom = []
+    for _ in range(n_steps):
+        g = A @ x_mom
+        # TODO: update velocity and parameters
+        v = ...  # FILL IN: v = beta * v + g
+        x_mom = ...  # FILL IN: x = x - lr * v
+        losses_mom.append(0.5 * x_mom @ A @ x_mom)
+
+    print(f"After {n_steps} steps:")
+    print(f"  Vanilla GD loss:  {losses_gd[-1]:.6f}")
+    print(f"  Momentum loss:    {losses_mom[-1]:.6f}" if not isinstance(v, type(...)) else "  Momentum: NOT IMPLEMENTED")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Implement Adam from Scratch
+
+    Implement the full Adam optimizer and test it on the Rosenbrock function $f(x, y) = (1-x)^2 + 100(y-x^2)^2$, a classic non-convex test function.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+
+    def rosenbrock(x):
+        """f(x,y) = (1-x)^2 + 100*(y-x^2)^2. Minimum at (1,1)."""
+        return (1 - x[0])**2 + 100 * (x[1] - x[0]**2)**2
+
+    def rosenbrock_grad(x):
+        """Gradient of the Rosenbrock function."""
+        dx = -2*(1 - x[0]) + 100 * 2*(x[1] - x[0]**2)*(-2*x[0])
+        dy = 100 * 2*(x[1] - x[0]**2)
+        return np.array([dx, dy])
+
+    x = np.array([-1.0, 1.0])
+    lr, beta1, beta2, eps = 0.001, 0.9, 0.999, 1e-8
+    m = np.zeros(2)
+    s = np.zeros(2)
+
+    for t in range(1, 5001):
+        g = rosenbrock_grad(x)
+        # TODO: implement Adam update
+        m = ...  # FILL IN: first moment update
+        s = ...  # FILL IN: second moment update
+        m_hat = ...  # FILL IN: bias-corrected first moment
+        s_hat = ...  # FILL IN: bias-corrected second moment
+        x = ...  # FILL IN: parameter update
+
+        if t % 1000 == 0:
+            f_val = rosenbrock(x) if not isinstance(x, type(...)) else float('nan')
+            print(f"Step {t:>5d}: f(x) = {f_val:.6f}, x = {x}" if not isinstance(x, type(...)) else f"Step {t}: NOT IMPLEMENTED")
+
+    print(f"\nTarget: minimum at (1, 1) with f = 0")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: Optimizer Showdown
+
+    Run vanilla GD, momentum, and Adam on the same problem and plot the loss curves. Use $f(x) = \frac{1}{2} x^\top A x$ with $A = \text{diag}(1, 5, 25, 50, 100)$.
+    """)
+    return
+
+
+@app.cell
+def _():
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    A = np.diag([1.0, 5.0, 25.0, 50.0, 100.0])
+    x0 = np.ones(5) * 10.0
+    n_steps = 300
+
+    def run_all_optimizers(A, x0, n_steps):
+        results = {}
+        d = len(x0)
+
+        # --- Vanilla GD ---
+        x = x0.copy()
+        L = np.max(np.diag(A))
+        lr_gd = 1.0 / L
+        losses = []
+        for _ in range(n_steps):
+            x = x - lr_gd * (A @ x)
+            losses.append(0.5 * x @ A @ x)
+        results["GD"] = losses
+
+        # --- Momentum ---
+        # TODO: implement and collect losses
+        # results["Momentum"] = losses
+
+        # --- Adam ---
+        # TODO: implement and collect losses
+        # results["Adam"] = losses
+
+        return results
+
+    results = run_all_optimizers(A, x0, n_steps)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for name, losses in results.items():
+        ax.semilogy(losses, label=name)
+    ax.set_xlabel("Step")
+    ax.set_ylabel("Loss (log scale)")
+    ax.set_title("Optimizer Showdown on ill-conditioned quadratic")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    fig
     return
 
 

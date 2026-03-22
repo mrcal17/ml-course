@@ -9,6 +9,12 @@ def _():
     return (mo,)
 
 
+@app.cell
+def _():
+    import numpy as np
+    return (np,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -52,6 +58,27 @@ This is a neural network. Two linear transformations with a nonlinearity in betw
     return
 
 
+@app.cell
+def _(np):
+    # XOR: a linear model cannot solve this, but a 2-layer network can
+    X_xor = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    y_xor = np.array([0, 1, 1, 0])
+
+    # Hand-picked weights that solve XOR:
+    # h = ReLU(W1 @ x + b1), y_hat = w2 @ h + b2
+    W1_xor = np.array([[1, 1], [1, 1]])    # both neurons sum x1+x2
+    b1_xor = np.array([-0.5, -1.5])         # thresholds at 0.5 and 1.5
+    w2_xor = np.array([1, -1])              # subtract: "at least 1" minus "both"
+    b2_xor = 0.0
+
+    for i in range(4):
+        z = W1_xor @ X_xor[i] + b1_xor     # pre-activation
+        h = np.maximum(0, z)                 # ReLU
+        y_hat = w2_xor @ h + b2_xor         # output
+        print(f"x={X_xor[i]}  h={h}  y_hat={y_hat:.1f}  target={y_xor[i]}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -70,6 +97,24 @@ It takes a weighted sum of its inputs, adds a bias, and passes the result throug
 But I want to be direct: **the biological metaphor is mostly misleading at this point**. Real neurons communicate with spikes (timing matters), have complex dendritic computations, exhibit plasticity mechanisms nothing like gradient descent, and are embedded in a physical, chemical, three-dimensional structure. The artificial neuron is a crude cartoon. It is useful as a historical motivation and nothing more. Do not let biological intuition guide your understanding of how these models work — the math will do that.
 """)
     return
+
+
+@app.cell
+def _(np):
+    # A single neuron: z = w^T x + b, then activation g(z)
+    def sigmoid(z):
+        return 1.0 / (1.0 + np.exp(-z))
+
+    w_neuron = np.array([0.5, -0.3, 0.8])   # 3 input weights
+    b_neuron = 0.1                            # bias
+    x_neuron = np.array([1.0, 2.0, 0.5])     # input
+
+    z_neuron = w_neuron @ x_neuron + b_neuron  # weighted sum + bias
+    a_neuron = sigmoid(z_neuron)               # activation
+
+    print(f"Pre-activation z = w^T x + b = {z_neuron:.3f}")
+    print(f"Activation a = sigmoid(z)    = {a_neuron:.3f}")
+    return (sigmoid,)
 
 
 @app.cell(hide_code=True)
@@ -121,6 +166,47 @@ See [DLBook 6.3](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for an e
     return
 
 
+@app.cell
+def _(np):
+    import matplotlib.pyplot as plt
+
+    # Implement activation functions and their derivatives
+    def relu(z):
+        return np.maximum(0, z)
+
+    def relu_deriv(z):
+        return (z > 0).astype(float)
+
+    def sigmoid_fn(z):
+        return 1.0 / (1.0 + np.exp(-z))
+
+    def sigmoid_deriv(z):
+        s = sigmoid_fn(z)
+        return s * (1 - s)           # sigma'(z) = sigma(z)(1 - sigma(z))
+
+    def leaky_relu(z, alpha=0.01):
+        return np.where(z > 0, z, alpha * z)
+
+    z_vals = np.linspace(-4, 4, 200)
+
+    fig_act, axes_act = plt.subplots(1, 3, figsize=(12, 3.5))
+    # Sigmoid and derivative
+    axes_act[0].plot(z_vals, sigmoid_fn(z_vals), label="sigmoid")
+    axes_act[0].plot(z_vals, sigmoid_deriv(z_vals), "--", label="sigmoid'")
+    axes_act[0].set_title("Sigmoid"); axes_act[0].legend(); axes_act[0].grid(True)
+    # ReLU and derivative
+    axes_act[1].plot(z_vals, relu(z_vals), label="ReLU")
+    axes_act[1].plot(z_vals, relu_deriv(z_vals), "--", label="ReLU'")
+    axes_act[1].set_title("ReLU"); axes_act[1].legend(); axes_act[1].grid(True)
+    # Leaky ReLU
+    axes_act[2].plot(z_vals, leaky_relu(z_vals), label="Leaky ReLU")
+    axes_act[2].plot(z_vals, np.tanh(z_vals), label="tanh")
+    axes_act[2].set_title("Leaky ReLU & Tanh"); axes_act[2].legend(); axes_act[2].grid(True)
+    plt.tight_layout()
+    fig_act
+    return (relu, relu_deriv, sigmoid_fn, sigmoid_deriv,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -163,6 +249,35 @@ The theorem is a reassurance about representational power, not a practical guara
     return
 
 
+@app.cell
+def _(np, relu):
+    # A 3-layer MLP forward pass in numpy
+    # Architecture: 3 inputs -> 4 hidden -> 4 hidden -> 1 output
+    np.random.seed(0)
+    dims = [3, 4, 4, 1]  # layer sizes
+
+    # Kaiming initialization for ReLU layers
+    weights_mlp = []
+    biases_mlp = []
+    for l in range(len(dims) - 1):
+        scale = np.sqrt(2.0 / dims[l])              # He init: sqrt(2/n_in)
+        W = np.random.randn(dims[l+1], dims[l]) * scale
+        b = np.zeros(dims[l+1])
+        weights_mlp.append(W)
+        biases_mlp.append(b)
+
+    # Forward pass through all layers
+    x_mlp = np.array([1.0, -0.5, 0.3])
+    h = x_mlp
+    for l in range(len(weights_mlp)):
+        z = weights_mlp[l] @ h + biases_mlp[l]      # affine: z = Wh + b
+        h = relu(z) if l < len(weights_mlp) - 1 else z  # ReLU hidden, identity output
+        print(f"Layer {l+1}: z shape={z.shape}, output={np.round(h, 3)}")
+
+    print(f"\nNetwork output: {h[0]:.4f}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -199,6 +314,37 @@ Cross-entropy cancels the sigmoid's derivative. The gradient simplifies to $\fra
     return
 
 
+@app.cell
+def _(np, sigmoid_fn):
+    # Loss functions: MSE and cross-entropy
+    def mse_loss(y_true, y_pred):
+        return np.mean((y_true - y_pred) ** 2)
+
+    def binary_cross_entropy(y_true, y_pred):
+        eps = 1e-12  # numerical stability
+        return -np.mean(y_true * np.log(y_pred + eps) + (1 - y_true) * np.log(1 - y_pred + eps))
+
+    def softmax(z):
+        e = np.exp(z - np.max(z))             # subtract max for numerical stability
+        return e / e.sum()
+
+    # Demo: softmax converts raw logits to probabilities
+    logits = np.array([2.0, 1.0, 0.1])
+    probs = softmax(logits)
+    print(f"Logits:       {logits}")
+    print(f"Softmax:      {np.round(probs, 4)}  (sum={probs.sum():.4f})")
+
+    # Compare MSE vs cross-entropy gradient when confidently wrong
+    z_wrong = 5.0                              # large positive logit
+    p_hat = sigmoid_fn(z_wrong)                # ~0.993, but true label is 0
+    grad_mse = 2 * (p_hat - 0) * p_hat * (1 - p_hat)    # includes sigma'
+    grad_ce = p_hat - 0                                    # clean gradient
+    print(f"\nConfidently wrong (z=5, y=0): p_hat={p_hat:.4f}")
+    print(f"  MSE gradient wrt z:   {grad_mse:.6f}  (vanishing!)")
+    print(f"  CE  gradient wrt z:   {grad_ce:.6f}  (strong signal)")
+    return (mse_loss, softmax,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -232,6 +378,36 @@ $$\mathcal{L} = (y - \hat{y})^2 = (1.0 - (-0.39))^2 = (1.39)^2 = 1.9321$$
 That is the forward pass. We computed the prediction and the loss. Now: how do we update the weights to reduce this loss? We need the gradients.
 """)
     return
+
+
+@app.cell
+def _(np):
+    # Forward pass — exact reproduction of the worked example above
+    x_fp = np.array([1.0, 2.0])
+    y_fp = 1.0
+
+    W1_fp = np.array([[0.5, -0.3],
+                       [0.8,  0.2]])
+    b1_fp = np.array([0.1, -0.1])
+    w2_fp = np.array([0.6, -0.4])
+    b2_fp = 0.05
+
+    # Step 1: pre-activation
+    z1_fp = W1_fp @ x_fp + b1_fp               # z = Wx + b
+    print(f"z1 = {z1_fp}")
+
+    # Step 2: ReLU activation
+    h1_fp = np.maximum(0, z1_fp)                # h = max(0, z)
+    print(f"h1 = {h1_fp}")
+
+    # Step 3: output layer
+    y_hat_fp = w2_fp @ h1_fp + b2_fp            # y_hat = w2^T h + b2
+    print(f"y_hat = {y_hat_fp}")
+
+    # Step 4: MSE loss
+    loss_fp = (y_fp - y_hat_fp) ** 2            # L = (y - y_hat)^2
+    print(f"loss = {loss_fp:.4f}")
+    return (W1_fp, b1_fp, b2_fp, h1_fp, loss_fp, w2_fp, x_fp, y_fp, y_hat_fp, z1_fp,)
 
 
 @app.cell(hide_code=True)
@@ -313,6 +489,36 @@ That is backpropagation. We started at the loss and worked backward, computing e
     return
 
 
+@app.cell
+def _(W1_fp, b1_fp, b2_fp, h1_fp, np, w2_fp, x_fp, y_fp, y_hat_fp, z1_fp):
+    # Backpropagation — exact reproduction of the math above
+    # Step 1: dL/dy_hat = -2(y - y_hat)
+    dL_dy_hat = -2 * (y_fp - y_hat_fp)
+    print(f"dL/dy_hat = {dL_dy_hat:.4f}")
+
+    # Step 2: gradients for output layer
+    dL_dw2 = dL_dy_hat * h1_fp                  # dL/dw2 = dL/dy_hat * h
+    dL_db2 = dL_dy_hat                           # dL/db2 = dL/dy_hat
+    print(f"dL/dw2 = {dL_dw2}")
+    print(f"dL/db2 = {dL_db2:.4f}")
+
+    # Step 3: gradient flowing back to hidden layer
+    dL_dh1 = dL_dy_hat * w2_fp                   # dL/dh = dL/dy_hat * w2
+    print(f"dL/dh1 = {dL_dh1}")
+
+    # Step 4: gradient through ReLU (element-wise)
+    relu_mask = (z1_fp > 0).astype(float)        # ReLU'(z) = 1[z > 0]
+    dL_dz1 = dL_dh1 * relu_mask                  # element-wise: dL/dz = dL/dh * ReLU'(z)
+    print(f"dL/dz1 = {dL_dz1}")
+
+    # Step 5: gradients for hidden layer parameters
+    dL_dW1 = dL_dz1.reshape(-1, 1) @ x_fp.reshape(1, -1)  # outer product: delta @ x^T
+    dL_db1 = dL_dz1                              # dL/db = delta
+    print(f"dL/dW1 =\n{dL_dW1}")
+    print(f"dL/db1 = {dL_db1}")
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -344,6 +550,42 @@ See [MML 5.3](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) for the chain 
 
 For a network with 1 million parameters, backprop is a million times faster than finite differences. This is not an exaggeration — it is the reason deep learning is possible at all.
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Verify backprop gradients using finite differences
+    # This is how you sanity-check any gradient implementation
+    eps = 1e-5
+
+    # Re-define the full forward pass as a function of all params
+    def forward_loss(W1, b1, w2, b2, x, y):
+        z1 = W1 @ x + b1
+        h1 = np.maximum(0, z1)
+        y_hat = w2 @ h1 + b2
+        return (y - y_hat) ** 2
+
+    _W1 = np.array([[0.5, -0.3], [0.8, 0.2]])
+    _b1 = np.array([0.1, -0.1])
+    _w2 = np.array([0.6, -0.4])
+    _b2 = 0.05
+    _x = np.array([1.0, 2.0])
+    _y = 1.0
+
+    # Numerical gradient for W1[1,0] (should be ~1.112)
+    W1_plus = _W1.copy(); W1_plus[1, 0] += eps
+    W1_minus = _W1.copy(); W1_minus[1, 0] -= eps
+    num_grad = (forward_loss(W1_plus, _b1, _w2, _b2, _x, _y)
+                - forward_loss(W1_minus, _b1, _w2, _b2, _x, _y)) / (2 * eps)
+    print(f"dL/dW1[1,0]: backprop=1.1120, finite-diff={num_grad:.4f}")
+
+    # Numerical gradient for w2[1] (should be ~-3.058)
+    w2_plus = _w2.copy(); w2_plus[1] += eps
+    w2_minus = _w2.copy(); w2_minus[1] -= eps
+    num_grad_w2 = (forward_loss(_W1, _b1, w2_plus, _b2, _x, _y)
+                   - forward_loss(_W1, _b1, w2_minus, _b2, _x, _y)) / (2 * eps)
+    print(f"dL/dw2[1]:   backprop=-3.0580, finite-diff={num_grad_w2:.4f}")
     return
 
 
@@ -473,6 +715,37 @@ Typical batch sizes: 32, 64, 128, 256. Larger batches give more stable gradient 
 - **Iteration (step):** one parameter update (one batch).
 - If you have $N$ training examples and batch size $B$, one epoch consists of $\lceil N/B \rceil$ iterations.
 """)
+    return
+
+
+@app.cell
+def _(np):
+    # Weight initialization: observe how scale affects forward pass
+    np.random.seed(42)
+    n_in, n_out = 256, 256
+    x_init = np.random.randn(n_in)
+
+    # Bad: too large
+    W_large = np.random.randn(n_out, n_in) * 1.0
+    h_large = np.maximum(0, W_large @ x_init)
+    print(f"Std=1.0 init:  activation mean={h_large.mean():.2f}, std={h_large.std():.2f}")
+
+    # Bad: too small
+    W_small = np.random.randn(n_out, n_in) * 0.001
+    h_small = np.maximum(0, W_small @ x_init)
+    print(f"Std=0.001 init: activation mean={h_small.mean():.4f}, std={h_small.std():.4f}")
+
+    # Good: Kaiming/He initialization for ReLU — sqrt(2/n_in)
+    W_he = np.random.randn(n_out, n_in) * np.sqrt(2.0 / n_in)
+    h_he = np.maximum(0, W_he @ x_init)
+    print(f"He init:        activation mean={h_he.mean():.2f}, std={h_he.std():.2f}")
+
+    # Show variance preservation across 10 layers
+    h = np.random.randn(256)
+    for layer in range(10):
+        W = np.random.randn(256, 256) * np.sqrt(2.0 / 256)
+        h = np.maximum(0, W @ h)
+    print(f"\nAfter 10 ReLU layers (He init): mean={h.mean():.2f}, std={h.std():.2f}")
     return
 
 
@@ -729,7 +1002,241 @@ def _(mo):
 7. **PyTorch verification.** Implement the same network from Exercise 6 in PyTorch. Compare the gradients from your NumPy implementation to PyTorch's `.grad` values on the same input — they should match to floating-point precision.
 
 8. **Activation function exploration.** Train the same architecture on the same data with sigmoid, tanh, ReLU, and GELU activations. Plot learning curves (loss vs epoch) for each. Which converges fastest? Which achieves the lowest final loss?
+""")
+    return
 
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+---
+
+## Code It: Implementation Exercises
+
+Work through these exercises in order. Each builds on the previous one. By the end, you will have a working neural network trained entirely in numpy.
+""")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 1: Implement Activation Functions
+
+Implement sigmoid, tanh, and ReLU along with their derivatives. Test that the derivatives are correct using finite differences.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def ex1_sigmoid(z):
+        # TODO: implement sigmoid: 1 / (1 + exp(-z))
+        pass
+
+    def ex1_sigmoid_deriv(z):
+        # TODO: implement sigmoid derivative: sigmoid(z) * (1 - sigmoid(z))
+        pass
+
+    def ex1_relu(z):
+        # TODO: implement ReLU: max(0, z)
+        pass
+
+    def ex1_relu_deriv(z):
+        # TODO: implement ReLU derivative: 1 if z > 0, else 0
+        pass
+
+    # Test with finite differences: f'(z) ≈ (f(z+eps) - f(z-eps)) / (2*eps)
+    _eps = 1e-5
+    _z_test = np.array([-2.0, -0.5, 0.0, 0.5, 2.0])
+    # TODO: for each activation, compare your analytic derivative to numerical
+    # Example: num_deriv = (ex1_sigmoid(_z_test + _eps) - ex1_sigmoid(_z_test - _eps)) / (2 * _eps)
+    # print(f"Sigmoid deriv (analytic): {ex1_sigmoid_deriv(_z_test)}")
+    # print(f"Sigmoid deriv (numeric):  {num_deriv}")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 2: Forward Pass Function
+
+Write a forward pass for a 2-layer MLP (input -> hidden with ReLU -> output with identity). Return the prediction and a cache of all intermediate values needed for backprop.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def ex2_forward(x, W1, b1, W2, b2):
+        """
+        Forward pass for a 2-layer MLP.
+        Args:
+            x: input vector (n_in,)
+            W1: hidden weights (n_hidden, n_in)
+            b1: hidden biases (n_hidden,)
+            W2: output weights (n_out, n_hidden)
+            b2: output biases (n_out,)
+        Returns:
+            y_hat: prediction (n_out,)
+            cache: dict with intermediate values for backprop
+        """
+        # TODO: compute z1 = W1 @ x + b1
+        z1 = None
+        # TODO: compute h1 = ReLU(z1)
+        h1 = None
+        # TODO: compute y_hat = W2 @ h1 + b2
+        y_hat = None
+
+        cache = {"x": x, "z1": z1, "h1": h1}
+        return y_hat, cache
+
+    # Test: should match the forward pass example from Section 6
+    # _W1 = np.array([[0.5, -0.3], [0.8, 0.2]])
+    # _b1 = np.array([0.1, -0.1])
+    # _W2 = np.array([[0.6, -0.4]])
+    # _b2 = np.array([0.05])
+    # _x = np.array([1.0, 2.0])
+    # _y_hat, _cache = ex2_forward(_x, _W1, _b1, _W2, _b2)
+    # print(f"y_hat = {_y_hat}  (expected: [-0.39])")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 3: Backward Pass Function
+
+Implement the backward pass. Given the cache from the forward pass and the loss gradient, compute gradients for all parameters.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def ex3_backward(dL_dy_hat, cache, W2):
+        """
+        Backward pass for a 2-layer MLP.
+        Args:
+            dL_dy_hat: gradient of loss w.r.t. prediction (n_out,)
+            cache: dict from forward pass with x, z1, h1
+            W2: output layer weights (needed to propagate gradient back)
+        Returns:
+            grads: dict with dW1, db1, dW2, db2
+        """
+        x, z1, h1 = cache["x"], cache["z1"], cache["h1"]
+
+        # TODO: dL/dW2 = dL/dy_hat @ h1^T  (outer product)
+        dW2 = None
+        # TODO: dL/db2 = dL/dy_hat
+        db2 = None
+
+        # TODO: dL/dh1 = W2^T @ dL/dy_hat
+        dL_dh1 = None
+        # TODO: dL/dz1 = dL/dh1 * ReLU'(z1)
+        dL_dz1 = None
+
+        # TODO: dL/dW1 = dL/dz1 @ x^T  (outer product)
+        dW1 = None
+        # TODO: dL/db1 = dL/dz1
+        db1 = None
+
+        return {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
+
+    # TODO: test with the example from Section 7
+    # Verify against the finite-difference check or the known values
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 4: Train on Sine Wave
+
+Put it all together. Generate $y = \sin(x) + \text{noise}$ data, initialize a network with He initialization, and train with mini-batch SGD. Plot the learned function against the true sine curve.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    # Generate data: y = sin(x) + noise
+    _rng = np.random.RandomState(42)
+    _N = 200
+    _x_train = _rng.uniform(-2 * np.pi, 2 * np.pi, _N)
+    _y_train = np.sin(_x_train) + _rng.randn(_N) * 0.1
+
+    # Network: 1 input -> 32 hidden (ReLU) -> 1 output
+    n_hidden_ex = 32
+    lr_ex = 0.01
+    epochs_ex = 500
+    batch_size_ex = 32
+
+    # TODO: He initialization
+    # W1_ex = _rng.randn(n_hidden_ex, 1) * np.sqrt(2.0 / 1)
+    # b1_ex = np.zeros(n_hidden_ex)
+    # W2_ex = _rng.randn(1, n_hidden_ex) * np.sqrt(2.0 / n_hidden_ex)
+    # b2_ex = np.zeros(1)
+
+    # TODO: training loop
+    # for epoch in range(epochs_ex):
+    #     # shuffle data
+    #     perm = _rng.permutation(_N)
+    #     for i in range(0, _N, batch_size_ex):
+    #         idx = perm[i:i+batch_size_ex]
+    #         # forward pass on batch
+    #         # compute MSE loss and its gradient: dL/dy_hat = 2/B * (y_hat - y)
+    #         # backward pass
+    #         # SGD update: param -= lr * grad
+
+    # TODO: plot results
+    # import matplotlib.pyplot as plt
+    # _x_plot = np.linspace(-2*np.pi, 2*np.pi, 300)
+    # predict each point and plot against np.sin(_x_plot)
+    print("Implement training loop and plot results")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+### Exercise 5: Gradient Checking
+
+Implement a gradient checker that compares your backprop gradients to finite-difference approximations. This is essential for debugging -- if they do not match, your backward pass has a bug.
+""")
+    return
+
+
+@app.cell
+def _(np):
+    def ex5_gradient_check(forward_fn, params, x, y, eps=1e-5):
+        """
+        Compare analytic gradients to numerical gradients.
+        Args:
+            forward_fn: callable(params, x) -> y_hat
+            params: list of np arrays (weights and biases)
+            x: input, y: target
+            eps: finite difference step size
+        Returns:
+            max_rel_error across all parameters
+        """
+        # TODO:
+        # 1. Run forward + backward to get analytic gradients
+        # 2. For each parameter, for each element:
+        #    - perturb +eps, compute loss
+        #    - perturb -eps, compute loss
+        #    - numerical grad = (loss_plus - loss_minus) / (2 * eps)
+        # 3. Compute relative error: |analytic - numerical| / max(|analytic|, |numerical|, 1e-8)
+        # 4. Return the max relative error (should be < 1e-5)
+        pass
+
+    print("Implement gradient checking — essential debugging tool")
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
 ---
 
 **Next module:** [2B - Optimization for Deep Learning](2b_dl_optimization.py) — momentum, Adam, learning rate schedules, and the landscape of neural network loss functions.

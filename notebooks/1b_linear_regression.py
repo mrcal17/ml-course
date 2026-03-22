@@ -45,6 +45,23 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np):
+    # y = Xw + epsilon: the linear model in numpy
+    np.random.seed(7)
+    n_demo, p_demo = 50, 2
+    X_demo = np.random.randn(n_demo, p_demo)             # design matrix (n x p)
+    X_demo = np.c_[np.ones(n_demo), X_demo]               # prepend 1s column for intercept
+    w_demo_true = np.array([5.0, -2.0, 3.0])              # true weights [intercept, w1, w2]
+    epsilon_demo = 0.4 * np.random.randn(n_demo)           # Gaussian noise
+    y_demo = X_demo @ w_demo_true + epsilon_demo           # y = Xw + eps
+
+    print(f"X shape: {X_demo.shape}  (n={n_demo}, p={p_demo}+1 with intercept)")
+    print(f"y shape: {y_demo.shape}")
+    print(f"True weights: {w_demo_true}")
+    return (X_demo, y_demo, w_demo_true, n_demo, p_demo)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -91,6 +108,22 @@ def _(mo):
     return
 
 
+@app.cell
+def _(np, X_demo, y_demo, w_demo_true):
+    # Normal equation: w* = (X^T X)^{-1} X^T y
+    # Method 1: explicit inverse (conceptual, avoid in practice)
+    w_normal_inv = np.linalg.inv(X_demo.T @ X_demo) @ X_demo.T @ y_demo
+
+    # Method 2: np.linalg.solve (numerically stable — solves X^T X w = X^T y)
+    w_normal_solve = np.linalg.solve(X_demo.T @ X_demo, X_demo.T @ y_demo)
+
+    print(f"True weights:       {w_demo_true}")
+    print(f"Normal eq (inv):    {w_normal_inv}")
+    print(f"Normal eq (solve):  {w_normal_solve}")
+    print(f"Max diff inv vs solve: {np.max(np.abs(w_normal_inv - w_normal_solve)):.2e}")
+    return (w_normal_solve,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -114,6 +147,28 @@ def _(mo):
 
 
 @app.cell
+def _(np, X_demo, y_demo, w_normal_solve):
+    # Hat matrix: H = X (X^T X)^{-1} X^T
+    H_demo = X_demo @ np.linalg.inv(X_demo.T @ X_demo) @ X_demo.T
+
+    # y_hat = H y  (projection onto Col(X))
+    y_hat_demo = H_demo @ y_demo
+    residual_demo = y_demo - y_hat_demo
+
+    # Verify: residual is orthogonal to column space (X^T r ≈ 0)
+    ortho_check = X_demo.T @ residual_demo
+    print(f"X^T @ residual (should be ~0): {ortho_check}")
+
+    # Verify: H is idempotent (H^2 = H) and symmetric (H^T = H)
+    print(f"||H^2 - H|| = {np.linalg.norm(H_demo @ H_demo - H_demo):.2e}")
+    print(f"||H^T - H|| = {np.linalg.norm(H_demo.T - H_demo):.2e}")
+
+    # Verify: Hw = Xw gives same predictions
+    print(f"Max |Hy - Xw|: {np.max(np.abs(y_hat_demo - X_demo @ w_normal_solve)):.2e}")
+    return (y_hat_demo,)
+
+
+@app.cell
 def _(mo):
     mo.image(src="../animations/rendered/RegressionProjection.gif")
     return
@@ -133,6 +188,22 @@ def _(mo):
     > **Reading**: [ISLR S3.2-3.3](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf), [ESL S3.2](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf), [MML S9.2](file:///C:/Users/landa/ml-course/textbooks/MML.pdf).
     """)
     return
+
+
+@app.cell
+def _(np):
+    # Demonstrating multicollinearity and condition number
+    np.random.seed(0)
+    X_good = np.random.randn(50, 3)
+    X_bad = np.column_stack([X_good, X_good[:, 0] + 1e-8 * np.random.randn(50)])  # near-duplicate column
+
+    cond_good = np.linalg.cond(X_good.T @ X_good)
+    cond_bad = np.linalg.cond(X_bad.T @ X_bad)
+
+    print(f"Condition number (independent features):  {cond_good:.1f}")
+    print(f"Condition number (collinear features):    {cond_bad:.1e}")
+    print("High condition number => small data changes cause large weight changes")
+    return ()
 
 
 @app.cell(hide_code=True)
@@ -222,6 +293,27 @@ def _(np):
     return (X_synth, y_synth, w_true, w_ols, w_gd, w_sgd)
 
 
+@app.cell
+def _(np, X_synth, y_synth, w_ols):
+    # Gradient descent with loss tracking — watch convergence
+    # grad L = -2 X^T (y - Xw)
+    w_gd_track = np.zeros(X_synth.shape[1])
+    lr_track = 0.001
+    losses_gd = []
+    for _t in range(2000):
+        residual_t = y_synth - X_synth @ w_gd_track
+        loss_t = residual_t @ residual_t                   # ||y - Xw||^2
+        losses_gd.append(loss_t)
+        grad_t = -2 * X_synth.T @ residual_t               # gradient
+        w_gd_track -= lr_track * grad_t                     # update
+
+    loss_ols = np.sum((y_synth - X_synth @ w_ols)**2)
+    print(f"OLS loss (optimal):         {loss_ols:.6f}")
+    print(f"GD loss after 2000 steps:   {losses_gd[-1]:.6f}")
+    print(f"GD converged to within:     {losses_gd[-1] - loss_ols:.2e}")
+    return (losses_gd,)
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -254,6 +346,32 @@ def _(mo):
     > **Reading**: [Bishop S3.1.1](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf), [Murphy S11.2](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf), [MML S9.2.1](file:///C:/Users/landa/ml-course/textbooks/MML.pdf).
     """)
     return
+
+
+@app.cell
+def _(np, X_synth, y_synth, w_ols):
+    # MLE = OLS: verify they give the same w*
+    # Log-likelihood: l(w) = -n/2 ln(2*pi*sigma^2) - 1/(2*sigma^2) * ||y - Xw||^2
+    # Maximizing l(w) w.r.t. w is equivalent to minimizing ||y - Xw||^2
+
+    sigma_mle = 1.0  # assumed noise std
+
+    def neg_log_likelihood(w, X, y, sigma):
+        n = len(y)
+        residuals = y - X @ w
+        return (n / 2) * np.log(2 * np.pi * sigma**2) + np.sum(residuals**2) / (2 * sigma**2)
+
+    # The MLE minimizes NLL; OLS minimizes ||y - Xw||^2 — same argmin
+    nll_at_ols = neg_log_likelihood(w_ols, X_synth, y_synth, sigma_mle)
+    nll_at_zero = neg_log_likelihood(np.zeros(4), X_synth, y_synth, sigma_mle)
+    print(f"NLL at w=0:    {nll_at_zero:.4f}")
+    print(f"NLL at w_OLS:  {nll_at_ols:.4f}")
+
+    # MLE estimate of sigma^2: unbiased is 1/(n-p) * ||y - Xw||^2
+    residuals_mle = y_synth - X_synth @ w_ols
+    sigma2_hat = np.sum(residuals_mle**2) / (len(y_synth) - X_synth.shape[1])
+    print(f"MLE sigma^2 estimate: {sigma2_hat:.4f}  (true: 0.25)")
+    return ()
 
 
 @app.cell(hide_code=True)
@@ -289,6 +407,23 @@ def _(mo):
     A large gap between train MSE and test MSE signals overfitting. We will formalize this with cross-validation in Module 1D.
     """)
     return
+
+
+@app.cell
+def _(np, X_synth, y_synth, w_ols):
+    # R^2 from scratch: R^2 = 1 - SS_res / SS_tot
+    y_hat_r2 = X_synth @ w_ols
+    ss_res = np.sum((y_synth - y_hat_r2)**2)        # sum of squared residuals
+    ss_tot = np.sum((y_synth - np.mean(y_synth))**2) # total sum of squares
+    r2_manual = 1 - ss_res / ss_tot
+
+    # MSE from scratch: MSE = (1/n) * ||y - y_hat||^2
+    mse_manual = np.mean((y_synth - y_hat_r2)**2)
+
+    print(f"R^2 (from scratch): {r2_manual:.6f}")
+    print(f"MSE (from scratch): {mse_manual:.6f}")
+    print(f"SS_res = {ss_res:.4f},  SS_tot = {ss_tot:.4f}")
+    return ()
 
 
 @app.cell(hide_code=True)
@@ -346,6 +481,26 @@ def _(mo):
     More features (higher $d$) give the model more capacity. More capacity without more data means more overfitting. This tension is the central problem of machine learning, and regularization is the primary tool for resolving it.
     """)
     return
+
+
+@app.cell
+def _(np):
+    # Basis functions: build polynomial design matrix from scratch
+    # phi(x) = [1, x, x^2, ..., x^d]  =>  Phi is (n x (d+1))
+    x_basis = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    degree_basis = 3
+
+    # Build Phi manually: each row is [1, x_i, x_i^2, ..., x_i^d]
+    Phi_manual = np.column_stack([x_basis**k for k in range(degree_basis + 1)])
+    print(f"Phi (degree {degree_basis}) for x = {x_basis}:")
+    print(Phi_manual)
+
+    # Normal equation still applies: w* = (Phi^T Phi)^{-1} Phi^T y
+    y_basis = 2 - x_basis + 0.5 * x_basis**2  # true quadratic
+    w_basis = np.linalg.solve(Phi_manual.T @ Phi_manual, Phi_manual.T @ y_basis)
+    print(f"\nFitted weights: {w_basis}")
+    print(f"(True: [2, -1, 0.5, 0])")
+    return ()
 
 
 @app.cell(hide_code=True)
@@ -500,6 +655,48 @@ def _(mo):
 
 
 @app.cell
+def _(np, X_synth, y_synth, w_ols):
+    # Ridge from scratch: w_ridge = (X^T X + lambda * I)^{-1} X^T y
+    lam_demo = 5.0
+    I_p = np.eye(X_synth.shape[1])
+    w_ridge_scratch = np.linalg.solve(
+        X_synth.T @ X_synth + lam_demo * I_p,  # regularized normal equation
+        X_synth.T @ y_synth
+    )
+
+    # Compare norms: ridge shrinks weights toward zero
+    print(f"OLS   weights: {w_ols},  ||w|| = {np.linalg.norm(w_ols):.4f}")
+    print(f"Ridge weights: {w_ridge_scratch},  ||w|| = {np.linalg.norm(w_ridge_scratch):.4f}")
+    print(f"Ridge shrinks ||w|| by {(1 - np.linalg.norm(w_ridge_scratch)/np.linalg.norm(w_ols))*100:.1f}%")
+    return ()
+
+
+@app.cell
+def _(np, X_synth, y_synth):
+    # Lasso via coordinate descent (from scratch)
+    # For each j: minimize over w_j holding others fixed
+    # Soft-thresholding: w_j = sign(rho_j) * max(|rho_j| - lambda/2, 0) / (X_j^T X_j)
+    def lasso_coordinate_descent(X, y, lam, n_iters=1000):
+        n, p = X.shape
+        w = np.zeros(p)
+        for _ in range(n_iters):
+            for j in range(p):
+                # Partial residual excluding feature j
+                r_j = y - X @ w + X[:, j] * w[j]
+                rho_j = X[:, j] @ r_j
+                z_j = X[:, j] @ X[:, j]
+                # Soft-thresholding operator
+                w[j] = np.sign(rho_j) * max(abs(rho_j) - lam / 2, 0) / z_j
+        return w
+
+    w_lasso_scratch = lasso_coordinate_descent(X_synth, y_synth, lam=5.0)
+    print(f"Lasso weights (lambda=5): {w_lasso_scratch}")
+    print(f"Non-zero: {np.sum(np.abs(w_lasso_scratch) > 1e-8)} / {len(w_lasso_scratch)}")
+    print(f"L1 norm: {np.sum(np.abs(w_lasso_scratch)):.4f}")
+    return ()
+
+
+@app.cell
 def _(mo):
     mo.image(src="../animations/rendered/RegularizationPath.gif")
     return
@@ -541,6 +738,24 @@ def _(np, PolynomialFeatures, RidgeCV, LassoCV):
                                X_poly_reg.T @ y_reg)
     print(f"\nRidge (from scratch, lambda=1): {w_ridge_manual}")
     return (x_reg, y_reg, X_poly_reg, poly_reg)
+
+
+@app.cell
+def _(np, X_synth, y_synth, w_ols):
+    # Comparing penalty terms: L1 vs L2 vs Elastic Net
+    # Ridge penalty: lambda * ||w||_2^2
+    # Lasso penalty: lambda * ||w||_1
+    # Elastic Net:   lambda1 * ||w||_1 + lambda2 * ||w||_2^2
+    lam_compare = 2.0
+    ols_loss = np.sum((y_synth - X_synth @ w_ols)**2)
+
+    print(f"OLS loss (no penalty):    {ols_loss:.4f}")
+    print(f"+ Ridge penalty (L2):     {ols_loss + lam_compare * np.sum(w_ols**2):.4f}")
+    print(f"+ Lasso penalty (L1):     {ols_loss + lam_compare * np.sum(np.abs(w_ols)):.4f}")
+    print(f"+ Elastic Net (L1+L2):    {ols_loss + lam_compare * np.sum(np.abs(w_ols)) + lam_compare * np.sum(w_ols**2):.4f}")
+    print(f"\n||w||_1 = {np.sum(np.abs(w_ols)):.4f}")
+    print(f"||w||_2^2 = {np.sum(w_ols**2):.4f}")
+    return ()
 
 
 @app.cell
@@ -703,6 +918,229 @@ def _(mo):
     Every advanced model you will encounter — logistic regression, neural networks, Gaussian processes, SVMs — reuses the concepts from this module. The loss function changes, the optimization becomes harder, but the structure is the same: define a model, define a loss, optimize, regularize, evaluate.
     """)
     return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ---
+
+    ## Code It: Implementation Exercises
+
+    Work through these exercises to build your own linear regression toolkit from scratch. Each exercise gives you a problem statement followed by skeleton code to complete.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 1: Normal Equation Solver
+
+    Implement a function that solves the normal equation $\mathbf{w}^* = (X^\top X)^{-1} X^\top y$ using `np.linalg.solve` (not `np.linalg.inv`). Your function should automatically prepend an intercept column of ones. Test it on the provided data and verify against sklearn.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def ols_fit(X, y):
+        """Fit OLS via normal equation. X is (n, p) without intercept."""
+        # TODO: prepend a column of ones to X
+        X_aug = np.c_[np.ones(X.shape[0]), X]
+        # TODO: solve (X^T X) w = X^T y
+        w = np.linalg.solve(X_aug.T @ X_aug, X_aug.T @ y)
+        return w
+
+    def ols_predict(X, w):
+        """Predict y = [1|X] @ w."""
+        X_aug = np.c_[np.ones(X.shape[0]), X]
+        return X_aug @ w
+
+    # Test data
+    np.random.seed(99)
+    _X_ex = np.random.randn(80, 3)
+    _w_ex_true = np.array([1.5, -0.8, 2.1, 0.3])  # intercept + 3 features
+    _y_ex = np.c_[np.ones(80), _X_ex] @ _w_ex_true + 0.2 * np.random.randn(80)
+
+    w_fit = ols_fit(_X_ex, _y_ex)
+    print(f"True weights:  {_w_ex_true}")
+    print(f"Fitted weights: {w_fit}")
+    print(f"Max error: {np.max(np.abs(w_fit - _w_ex_true)):.4f}")
+    return (ols_fit, ols_predict)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 2: Gradient Descent From Scratch
+
+    Implement gradient descent for linear regression. Track the loss at each iteration and verify that it converges to the OLS solution. Experiment with different learning rates.
+
+    Recall: $\nabla_\mathbf{w}\mathcal{L} = -2X^\top(y - X\mathbf{w})$
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def gd_fit(X, y, lr=0.01, n_iters=1000):
+        """Gradient descent for linear regression. Returns (weights, loss_history)."""
+        X_aug = np.c_[np.ones(X.shape[0]), X]
+        w = np.zeros(X_aug.shape[1])
+        losses = []
+        for _ in range(n_iters):
+            residual = y - X_aug @ w
+            loss = np.sum(residual**2)
+            losses.append(loss)
+            # gradient: -2 X^T (y - Xw)
+            grad = -2 * X_aug.T @ residual
+            w = w - lr * grad
+        return w, losses
+
+    # Test: compare GD to OLS on same data
+    np.random.seed(99)
+    _X_gd = np.random.randn(80, 3)
+    _w_gd_true = np.array([1.5, -0.8, 2.1, 0.3])
+    _y_gd = np.c_[np.ones(80), _X_gd] @ _w_gd_true + 0.2 * np.random.randn(80)
+
+    w_gd_ex, loss_hist = gd_fit(_X_gd, _y_gd, lr=0.001, n_iters=3000)
+    print(f"True:  {_w_gd_true}")
+    print(f"GD:    {w_gd_ex}")
+    print(f"Loss: {loss_hist[0]:.2f} -> {loss_hist[-1]:.4f} ({len(loss_hist)} iters)")
+    return (gd_fit,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 3: Ridge Regression From Scratch
+
+    Implement the ridge closed-form solution: $\mathbf{w}^*_{\text{ridge}} = (X^\top X + \lambda I)^{-1} X^\top y$
+
+    Then sweep $\lambda$ from $10^{-3}$ to $10^{3}$ and plot the coefficient norms $\|\mathbf{w}\|_2$ versus $\lambda$. You should see the norm shrink monotonically.
+    """)
+    return
+
+
+@app.cell
+def _(np, plt):
+    def ridge_fit(X, y, lam):
+        """Ridge regression via closed-form. X is (n, p) without intercept."""
+        X_aug = np.c_[np.ones(X.shape[0]), X]
+        p = X_aug.shape[1]
+        # w_ridge = (X^T X + lambda * I)^{-1} X^T y
+        w = np.linalg.solve(X_aug.T @ X_aug + lam * np.eye(p), X_aug.T @ y)
+        return w
+
+    # Sweep lambda and plot ||w||_2
+    np.random.seed(99)
+    _X_r = np.random.randn(80, 5)
+    _w_r_true = np.array([1.0, -2.0, 3.0, 0.5, -1.5, 2.5])
+    _y_r = np.c_[np.ones(80), _X_r] @ _w_r_true + 0.3 * np.random.randn(80)
+
+    lambdas = np.logspace(-3, 3, 50)
+    norms = [np.linalg.norm(ridge_fit(_X_r, _y_r, l)) for l in lambdas]
+
+    _fig_r, _ax_r = plt.subplots(figsize=(8, 4))
+    _ax_r.semilogx(lambdas, norms, "b-", linewidth=2)
+    _ax_r.set_xlabel("lambda")
+    _ax_r.set_ylabel("||w||_2")
+    _ax_r.set_title("Ridge: coefficient norm shrinks with increasing lambda")
+    _ax_r.grid(True, alpha=0.3)
+    plt.tight_layout()
+    _fig_r
+    return (ridge_fit,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 4: Lasso via Coordinate Descent
+
+    Implement the lasso using coordinate descent with the soft-thresholding operator. For each feature $j$, the update is:
+
+    $$w_j \leftarrow \frac{S(\rho_j, \, \lambda/2)}{z_j}, \quad \text{where } \rho_j = X_j^\top(y - X_{-j}w_{-j}), \; z_j = X_j^\top X_j$$
+
+    and $S(a, b) = \text{sign}(a)\max(|a| - b, 0)$ is the soft-thresholding operator. Run on data with some irrelevant features and verify lasso zeros them out.
+    """)
+    return
+
+
+@app.cell
+def _(np):
+    def lasso_fit(X, y, lam, n_iters=500):
+        """Lasso via coordinate descent with soft-thresholding."""
+        X_aug = np.c_[np.ones(X.shape[0]), X]
+        n, p = X_aug.shape
+        w = np.zeros(p)
+        for _ in range(n_iters):
+            for j in range(p):
+                # Partial residual: r_j = y - Xw + X_j * w_j
+                r_j = y - X_aug @ w + X_aug[:, j] * w[j]
+                rho_j = X_aug[:, j] @ r_j
+                z_j = X_aug[:, j] @ X_aug[:, j]
+                # Soft-thresholding (skip penalty on intercept j=0)
+                if j == 0:
+                    w[j] = rho_j / z_j
+                else:
+                    w[j] = np.sign(rho_j) * max(abs(rho_j) - lam / 2, 0) / z_j
+        return w
+
+    # Data: 3 real features + 4 irrelevant ones
+    np.random.seed(42)
+    _X_l = np.random.randn(100, 7)
+    _w_l_true = np.array([1.0, 2.0, -1.5, 3.0, 0, 0, 0, 0])  # last 4 are zero
+    _y_l = np.c_[np.ones(100), _X_l] @ _w_l_true + 0.3 * np.random.randn(100)
+
+    w_lasso_ex = lasso_fit(_X_l, _y_l, lam=10.0)
+    print(f"True:  {_w_l_true}")
+    print(f"Lasso: {np.round(w_lasso_ex, 3)}")
+    print(f"Non-zero (excl. intercept): {np.sum(np.abs(w_lasso_ex[1:]) > 1e-6)} / {len(w_lasso_ex)-1}")
+    return (lasso_fit,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### Exercise 5: Full Pipeline — Fit, Predict, Evaluate
+
+    Combine your implementations into a complete pipeline: generate data, split into train/test, fit OLS + Ridge + Lasso, compute train and test MSE, and compare. Does regularization help when the model is overparameterized?
+    """)
+    return
+
+
+@app.cell
+def _(np, ols_fit, ols_predict, ridge_fit, lasso_fit):
+    np.random.seed(123)
+    # Overparameterized: 20 features, only 5 matter, 60 training samples
+    _n_pipe, _p_pipe = 60, 20
+    _X_pipe = np.random.randn(_n_pipe, _p_pipe)
+    _w_pipe_true = np.zeros(_p_pipe + 1)
+    _w_pipe_true[:6] = [3.0, -2.0, 1.5, 0.8, -1.2, 2.0]  # intercept + 5 features
+    _y_pipe = np.c_[np.ones(_n_pipe), _X_pipe] @ _w_pipe_true + 0.5 * np.random.randn(_n_pipe)
+
+    # Train/test split
+    _split = 45
+    X_tr, X_te = _X_pipe[:_split], _X_pipe[_split:]
+    y_tr, y_te = _y_pipe[:_split], _y_pipe[_split:]
+
+    def mse(y, yhat):
+        return np.mean((y - yhat)**2)
+
+    # OLS
+    w_o = ols_fit(X_tr, y_tr)
+    # Ridge
+    w_r = ridge_fit(X_tr, y_tr, lam=5.0)
+    # Lasso
+    w_l = lasso_fit(X_tr, y_tr, lam=5.0)
+
+    for name, w in [("OLS", w_o), ("Ridge", w_r), ("Lasso", w_l)]:
+        yhat_tr = ols_predict(X_tr, w)
+        yhat_te = ols_predict(X_te, w)
+        print(f"{name:6s} | Train MSE: {mse(y_tr, yhat_tr):.4f} | Test MSE: {mse(y_te, yhat_te):.4f} | "
+              f"||w||_1: {np.sum(np.abs(w)):.2f} | nonzero: {np.sum(np.abs(w) > 0.01)}")
+    return ()
 
 
 @app.cell(hide_code=True)
