@@ -341,11 +341,11 @@ def _(np):
 
     # Tiny example: input_dim=2, hidden_dim=3
     H, X = 3, 2
-    np.random.seed(42)
-    Wf = np.random.randn(H, H + X) * 0.1
-    Wi = np.random.randn(H, H + X) * 0.1
-    Wc = np.random.randn(H, H + X) * 0.1
-    Wo = np.random.randn(H, H + X) * 0.1
+    rng = np.random.default_rng(42)
+    Wf = rng.standard_normal((H, H + X)) * 0.1
+    Wi = rng.standard_normal((H, H + X)) * 0.1
+    Wc = rng.standard_normal((H, H + X)) * 0.1
+    Wo = rng.standard_normal((H, H + X)) * 0.1
     bf, bi, bc, bo = np.zeros(H), np.zeros(H), np.zeros(H), np.zeros(H)
 
     h, c = np.zeros(H), np.zeros(H)
@@ -436,10 +436,10 @@ def _(np, sigmoid):
 
     # Same dimensions as LSTM example: input_dim=2, hidden_dim=3
     H, X = 3, 2
-    np.random.seed(0)
-    Wz = np.random.randn(H, H + X) * 0.1
-    Wr = np.random.randn(H, H + X) * 0.1
-    Wh = np.random.randn(H, H + X) * 0.1
+    rng = np.random.default_rng(0)
+    Wz = rng.standard_normal((H, H + X)) * 0.1
+    Wr = rng.standard_normal((H, H + X)) * 0.1
+    Wh = rng.standard_normal((H, H + X)) * 0.1
     bz, br, bh = np.zeros(H), np.zeros(H), np.zeros(H)
 
     h_gru = np.zeros(H)
@@ -496,15 +496,15 @@ def _(np):
         return np.array(states)
 
     # Small example: 4-step sequence, input_dim=2, hidden_dim=3
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     H, X, T = 3, 2, 4
-    W_hh_f = np.random.randn(H, H) * 0.3
-    W_xh_f = np.random.randn(H, X) * 0.3
-    W_hh_b = np.random.randn(H, H) * 0.3  # separate backward weights
-    W_xh_b = np.random.randn(H, X) * 0.3
+    W_hh_f = rng.standard_normal((H, H)) * 0.3
+    W_xh_f = rng.standard_normal((H, X)) * 0.3
+    W_hh_b = rng.standard_normal((H, H)) * 0.3  # separate backward weights
+    W_xh_b = rng.standard_normal((H, X)) * 0.3
     b_h = np.zeros(H)
 
-    xs = np.random.randn(T, X)
+    xs = rng.standard_normal((T, X))
     fwd_states = rnn_forward(xs, W_hh_f, W_xh_f, b_h)
     bwd_states = rnn_forward(xs[::-1], W_hh_b, W_xh_b, b_h)[::-1]  # reverse input & output
 
@@ -570,13 +570,13 @@ def _(np):
         return np.array(outputs)
 
     H, X_dim = 4, 2
-    np.random.seed(3)
-    We_hh, We_xh = np.random.randn(H, H) * 0.3, np.random.randn(H, X_dim) * 0.3
-    Wd_hh, Wd_xh = np.random.randn(H, H) * 0.3, np.random.randn(H, X_dim) * 0.3
-    W_hy = np.random.randn(X_dim, H) * 0.3
+    rng = np.random.default_rng(3)
+    We_hh, We_xh = rng.standard_normal((H, H)) * 0.3, rng.standard_normal((H, X_dim)) * 0.3
+    Wd_hh, Wd_xh = rng.standard_normal((H, H)) * 0.3, rng.standard_normal((H, X_dim)) * 0.3
+    W_hy = rng.standard_normal((X_dim, H)) * 0.3
     b = np.zeros(H)
 
-    encoder_input = np.random.randn(5, X_dim)  # 5-step input
+    encoder_input = rng.standard_normal((5, X_dim))  # 5-step input
     context = seq2seq_encode(encoder_input, We_hh, We_xh, b)
     decoder_output = seq2seq_decode(context, Wd_hh, Wd_xh, W_hy, b, np.zeros(X_dim), steps=3)
     print(f"Encoder input:  {encoder_input.shape[0]} steps")
@@ -900,9 +900,9 @@ def _(np):
         """Vanilla RNN in pure numpy."""
         def __init__(self, input_dim, hidden_dim, output_dim):
             scale = 0.01
-            self.W_xh = np.random.randn(hidden_dim, input_dim) * scale
-            self.W_hh = np.random.randn(hidden_dim, hidden_dim) * scale
-            self.W_hy = np.random.randn(output_dim, hidden_dim) * scale
+            self.W_xh = rng.standard_normal((hidden_dim, input_dim)) * scale
+            self.W_hh = rng.standard_normal((hidden_dim, hidden_dim)) * scale
+            self.W_hy = rng.standard_normal((output_dim, hidden_dim)) * scale
             self.b_h = np.zeros(hidden_dim)
             self.b_y = np.zeros(output_dim)
             self.hidden_dim = hidden_dim
@@ -927,7 +927,7 @@ def _(np):
 
     # Test your implementation:
     # rnn = VanillaRNN(input_dim=4, hidden_dim=8, output_dim=3)
-    # xs = [np.random.randn(4) for _ in range(5)]
+    # xs = [rng.standard_normal(4) for _ in range(5)]
     # outs, hs = rnn.forward(xs)
     # print(f"Output shape per step: {outs[0].shape}")  # should be (3,)
     # print(f"Hidden shape per step: {hs[0].shape}")     # should be (8,)
@@ -952,10 +952,10 @@ def _(np):
             scale = 0.01
             D = input_dim + hidden_dim
             # All four gate weight matrices and biases
-            self.W_f = np.random.randn(hidden_dim, D) * scale
-            self.W_i = np.random.randn(hidden_dim, D) * scale
-            self.W_c = np.random.randn(hidden_dim, D) * scale
-            self.W_o = np.random.randn(hidden_dim, D) * scale
+            self.W_f = rng.standard_normal((hidden_dim, D)) * scale
+            self.W_i = rng.standard_normal((hidden_dim, D)) * scale
+            self.W_c = rng.standard_normal((hidden_dim, D)) * scale
+            self.W_o = rng.standard_normal((hidden_dim, D)) * scale
             self.b_f = np.zeros(hidden_dim)
             self.b_i = np.zeros(hidden_dim)
             self.b_c = np.zeros(hidden_dim)
@@ -997,7 +997,7 @@ def _(np):
 
     # Test your implementation:
     # lstm = LSTMCell(input_dim=4, hidden_dim=8)
-    # xs = [np.random.randn(4) for _ in range(5)]
+    # xs = [rng.standard_normal(4) for _ in range(5)]
     # states = lstm.forward(xs)
     # print(f"h shape: {states[-1][0].shape}, c shape: {states[-1][1].shape}")
     return
@@ -1070,9 +1070,9 @@ def _(np):
         def __init__(self, input_dim, hidden_dim):
             scale = 0.01
             D = input_dim + hidden_dim
-            self.W_z = np.random.randn(hidden_dim, D) * scale  # update gate
-            self.W_r = np.random.randn(hidden_dim, D) * scale  # reset gate
-            self.W_h = np.random.randn(hidden_dim, D) * scale  # candidate
+            self.W_z = rng.standard_normal((hidden_dim, D)) * scale  # update gate
+            self.W_r = rng.standard_normal((hidden_dim, D)) * scale  # reset gate
+            self.W_h = rng.standard_normal((hidden_dim, D)) * scale  # candidate
             self.b_z = np.zeros(hidden_dim)
             self.b_r = np.zeros(hidden_dim)
             self.b_h = np.zeros(hidden_dim)
@@ -1107,7 +1107,7 @@ def _(np):
 
     # Test your implementation:
     # gru = GRUCell(input_dim=4, hidden_dim=8)
-    # xs = [np.random.randn(4) for _ in range(5)]
+    # xs = [rng.standard_normal(4) for _ in range(5)]
     # states = gru.forward(xs)
     # print(f"Hidden state shape: {states[-1].shape}")  # should be (8,)
     # print(f"Final hidden: {states[-1].round(4)}")
@@ -1131,15 +1131,15 @@ def _(np):
         def __init__(self, input_dim, hidden_dim, output_dim):
             scale = 0.1
             # Encoder weights
-            self.enc_W_xh = np.random.randn(hidden_dim, input_dim) * scale
-            self.enc_W_hh = np.random.randn(hidden_dim, hidden_dim) * scale
+            self.enc_W_xh = rng.standard_normal((hidden_dim, input_dim)) * scale
+            self.enc_W_hh = rng.standard_normal((hidden_dim, hidden_dim)) * scale
             self.enc_b = np.zeros(hidden_dim)
             # Decoder weights
-            self.dec_W_xh = np.random.randn(hidden_dim, output_dim) * scale
-            self.dec_W_hh = np.random.randn(hidden_dim, hidden_dim) * scale
+            self.dec_W_xh = rng.standard_normal((hidden_dim, output_dim)) * scale
+            self.dec_W_hh = rng.standard_normal((hidden_dim, hidden_dim)) * scale
             self.dec_b = np.zeros(hidden_dim)
             # Output projection
-            self.W_out = np.random.randn(output_dim, hidden_dim) * scale
+            self.W_out = rng.standard_normal((output_dim, hidden_dim)) * scale
             self.b_out = np.zeros(output_dim)
             self.hidden_dim = hidden_dim
 
@@ -1175,7 +1175,7 @@ def _(np):
 
     # Test your implementation:
     # model = Seq2Seq(input_dim=3, hidden_dim=8, output_dim=3)
-    # encoder_inputs = [np.random.randn(3) for _ in range(5)]
+    # encoder_inputs = [rng.standard_normal(3) for _ in range(5)]
     # ctx = model.encode(encoder_inputs)
     # print(f"Context vector: {ctx.shape}")  # (8,)
     # decoder_outputs = model.decode(ctx, num_steps=3)

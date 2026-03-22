@@ -241,7 +241,7 @@ def _():
 
     model = LinearRegressor(5)
     print(model)
-    X_test = np.random.randn(3, 5)
+    X_test = rng.standard_normal((3, 5))
     print(f"Predictions: {model.predict(X_test)}")
     return
 
@@ -420,7 +420,7 @@ def _():
     identity = np.eye(4)               # 4x4 identity matrix
     range_arr = np.arange(0, 10, 0.5)  # like range() but supports floats
     linspace = np.linspace(0, 1, 100)  # 100 evenly spaced points in [0, 1]
-    random = np.random.randn(3, 4)     # 3x4 matrix from standard normal
+    random = rng.standard_normal((3, 4))     # 3x4 matrix from standard normal
 
     print(f"zeros shape: {zeros.shape}")
     print(f"ones shape: {ones.shape}")
@@ -606,15 +606,15 @@ def _(mo):
 def _():
     import numpy as np
 
-    A = np.random.randn(3, 3)
-    b = np.random.randn(3)
+    A = rng.standard_normal((3, 3))
+    b = rng.standard_normal(3)
 
     # Matrix-vector product
     print(f"A @ b: {A @ b}")
     print(f"np.dot(A, b): {np.dot(A, b)}")
 
     # Matrix-matrix product
-    B = np.random.randn(3, 4)
+    B = rng.standard_normal((3, 4))
     C = A @ B                # (3,3) @ (3,4) = (3,4)
     print(f"\nA @ B shape: {C.shape}")
 
@@ -649,8 +649,8 @@ def _(mo):
 def _():
     import numpy as np
 
-    A = np.random.randn(3, 3)
-    b = np.random.randn(3)
+    A = rng.standard_normal((3, 3))
+    b = rng.standard_normal(3)
 
     # Eigenvalue decomposition
     eigenvalues, eigenvectors = np.linalg.eig(A)
@@ -692,7 +692,7 @@ def _(mo):
 def _():
     import numpy as np
 
-    rng = np.random.default_rng(seed=42)  # modern API -- use this, not np.random.seed()
+    rng = np.random.default_rng(seed=42)  # modern API -- use this, not rng = np.random.default_rng()
 
     print(f"Standard normal:\n{rng.standard_normal((3, 4))}\n")
     print(f"Uniform [0, 1):\n{rng.uniform(0, 1, size=(3, 4))}\n")
@@ -709,7 +709,7 @@ def _(mo):
 
     - **Always seed your RNG for reproducibility.** When comparing two models, you need identical train/test splits and identical weight initializations. Unseeded randomness makes debugging nearly impossible and makes your experiments non-reproducible.
 
-    - **Use the modern `default_rng` API**, not the legacy `np.random.seed()` / `np.random.randn()`. The legacy API uses a global state, which means any library you import could silently change your random state. `default_rng` creates an independent generator object that only you control.
+    - **Use the modern `default_rng` API**, not the legacy `rng = np.random.default_rng()` / `rng.standard_normal()`. The legacy API uses a global state, which means any library you import could silently change your random state. `default_rng` creates an independent generator object that only you control.
 
     - **`standard_normal` vs `uniform`**: You'll use normal distributions for weight initialization (with appropriate scaling), and uniform distributions for things like random search over hyperparameters.
 
@@ -1212,7 +1212,7 @@ def _():
         pass
 
     # Test: should give 0 on the diagonal
-    X = np.random.randn(100, 5)
+    X = rng.standard_normal((100, 5))
     D = pairwise_distances(X)
     # assert D.shape == (100, 100)
     # assert np.allclose(np.diag(D), 0)

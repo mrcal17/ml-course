@@ -13,7 +13,7 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     return (np,)
 
 
@@ -102,7 +102,7 @@ def _(alpha_post, beta_post, np):
     print(f"Posterior predictive P(next flip = heads) = {p_next_heads:.3f}")
 
     # Monte Carlo version: sample thetas from posterior, then flip coins
-    theta_samples = np.random.beta(alpha_post, beta_post, size=10000)
+    theta_samples = rng.beta(alpha_post, beta_post, size=10000)
     mc_pred = np.mean(theta_samples)  # average prediction over posterior
     mc_std = np.std(theta_samples)    # uncertainty in theta
     print(f"Monte Carlo estimate: {mc_pred:.3f} +/- {mc_std:.3f}")
@@ -162,8 +162,8 @@ def _(np):
     # Draw 3 function samples from each prior: f ~ N(0, K)
     L_rbf = np.linalg.cholesky(K_rbf + 1e-6 * np.eye(200))
     L_mat = np.linalg.cholesky(K_mat + 1e-6 * np.eye(200))
-    samples_rbf = L_rbf @ np.random.randn(200, 3)
-    samples_mat = L_mat @ np.random.randn(200, 3)
+    samples_rbf = L_rbf @ rng.standard_normal((200, 3))
+    samples_mat = L_mat @ rng.standard_normal((200, 3))
 
     print("RBF samples are infinitely smooth; Matern-3/2 samples are rougher.")
     print(f"RBF kernel matrix shape: {K_rbf.shape}, trace: {np.trace(K_rbf):.1f}")
@@ -196,7 +196,7 @@ def _(X_grid, np, rbf_kernel):
     # --- GP regression in numpy (the key equations from above) ---
     # Training data: noisy observations of sin(x)
     X_train = np.array([-4, -3, -1, 0, 2, 4]).reshape(-1, 1)
-    y_train = np.sin(X_train).ravel() + 0.1 * np.random.randn(len(X_train))
+    y_train = np.sin(X_train).ravel() + 0.1 * rng.standard_normal((len(X_train)))
 
     noise_var = 0.1**2  # sigma_n^2
     length_scale, signal_var = 1.0, 1.0
@@ -304,7 +304,7 @@ def _(np):
     print(f"KL(q || prior) = {kl:.4f} nats")
 
     # Reparameterization trick: sample w = mu + sigma * epsilon, epsilon ~ N(0,1)
-    epsilon = np.random.randn(5)
+    epsilon = rng.standard_normal(5)
     w_samples = mu_q + sigma_q * epsilon  # differentiable w.r.t. mu, sigma!
     print(f"Weight samples via reparam trick: {w_samples.round(3)}")
     return (kl_gaussian,)
@@ -334,7 +334,7 @@ def _(np):
         """Run multiple forward passes with dropout ON -> get mean & std."""
         preds = []
         for _ in range(n_samples):
-            mask = (np.random.rand(*W1.shape) > drop_rate) / (1 - drop_rate)
+            mask = (rng.random(W1.shape) > drop_rate) / (1 - drop_rate)
             h = np.maximum(0, X @ (W1 * mask) + b1)  # ReLU hidden layer
             y_hat = h @ W2 + b2
             preds.append(y_hat)
@@ -342,9 +342,9 @@ def _(np):
         return preds.mean(axis=0), preds.std(axis=0)  # predictive mean & uncertainty
 
     # Tiny demo: random weights, 1D input
-    W1 = np.random.randn(1, 20) * 0.5
+    W1 = rng.standard_normal((1, 20)) * 0.5
     b1 = np.zeros(20)
-    W2 = np.random.randn(20, 1) * 0.5
+    W2 = rng.standard_normal((20, 1)) * 0.5
     b2 = np.zeros(1)
     x_test = np.linspace(-3, 3, 5).reshape(-1, 1)
     mean, std = mc_dropout_predict(x_test, W1, b1, W2, b2)
@@ -433,9 +433,9 @@ def _(np):
     samples_mh[0] = 0.0  # init
     accepted = 0
     for i in range(1, n_samples_mh):
-        proposal = samples_mh[i-1] + 0.5 * np.random.randn()  # symmetric Gaussian proposal
+        proposal = samples_mh[i-1] + 0.5 * rng.standard_normal()  # symmetric Gaussian proposal
         log_alpha = log_posterior(proposal) - log_posterior(samples_mh[i-1])
-        if np.log(np.random.rand()) < log_alpha:  # accept?
+        if np.log(rng.random()) < log_alpha:  # accept?
             samples_mh[i] = proposal
             accepted += 1
         else:
@@ -476,7 +476,7 @@ def _(np, observed_data):
     def hmc_sample(current, step_size=0.1, n_leapfrog=20):
         """One HMC step: leapfrog integration + accept/reject."""
         q = current
-        p = np.random.randn()  # sample momentum
+        p = rng.standard_normal()  # sample momentum
         current_p = p
         # Leapfrog integration (simulates Hamiltonian dynamics)
         p -= 0.5 * step_size * (-grad_log_posterior(q))  # half step momentum
@@ -490,7 +490,7 @@ def _(np, observed_data):
             return -0.5 * np.sum((observed_data - mu)**2) - 0.5 * mu**2 / 25
         current_H = -log_post(current) + 0.5 * current_p**2
         proposed_H = -log_post(q) + 0.5 * p**2
-        if np.log(np.random.rand()) < current_H - proposed_H:
+        if np.log(rng.random()) < current_H - proposed_H:
             return q, True
         return current, False
 
@@ -562,9 +562,9 @@ def _(np):
     # Compare degree-1 vs degree-3 polynomial using marginal likelihood
     # For linear regression with known noise, marginal likelihood is analytic
 
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     x_mc = np.linspace(-1, 1, 15)
-    y_mc = 0.5 * x_mc + 0.1 * np.random.randn(15)  # true model is linear
+    y_mc = 0.5 * x_mc + 0.1 * rng.standard_normal(15)  # true model is linear
 
     def log_marginal_likelihood_linear(X_design, y, noise_var=0.01, prior_var=1.0):
         """Analytic log marginal likelihood for Bayesian linear regression.
@@ -740,7 +740,7 @@ def _(np):
     # Test data
     _x = np.linspace(0, 2, 20)
     _X_train = np.column_stack([np.ones_like(_x), _x])
-    _y_train = 1.5 * _x + 0.3 + 0.2 * np.random.randn(20)
+    _y_train = 1.5 * _x + 0.3 + 0.2 * rng.standard_normal(20)
     _X_test = np.column_stack([np.ones(5), np.linspace(0, 3, 5)])
 
     _m, _S, _pm, _ps = bayesian_linear_regression(_X_train, _y_train, _X_test)
@@ -800,7 +800,7 @@ def _(np):
 
     # Test
     _X_gp = np.array([-3, -2, -1, 0, 1, 2, 3]).reshape(-1, 1).astype(float)
-    _y_gp = np.sin(_X_gp).ravel() + 0.05 * np.random.randn(7)
+    _y_gp = np.sin(_X_gp).ravel() + 0.05 * rng.standard_normal(7)
     _X_gp_test = np.linspace(-4, 4, 50).reshape(-1, 1)
 
     _mu_gp, _std_gp, _lml_gp = gp_regression(_X_gp, _y_gp, _X_gp_test)

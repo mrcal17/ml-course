@@ -101,9 +101,9 @@ def _(np):
         return e_x / e_x.sum(axis=axis, keepdims=True)
 
     # Encoder hidden states: 5 source positions, dim=4
-    h_enc = np.random.randn(5, 4)
+    h_enc = rng.standard_normal((5, 4))
     # Decoder state at one time step
-    s_dec = np.random.randn(1, 4)
+    s_dec = rng.standard_normal((1, 4))
 
     # Score via dot product: e_i = s_dec . h_i
     scores = (s_dec @ h_enc.T).squeeze(0)  # shape (5,)
@@ -184,9 +184,9 @@ def _(np, softmax):
 
     d_k_sa = 2
     # Random learned projection matrices (d x d_k)
-    W_Q_sa = np.random.randn(4, d_k_sa) * 0.5
-    W_K_sa = np.random.randn(4, d_k_sa) * 0.5
-    W_V_sa = np.random.randn(4, d_k_sa) * 0.5
+    W_Q_sa = rng.standard_normal((4, d_k_sa)) * 0.5
+    W_K_sa = rng.standard_normal((4, d_k_sa)) * 0.5
+    W_V_sa = rng.standard_normal((4, d_k_sa)) * 0.5
 
     # Project: Q = X @ W_Q, etc.
     Q_sa = X_sa @ W_Q_sa   # (3, 2)
@@ -217,8 +217,8 @@ def _(mo):
 def _(np, softmax):
     # Show softmax saturation without scaling
     d_k_demo = 512
-    q_demo = np.random.randn(1, d_k_demo)
-    K_demo = np.random.randn(8, d_k_demo)
+    q_demo = rng.standard_normal((1, d_k_demo))
+    K_demo = rng.standard_normal((8, d_k_demo))
 
     raw_dots = q_demo @ K_demo.T  # variance ~ d_k
     scaled_dots = raw_dots / np.sqrt(d_k_demo)
@@ -364,11 +364,11 @@ def _(np, softmax):
 
     # Demo: 4 tokens, d=8, 2 heads
     _d, _h = 8, 2
-    _X = np.random.randn(4, _d)
-    _WQ = np.random.randn(_d, _d) * 0.3
-    _WK = np.random.randn(_d, _d) * 0.3
-    _WV = np.random.randn(_d, _d) * 0.3
-    _WO = np.random.randn(_d, _d) * 0.3
+    _X = rng.standard_normal((4, _d))
+    _WQ = rng.standard_normal((_d, _d)) * 0.3
+    _WK = rng.standard_normal((_d, _d)) * 0.3
+    _WV = rng.standard_normal((_d, _d)) * 0.3
+    _WO = rng.standard_normal((_d, _d)) * 0.3
 
     mha_out = multihead_attention(_X, _h, _WQ, _WK, _WV, _WO)
     print(f"Input shape:  {_X.shape}")
@@ -487,12 +487,12 @@ def _(np):
 
     # Demo: d=4, d_ff=16 (4x expansion)
     _d_ffn, _d_ff = 4, 16
-    _W1 = np.random.randn(_d_ffn, _d_ff) * 0.3
+    _W1 = rng.standard_normal((_d_ffn, _d_ff)) * 0.3
     _b1 = np.zeros(_d_ff)
-    _W2 = np.random.randn(_d_ff, _d_ffn) * 0.3
+    _W2 = rng.standard_normal((_d_ff, _d_ffn)) * 0.3
     _b2 = np.zeros(_d_ffn)
 
-    _x_ffn = np.random.randn(3, _d_ffn)  # 3 tokens
+    _x_ffn = rng.standard_normal((3, _d_ffn))  # 3 tokens
     _out_ffn = ffn(_x_ffn, _W1, _b1, _W2, _b2)
     print(f"FFN input shape:  {_x_ffn.shape}")
     print(f"FFN output shape: {_out_ffn.shape}")  # same (3, 4)
@@ -526,12 +526,12 @@ def _(ffn, layer_norm, multihead_attention, np):
     # Init random params for d=8, 2 heads, d_ff=32
     _dtb = 8
     _params = {
-        "WQ": np.random.randn(_dtb, _dtb)*0.2, "WK": np.random.randn(_dtb, _dtb)*0.2,
-        "WV": np.random.randn(_dtb, _dtb)*0.2, "WO": np.random.randn(_dtb, _dtb)*0.2,
-        "W1": np.random.randn(_dtb, 32)*0.2, "b1": np.zeros(32),
-        "W2": np.random.randn(32, _dtb)*0.2, "b2": np.zeros(_dtb),
+        "WQ": rng.standard_normal((_dtb, _dtb))*0.2, "WK": rng.standard_normal((_dtb, _dtb))*0.2,
+        "WV": rng.standard_normal((_dtb, _dtb))*0.2, "WO": rng.standard_normal((_dtb, _dtb))*0.2,
+        "W1": rng.standard_normal((_dtb, 32))*0.2, "b1": np.zeros(32),
+        "W2": rng.standard_normal((32, _dtb))*0.2, "b2": np.zeros(_dtb),
     }
-    _x_tb = np.random.randn(5, _dtb)
+    _x_tb = rng.standard_normal((5, _dtb))
     _out_tb = transformer_block_np(_x_tb, 2, _params)
     print(f"Encoder block: {_x_tb.shape} -> {_out_tb.shape}")
     return (transformer_block_np,)
@@ -664,9 +664,9 @@ def _(np, softmax):
         return weights_m @ V_m, weights_m
 
     # 5 tokens, d_k=4
-    _Q_m = np.random.randn(5, 4)
-    _K_m = np.random.randn(5, 4)
-    _V_m = np.random.randn(5, 4)
+    _Q_m = rng.standard_normal((5, 4))
+    _K_m = rng.standard_normal((5, 4))
+    _V_m = rng.standard_normal((5, 4))
 
     _, causal_weights = masked_attention(_Q_m, _K_m, _V_m, causal=True)
     print("Causal attention weights (lower-triangular):")
@@ -800,15 +800,15 @@ def _(mo):
 def _(np, softmax):
     # Simulate autoregressive generation with a KV cache
     _d_kv = 4
-    _W_Q_kv = np.random.randn(_d_kv, _d_kv) * 0.3
-    _W_K_kv = np.random.randn(_d_kv, _d_kv) * 0.3
-    _W_V_kv = np.random.randn(_d_kv, _d_kv) * 0.3
+    _W_Q_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
+    _W_K_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
+    _W_V_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
 
     K_cache = np.empty((0, _d_kv))  # start empty
     V_cache = np.empty((0, _d_kv))
 
     # Pretend we generate 5 tokens
-    embeddings = np.random.randn(5, _d_kv)
+    embeddings = rng.standard_normal((5, _d_kv))
     for t in range(5):
         x_t = embeddings[t:t+1]       # current token embedding (1, d)
         q_t = x_t @ _W_Q_kv           # query for this step only
@@ -1168,10 +1168,10 @@ def _(np):
 
     # Uncomment to test:
     # _d, _h = 8, 2
-    # _X = np.random.randn(4, _d)
+    # _X = rng.standard_normal((4, _d))
     # _out = multihead_exercise(_X, _h,
-    #     np.random.randn(_d,_d)*0.3, np.random.randn(_d,_d)*0.3,
-    #     np.random.randn(_d,_d)*0.3, np.random.randn(_d,_d)*0.3)
+    #     rng.standard_normal((_d,_d))*0.3, rng.standard_normal((_d,_d))*0.3,
+    #     rng.standard_normal((_d,_d))*0.3, rng.standard_normal((_d,_d))*0.3)
     # print("Output shape:", _out.shape)  # should be (4, 8)
     return (multihead_exercise,)
 
@@ -1247,9 +1247,9 @@ def _(np):
         return weights_ex4 @ V_ex4, weights_ex4
 
     # Uncomment to test:
-    # _Q = np.random.randn(4, 3)
-    # _K = np.random.randn(4, 3)
-    # _V = np.random.randn(4, 3)
+    # _Q = rng.standard_normal((4, 3))
+    # _K = rng.standard_normal((4, 3))
+    # _V = rng.standard_normal((4, 3))
     # _, _w = causal_attention_exercise(_Q, _K, _V)
     # print("Causal weights (upper triangle should be 0):")
     # print(np.round(_w, 3))
@@ -1299,12 +1299,12 @@ def _(np):
 
     # Uncomment to test:
     # _d = 8
-    # _x = np.random.randn(5, _d)
+    # _x = rng.standard_normal((5, _d))
     # _out = encoder_block_exercise(_x, 1,
-    #     np.random.randn(_d,_d)*0.2, np.random.randn(_d,_d)*0.2,
-    #     np.random.randn(_d,_d)*0.2, np.random.randn(_d,_d)*0.2,
-    #     np.random.randn(_d,32)*0.2, np.zeros(32),
-    #     np.random.randn(32,_d)*0.2, np.zeros(_d))
+    #     rng.standard_normal((_d,_d))*0.2, rng.standard_normal((_d,_d))*0.2,
+    #     rng.standard_normal((_d,_d))*0.2, rng.standard_normal((_d,_d))*0.2,
+    #     rng.standard_normal((_d,32))*0.2, np.zeros(32),
+    #     rng.standard_normal((32,_d))*0.2, np.zeros(_d))
     # print("Output shape:", _out.shape)  # should be (5, 8)
     return (encoder_block_exercise,)
 

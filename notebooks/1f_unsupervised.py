@@ -120,7 +120,7 @@ def _(mo):
 def _(np):
     # PCA from scratch: centering and covariance matrix
     # Generate simple 2D data to see each step
-    rng_pca = np.random.RandomState(42)
+    rng_pca = np.random.default_rng(42)
     X_demo = rng_pca.randn(100, 2) @ np.array([[2, 0.8], [0.8, 1]])
 
     # Step 1: Center the data (subtract mean)
@@ -370,7 +370,7 @@ def _(mo):
 def _(np):
     # K-Means from scratch
     def kmeans_scratch(X, K, max_iters=100, seed=42):
-        rng_km = np.random.RandomState(seed)
+        rng_km = np.random.default_rng(seed)
         N_km = X.shape[0]
 
         # Initialize: pick K random data points as centroids
@@ -670,7 +670,7 @@ def _(np):
 def _(gaussian_pdf, np):
     # EM for GMM from scratch — full algorithm
     def em_gmm(X, K, max_iters=100, seed=42):
-        rng_em = np.random.RandomState(seed)
+        rng_em = np.random.default_rng(seed)
         N_em, D_em = X.shape
 
         # Initialize: random means from data, identity covariances, uniform weights
@@ -912,7 +912,7 @@ def _(mo):
 def _(gaussian_pdf, np):
     # Anomaly detection via GMM density — from scratch
     # Compute p(x) = sum_k pi_k * N(x|mu_k, Sigma_k), flag low-density points
-    rng_anom = np.random.RandomState(0)
+    rng_anom = np.random.default_rng(0)
     X_normal = rng_anom.randn(200, 2)  # normal data
     X_anom_pts = rng_anom.uniform(-5, 5, size=(10, 2))  # outliers
     X_all = np.vstack([X_normal, X_anom_pts])
@@ -937,7 +937,7 @@ def _(StandardScaler, make_blobs, np, plt):
 
     # Create data with some outliers
     X_anom, _ = make_blobs(n_samples=280, centers=3, cluster_std=0.8, random_state=42)
-    rng = np.random.RandomState(42)
+    rng = np.random.default_rng(42)
     X_outliers = rng.uniform(low=-10, high=10, size=(20, 2))
     X_anom_full = np.vstack([X_anom, X_outliers])
     X_anom_scaled = StandardScaler().fit_transform(X_anom_full)
@@ -1176,7 +1176,7 @@ def _(np, make_blobs, plt):
 
     def kmeans_pp_init(X, K, seed=42):
         """K-means++ initialization. Returns (K, D) array of centroids."""
-        rng = np.random.RandomState(seed)
+        rng = np.random.default_rng(seed)
         N, D = X.shape
         centroids = np.empty((K, D))
 
@@ -1259,7 +1259,7 @@ def _(mo):
 @app.cell
 def _(np, plt):
     # EXERCISE 5: 1D EM for a 2-component Gaussian mixture
-    rng_ex5 = np.random.RandomState(42)
+    rng_ex5 = np.random.default_rng(42)
     # True parameters
     X1_ex5 = rng_ex5.normal(-3, 1.0, size=100)
     X2_ex5 = rng_ex5.normal(3, 1.5, size=100)

@@ -517,7 +517,7 @@ def _(mo, np):
     rng_buf = np.random.default_rng(42)
     buf = ReplayBuffer(capacity=1000)
     for i in range(50):
-        buf.push((i % 5, i % 2, np.random.randn(), (i + 1) % 5, i == 49))
+        buf.push((i % 5, i % 2, rng.standard_normal(), (i + 1) % 5, i == 49))
 
     batch = buf.sample(4, rng_buf)
     mo.md(f"""

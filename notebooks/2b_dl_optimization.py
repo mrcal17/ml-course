@@ -182,14 +182,14 @@ When you increase the batch size by a factor of $k$, you should increase the lea
 @app.cell
 def _(np, plt):
     # Mini-batch gradient noise: full-batch vs mini-batch gradient estimates
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     N_data = 1000
     # Synthetic: true gradient is 2*theta for L = theta^2
     theta_val = 3.0
     true_grad = 2 * theta_val  # = 6.0
 
     # Simulate per-sample gradients with noise
-    per_sample_grads = true_grad + np.random.randn(N_data) * 4.0
+    per_sample_grads = true_grad + rng.standard_normal(N_data) * 4.0
 
     batch_sizes_demo = [1, 8, 32, 128, 512]
     fig_mb, ax_mb = plt.subplots(figsize=(7, 3))
@@ -512,9 +512,9 @@ A middle ground: divide channels into groups and normalize within each group. Gr
 @app.cell
 def _(np):
     # Batch Normalization from scratch (forward pass)
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     # Simulated mini-batch: 4 samples, 3 features
-    X_bn = np.random.randn(4, 3) * 5 + 10  # mean ≈ 10, std ≈ 5
+    X_bn = rng.standard_normal((4, 3)) * 5 + 10  # mean ≈ 10, std ≈ 5
     eps_bn = 1e-5
 
     # Step 1-2: batch mean and variance
@@ -538,8 +538,8 @@ def _(np):
 @app.cell
 def _(np):
     # Layer Norm vs Batch Norm: which axis do we normalize over?
-    np.random.seed(7)
-    X_norm = np.random.randn(4, 5) * 3 + 2  # (batch=4, features=5)
+    rng = np.random.default_rng(7)
+    X_norm = rng.standard_normal((4, 5)) * 3 + 2  # (batch=4, features=5)
     eps_ln = 1e-5
 
     # Batch norm: normalize across batch dim (axis=0), per feature
@@ -654,11 +654,11 @@ def _(np):
 def _(np):
     # Residual connection: y = F(x) + x
     # During backprop: dy/dx = dF/dx + 1 (the +1 ensures gradient flows!)
-    np.random.seed(3)
-    x_res = np.random.randn(4)
+    rng = np.random.default_rng(3)
+    x_res = rng.standard_normal(4)
 
     # Simulate a "layer" F that shrinks its input (bad for gradient flow)
-    W_res = np.random.randn(4, 4) * 0.3  # small weights → small Jacobian
+    W_res = rng.standard_normal((4, 4)) * 0.3  # small weights → small Jacobian
     F_x = np.tanh(W_res @ x_res)
 
     # Without residual: output = F(x)
@@ -729,16 +729,16 @@ This is not the only recipe, but it's a solid default. The specific choices (opt
 @app.cell
 def _(np):
     # Weight initialization: Xavier vs He — variance preservation across layers
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     n_in, n_out = 256, 256
     n_forward_layers = 10
-    x_init = np.random.randn(1, n_in)  # single sample
+    x_init = rng.standard_normal((1, n_in))  # single sample
 
     # Xavier init: Var(W) = 2 / (n_in + n_out) — designed for tanh
     print("=== Xavier init + tanh ===")
     h = x_init.copy()
     for _ in range(n_forward_layers):
-        W = np.random.randn(n_in, n_out) * np.sqrt(2.0 / (n_in + n_out))
+        W = rng.standard_normal((n_in, n_out)) * np.sqrt(2.0 / (n_in + n_out))
         h = np.tanh(h @ W)
     print(f"  Activation std after {n_forward_layers} layers: {h.std():.6f}")
 
@@ -746,7 +746,7 @@ def _(np):
     print("=== He init + ReLU ===")
     h = x_init.copy()
     for _ in range(n_forward_layers):
-        W = np.random.randn(n_in, n_out) * np.sqrt(2.0 / n_in)
+        W = rng.standard_normal((n_in, n_out)) * np.sqrt(2.0 / n_in)
         h = np.maximum(0, h @ W)  # ReLU
     print(f"  Activation std after {n_forward_layers} layers: {h.std():.6f}")
 
@@ -754,7 +754,7 @@ def _(np):
     print("=== Bad init (std=1.0) + ReLU ===")
     h = x_init.copy()
     for _ in range(n_forward_layers):
-        W = np.random.randn(n_in, n_out) * 1.0
+        W = rng.standard_normal((n_in, n_out)) * 1.0
         h = np.maximum(0, h @ W)
     print(f"  Activation std after {n_forward_layers} layers: {h.std():.2e}  (exploded!)")
     return
@@ -768,9 +768,9 @@ def _(np):
     physical_bs = 64
     accum_steps = logical_bs // physical_bs  # = 4
 
-    np.random.seed(1)
+    rng = np.random.default_rng(1)
     # Fake per-sample gradients for a single parameter
-    all_grads = np.random.randn(logical_bs)
+    all_grads = rng.standard_normal(logical_bs)
 
     # Method 1: single big batch
     full_batch_grad = all_grads.mean()
@@ -982,7 +982,7 @@ def _(np):
 
     # Test:
     # bn = BatchNorm1D(3)
-    # X_test = np.random.randn(8, 3) * 5 + 10
+    # X_test = rng.standard_normal((8, 3)) * 5 + 10
     # Y_train = bn.forward(X_test, training=True)
     # print(f"Train output mean: {Y_train.mean(axis=0).round(4)}")  # should be ~0
     # Y_eval = bn.forward(X_test, training=False)  # uses running stats
@@ -1051,16 +1051,16 @@ def _(np):
 
         TODO: Fill in each section using the functions you built above.
         """
-        np.random.seed(42)
+        rng = np.random.default_rng(42)
         n_samples, n_features_ex5, n_hidden, n_classes = 500, 10, 32, 3
 
         # Synthetic data
-        X_train_ex5 = np.random.randn(n_samples, n_features_ex5)
-        y_train_ex5 = np.random.randint(0, n_classes, n_samples)
+        X_train_ex5 = rng.standard_normal((n_samples, n_features_ex5))
+        y_train_ex5 = rng.integers(0, n_classes, n_samples)
 
         # TODO: He initialization for weights
-        # W1 = np.random.randn(n_features, n_hidden) * sqrt(2 / n_features)
-        # W2 = np.random.randn(n_hidden, n_classes) * sqrt(2 / n_hidden)
+        # W1 = rng.standard_normal((n_features, n_hidden)) * sqrt(2 / n_features)
+        # W2 = rng.standard_normal((n_hidden, n_classes)) * sqrt(2 / n_hidden)
 
         # TODO: Initialize batch norm for hidden layer
 

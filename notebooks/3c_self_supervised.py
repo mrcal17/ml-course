@@ -147,8 +147,8 @@ def _(np):
     print("Causal mask (1 = can attend):\n", causal_mask)
 
     # Simulate model logits at each position, compute cross-entropy loss
-    np.random.seed(42)
-    logits = np.random.randn(T, vocab_size)  # (T, vocab_size)
+    rng = np.random.default_rng(42)
+    logits = rng.standard_normal((T, vocab_size))  # (T, vocab_size)
     probs = np.exp(logits) / np.exp(logits).sum(axis=1, keepdims=True)  # softmax
 
     # Loss: -log P(next token | previous tokens), for positions 1..T-1
@@ -188,20 +188,20 @@ def _(mo):
 @app.cell
 def _(np):
     # BERT-style masking: 15% of tokens selected, then 80/10/10 split
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     sentence = ["The", "cat", "sat", "on", "the", "mat", "and", "purred", "loudly", "."]
     MASK_TOKEN, vocab_sz = "[MASK]", 1000
 
     mask_prob = 0.15
-    selected = np.random.rand(len(sentence)) < mask_prob  # which tokens to corrupt
+    selected = rng.random((len(sentence))) < mask_prob  # which tokens to corrupt
 
     corrupted = list(sentence)
     for i in np.where(selected)[0]:
-        r = np.random.rand()
+        r = rng.random()
         if r < 0.8:      # 80% → replace with [MASK]
             corrupted[i] = MASK_TOKEN
         elif r < 0.9:     # 10% → replace with random token
-            corrupted[i] = f"<rand_{np.random.randint(vocab_sz)}>"
+            corrupted[i] = f"<rand_{rng.integers(vocab_sz)}>"
         # else: 10% → keep original (do nothing)
 
     print(f"Original:  {' '.join(sentence)}")
@@ -290,12 +290,12 @@ def _(mo):
 @app.cell
 def _(np):
     # SimCLR NT-Xent loss: sim(u,v) = u^T v / (||u|| ||v||)
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     N_batch = 4  # 4 images → 8 augmented views (2 per image)
     dim = 16
 
     # Simulate 2N embeddings from the projection head
-    z = np.random.randn(2 * N_batch, dim)
+    z = rng.standard_normal((2 * N_batch, dim))
     z = z / np.linalg.norm(z, axis=1, keepdims=True)  # L2 normalize
 
     # Cosine similarity matrix: sim(z_i, z_k) for all pairs
@@ -352,15 +352,15 @@ def _(mo):
 @app.cell
 def _(np):
     # MoCo momentum update: θ_k ← m * θ_k + (1 - m) * θ_q
-    np.random.seed(1)
+    rng = np.random.default_rng(1)
     d_param = 8
-    theta_q = np.random.randn(d_param)   # query encoder (updated by gradient)
-    theta_k = np.random.randn(d_param)   # key encoder (updated by momentum)
+    theta_q = rng.standard_normal(d_param)   # query encoder (updated by gradient)
+    theta_k = rng.standard_normal(d_param)   # key encoder (updated by momentum)
     m = 0.999  # momentum coefficient
 
     print(f"Before: ||θ_q - θ_k|| = {np.linalg.norm(theta_q - theta_k):.4f}")
     for step in range(200):
-        theta_q += np.random.randn(d_param) * 0.01  # simulate gradient step
+        theta_q += rng.standard_normal(d_param) * 0.01  # simulate gradient step
         theta_k = m * theta_k + (1 - m) * theta_q    # momentum update
     print(f"After 200 steps: ||θ_q - θ_k|| = {np.linalg.norm(theta_q - theta_k):.4f}")
     print("Key encoder tracks query encoder slowly — keeps negatives consistent")
@@ -404,15 +404,15 @@ def _(mo):
 @app.cell
 def _(np):
     # SimSiam: asymmetric architecture with stop-gradient
-    np.random.seed(2)
+    rng = np.random.default_rng(2)
     d_emb = 8
 
     # Simulate two augmented views through encoder
-    z1 = np.random.randn(d_emb)
-    z2 = np.random.randn(d_emb)
+    z1 = rng.standard_normal(d_emb)
+    z2 = rng.standard_normal(d_emb)
 
     # Predictor MLP (simplified as linear): only on one branch
-    W_pred = np.random.randn(d_emb, d_emb) * 0.1
+    W_pred = rng.standard_normal((d_emb, d_emb)) * 0.1
     p1 = W_pred @ z1  # online branch: encoder + predictor
 
     # Loss: negative cosine similarity with stop-gradient on z2
@@ -487,17 +487,17 @@ def _(mo):
 @app.cell
 def _(np):
     # MAE: mask 75% of patches, reconstruct from visible 25%
-    np.random.seed(3)
+    rng = np.random.default_rng(3)
     n_patches = 16  # e.g., 4x4 grid of patches
     patch_dim = 4   # pixels per patch (flattened)
     mask_ratio = 0.75
 
     # Simulate an "image" as n_patches vectors
-    patches = np.random.randn(n_patches, patch_dim)
+    patches = rng.standard_normal((n_patches, patch_dim))
 
     # Random masking
     n_mask = int(n_patches * mask_ratio)
-    perm = np.random.permutation(n_patches)
+    perm = rng.permutation(n_patches)
     masked_idx = perm[:n_mask]
     visible_idx = perm[n_mask:]
 
@@ -506,7 +506,7 @@ def _(np):
     print(f"Masked:  {len(masked_idx)} ({100*mask_ratio:.0f}%)  →  decoder reconstructs these")
 
     # Reconstruction loss (MSE) on masked patches only
-    fake_reconstruction = patches[masked_idx] + np.random.randn(n_mask, patch_dim) * 0.5
+    fake_reconstruction = patches[masked_idx] + rng.standard_normal((n_mask, patch_dim)) * 0.5
     mse = np.mean((patches[masked_idx] - fake_reconstruction) ** 2)
     print(f"\nReconstruction MSE on masked patches: {mse:.3f}")
     return
@@ -559,13 +559,13 @@ def _(mo):
 @app.cell
 def _(np):
     # CLIP: contrastive loss across image and text modalities
-    np.random.seed(4)
+    rng = np.random.default_rng(4)
     N_clip = 4  # batch of 4 image-text pairs
     d_clip = 16
 
     # Simulate image and text encoders producing L2-normalized embeddings
-    img_emb = np.random.randn(N_clip, d_clip)
-    txt_emb = np.random.randn(N_clip, d_clip)
+    img_emb = rng.standard_normal((N_clip, d_clip))
+    txt_emb = rng.standard_normal((N_clip, d_clip))
     img_emb = img_emb / np.linalg.norm(img_emb, axis=1, keepdims=True)
     txt_emb = txt_emb / np.linalg.norm(txt_emb, axis=1, keepdims=True)
 
@@ -686,15 +686,15 @@ def _(mo):
 @app.cell
 def _(np):
     # Linear probing: train only a linear head on frozen features
-    np.random.seed(5)
+    rng = np.random.default_rng(5)
     n_samples, d_feat, n_classes = 200, 32, 3
 
     # Simulate frozen pretrained features + labels
-    X_feat = np.random.randn(n_samples, d_feat)
-    y_true = np.random.randint(0, n_classes, n_samples)
+    X_feat = rng.standard_normal((n_samples, d_feat))
+    y_true = rng.integers(0, n_classes, n_samples)
 
     # Linear probe: W @ x + b, trained with simple gradient descent
-    W_probe = np.random.randn(n_classes, d_feat) * 0.01
+    W_probe = rng.standard_normal((n_classes, d_feat)) * 0.01
     b_probe = np.zeros(n_classes)
     lr = 0.01
 
@@ -743,15 +743,15 @@ def _(mo):
 @app.cell
 def _(np):
     # LoRA: h = Wx + BAx, where W is frozen, only A and B are trained
-    np.random.seed(6)
+    rng = np.random.default_rng(6)
     d_model = 256
     r_lora = 8  # low rank
 
-    W_frozen = np.random.randn(d_model, d_model) * 0.01  # pretrained weight (FROZEN)
-    A_lora = np.random.randn(r_lora, d_model) * 0.01      # trainable
+    W_frozen = rng.standard_normal((d_model, d_model)) * 0.01  # pretrained weight (FROZEN)
+    A_lora = rng.standard_normal((r_lora, d_model)) * 0.01      # trainable
     B_lora = np.zeros((d_model, r_lora))                   # init B to zero → ΔW starts at 0
 
-    x_input = np.random.randn(d_model)
+    x_input = rng.standard_normal(d_model)
 
     # Forward pass: h = Wx + BAx
     h = W_frozen @ x_input + B_lora @ (A_lora @ x_input)
@@ -851,12 +851,12 @@ def _(mo):
 @app.cell
 def _(np):
     # CKA: Centered Kernel Alignment — measures representation similarity
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     n_cka = 50  # number of data points
 
     # Two "representation matrices" from different models
-    X_rep = np.random.randn(n_cka, 16)  # model A representations
-    Y_rep = X_rep @ np.random.randn(16, 16) * 0.5 + np.random.randn(n_cka, 16) * 0.1  # similar
+    X_rep = rng.standard_normal((n_cka, 16))  # model A representations
+    Y_rep = X_rep @ rng.standard_normal((16, 16)) * 0.5 + rng.standard_normal((n_cka, 16)) * 0.1  # similar
 
     # Linear CKA: HSIC(K, L) / sqrt(HSIC(K,K) * HSIC(L,L))
     def center(K):
@@ -980,8 +980,8 @@ def _(np):
         pass
 
     # Test your implementation
-    np.random.seed(10)
-    _z_test = np.random.randn(8, 16)  # 4 images, 8 views
+    rng = np.random.default_rng(10)
+    _z_test = rng.standard_normal((8, 16))  # 4 images, 8 views
     _z_test = _z_test / np.linalg.norm(_z_test, axis=1, keepdims=True)
     # result = nt_xent_loss(_z_test, tau=0.5)
     # print(f"NT-Xent loss: {result:.4f}")  # should be around 1.5-2.5
@@ -1008,8 +1008,7 @@ def _(np):
           - selected_mask: boolean array, True at positions that were selected
           - target_ids: original token IDs at selected positions
         """
-        if seed is not None:
-            np.random.seed(seed)
+        rng = np.random.default_rng(seed)
         T_len = len(token_ids)
         corrupted_ids = token_ids.copy()
 
@@ -1081,9 +1080,9 @@ def _(np):
             pass
 
     # Test your implementation
-    # np.random.seed(0)
+    # rng = np.random.default_rng(0)
     # lora = LoRALayer(d_in=128, d_out=128, rank=4)
-    # x_test = np.random.randn(128)
+    # x_test = rng.standard_normal(128)
     # h_decomposed = lora.forward(x_test)
     # W_merged = lora.merge()
     # h_merged = W_merged @ x_test
@@ -1113,8 +1112,7 @@ def _(np):
           'visible_idx', 'masked_idx', 'n_visible', 'n_masked',
           'reconstruction_mse'
         """
-        if seed is not None:
-            np.random.seed(seed)
+        rng = np.random.default_rng(seed)
         n_p = patches.shape[0]
 
         # TODO: Compute number of patches to mask
@@ -1140,8 +1138,8 @@ def _(np):
         pass
 
     # Test your implementation
-    # np.random.seed(99)
-    # _patches = np.random.randn(64, 16)  # 8x8 grid, 16-dim patches
+    # rng = np.random.default_rng(99)
+    # _patches = rng.standard_normal((64, 16))  # 8x8 grid, 16-dim patches
     # result = mae_pipeline(_patches, mask_ratio=0.75, seed=42)
     # print(f"Visible: {result['n_visible']}, Masked: {result['n_masked']}")
     # print(f"Reconstruction MSE: {result['reconstruction_mse']:.4f}")
@@ -1184,13 +1182,13 @@ def _(np):
         pass
 
     # Test your implementation
-    # np.random.seed(42)
+    # rng = np.random.default_rng(42)
     # n_img, n_cls, d = 100, 5, 64
-    # _img_emb = np.random.randn(n_img, d)
+    # _img_emb = rng.standard_normal((n_img, d))
     # _img_emb /= np.linalg.norm(_img_emb, axis=1, keepdims=True)
-    # _txt_emb = np.random.randn(n_cls, d)
+    # _txt_emb = rng.standard_normal((n_cls, d))
     # _txt_emb /= np.linalg.norm(_txt_emb, axis=1, keepdims=True)
-    # _labels = np.random.randint(0, n_cls, n_img)
+    # _labels = rng.integers(0, n_cls, n_img)
     # preds, acc, sim = clip_zero_shot(_img_emb, _txt_emb, _labels)
     # print(f"Zero-shot accuracy: {acc:.1%} (random baseline: {1/n_cls:.1%})")
     return (clip_zero_shot,)

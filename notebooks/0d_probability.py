@@ -191,7 +191,7 @@ def _():
     # Verify with simulation
     cards = np.arange(deck)
     n_sims = 500_000
-    draws = np.random.choice(cards, size=n_sims)
+    draws = rng.choice(cards, size=n_sims)
     is_face = draws < 12          # first 12 cards are face cards
     is_king = draws < 4           # first 4 are kings
     simulated = is_king[is_face].mean()
@@ -205,8 +205,8 @@ def _():
 
     # Independence test: are two dice rolls independent?
     n = 200_000
-    die1 = np.random.randint(1, 7, n)
-    die2 = np.random.randint(1, 7, n)
+    die1 = rng.integers(1, 7, n)
+    die2 = rng.integers(1, 7, n)
 
     # P(die1=6) vs P(die1=6 | die2=6) — should be equal if independent
     P_d1_6 = (die1 == 6).mean()
@@ -479,7 +479,7 @@ def _():
 
     # Continuous RV: approximate PDF→probability via sampling
     # P(0.5 < Z < 1.5) for Z ~ N(0,1)
-    z_samples = np.random.randn(1_000_000)
+    z_samples = rng.standard_normal(1_000_000)
     P_interval = ((z_samples > 0.5) & (z_samples < 1.5)).mean()
     print(f"\n=== Continuous: Standard Normal ===")
     print(f"  P(0.5 < Z < 1.5) ≈ {P_interval:.4f}")
@@ -586,11 +586,11 @@ def _():
     # Sample from each distribution, compare empirical vs theoretical moments
     n = 100_000
     dists = {
-        "Bernoulli(0.3)":    (np.random.binomial(1, 0.3, n),    0.3, 0.3*0.7),
-        "Binomial(20,0.4)":  (np.random.binomial(20, 0.4, n),   8.0, 20*0.4*0.6),
-        "Poisson(5)":        (np.random.poisson(5, n),           5.0, 5.0),
-        "Normal(2,3²)":      (np.random.normal(2, 3, n),         2.0, 9.0),
-        "Exponential(λ=2)":  (np.random.exponential(0.5, n),     0.5, 0.25),
+        "Bernoulli(0.3)":    (rng.binomial(1, 0.3, n),    0.3, 0.3*0.7),
+        "Binomial(20,0.4)":  (rng.binomial(20, 0.4, n),   8.0, 20*0.4*0.6),
+        "Poisson(5)":        (rng.poisson(5, n),           5.0, 5.0),
+        "Normal(2,3²)":      (rng.normal(2, 3, n),         2.0, 9.0),
+        "Exponential(λ=2)":  (rng.exponential(0.5, n),     0.5, 0.25),
     }
     print(f"{'Distribution':<20} {'E[X] theory':>11} {'E[X] sample':>11} {'Var theory':>11} {'Var sample':>11}")
     print("-" * 68)
@@ -818,12 +818,12 @@ def _():
     import numpy as np
 
     # Covariance and correlation from data
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     n = 50_000
 
     # Correlated pair: X ~ N(0,1), Y = 2X + noise
-    X = np.random.randn(n)
-    Y = 2 * X + np.random.randn(n) * 0.5
+    X = rng.standard_normal(n)
+    Y = 2 * X + rng.standard_normal(n) * 0.5
 
     cov_XY = np.cov(X, Y)[0, 1]           # off-diagonal of covariance matrix
     corr_XY = np.corrcoef(X, Y)[0, 1]     # normalized to [-1, 1]
@@ -831,7 +831,7 @@ def _():
     print(f"Corr(X,Y) = {corr_XY:.3f}  (strong positive linear relationship)")
 
     # Full covariance matrix for 3 variables
-    Z = -X + np.random.randn(n) * 0.3
+    Z = -X + rng.standard_normal(n) * 0.3
     data = np.stack([X, Y, Z])
     cov_matrix = np.cov(data)
     print(f"\nCovariance matrix (3×3):\n{np.round(cov_matrix, 2)}")
@@ -981,9 +981,9 @@ def _():
     import matplotlib.pyplot as plt
 
     # Law of Large Numbers: running average converges to true mean
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     true_mean = 3.5  # E[fair die]
-    rolls = np.random.randint(1, 7, size=5000)
+    rolls = rng.integers(1, 7, size=5000)
     running_avg = np.cumsum(rolls) / np.arange(1, len(rolls) + 1)
 
     fig_lln, ax_lln = plt.subplots(figsize=(8, 3))
@@ -1192,13 +1192,13 @@ def _():
     specificity = 0.99
 
     # Generate disease status
-    has_disease = np.random.rand(n_people) < prevalence
+    has_disease = rng.random(n_people) < prevalence
 
     # Generate test results
     test_positive = np.where(
         has_disease,
-        np.random.rand(n_people) < sensitivity,   # true positive
-        np.random.rand(n_people) < (1 - specificity)  # false positive
+        rng.random(n_people) < sensitivity,   # true positive
+        rng.random(n_people) < (1 - specificity)  # false positive
     )
 
     # Among those who tested positive, what fraction actually has the disease?
@@ -1227,7 +1227,7 @@ def _():
     fig_clt, axes_clt = plt.subplots(1, 4, figsize=(16, 3))
 
     for ax, n in zip(axes_clt, sample_sizes):
-        means = [np.random.uniform(0, 1, n).mean() for _ in range(10000)]
+        means = [rng.uniform(0, 1, n).mean() for _ in range(10000)]
         ax.hist(means, bins=50, density=True, alpha=0.7)
         ax.set_title(f'Mean of {n} uniform samples')
         ax.set_xlim(0, 1)
@@ -1291,9 +1291,9 @@ def _():
     # Prior: Beta(1,1) = Uniform (we know nothing)
     # After each flip, posterior updates.
 
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     true_p = 0.7
-    flips = np.random.rand(100) < true_p  # 100 flips of a biased coin
+    flips = rng.random(100) < true_p  # 100 flips of a biased coin
 
     x_beta = np.linspace(0, 1, 200)
     a_prior, b_prior = 1, 1  # Beta prior parameters
@@ -1528,7 +1528,7 @@ def _():
 
     for ax, k in zip(axes, k_values):
         # TODO: generate (n_samples, k) exponential draws and take row means
-        # Hint: np.random.exponential(scale=1/lam, size=(n_samples, k)).mean(axis=1)
+        # Hint: rng.exponential(scale=1/lam, size=(n_samples, k)).mean(axis=1)
         means = ...
 
         # Uncomment to plot:

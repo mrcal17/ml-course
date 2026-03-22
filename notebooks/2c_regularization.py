@@ -79,8 +79,8 @@ The result: every parameter decays at the same rate $\eta\lambda$, regardless of
 def _(np):
     # Weight decay: the "decay" step in code
     # theta_{t+1} = (1 - lr * lam) * theta_t  -  lr * grad
-    theta = np.random.randn(5)          # some weights
-    grad = np.random.randn(5)           # gradient of the data loss
+    theta = rng.standard_normal(5)          # some weights
+    grad = rng.standard_normal(5)           # gradient of the data loss
     lr, lam = 0.01, 1e-2
 
     # Standard L2: add penalty gradient to data gradient, then step
@@ -716,7 +716,7 @@ def _(dropout_slider):
     dropout_rate = dropout_slider.value
 
     # Generate data
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     X_data, y_data = make_moons(n_samples=200, noise=0.2, random_state=42)
     X_tensor = torch.tensor(X_data, dtype=torch.float32)
     y_tensor = torch.tensor(y_data, dtype=torch.float32).unsqueeze(1)

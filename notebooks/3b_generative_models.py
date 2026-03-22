@@ -12,7 +12,7 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     return (np,)
 
 
@@ -84,8 +84,8 @@ def _(mo):
 def _(np):
     # Linear autoencoder = PCA: encode to 2D, decode back to 5D
     # Generate data on a 2D subspace embedded in 5D
-    true_basis = np.random.randn(2, 5)  # 2D subspace in 5D
-    X_ae = np.random.randn(200, 2) @ true_basis  # data lives on 2D manifold
+    true_basis = rng.standard_normal((2, 5))  # 2D subspace in 5D
+    X_ae = rng.standard_normal((200, 2)) @ true_basis  # data lives on 2D manifold
 
     # "Encoder" via PCA: project onto top-2 principal components
     U, S, Vt = np.linalg.svd(X_ae, full_matrices=False)
@@ -196,7 +196,7 @@ def _(np):
     sigma_reparam = np.array([0.3, 0.8])        # encoder output: std dev
 
     # Sample epsilon from standard normal (fixed randomness)
-    epsilon = np.random.randn(5, 2)             # 5 samples, 2D latent
+    epsilon = rng.standard_normal((5, 2))             # 5 samples, 2D latent
 
     # Reparameterized samples: deterministic function of (mu, sigma, epsilon)
     z_samples = mu_reparam + sigma_reparam * epsilon  # shape: (5, 2)
@@ -418,7 +418,7 @@ def _(np):
 
     # Start from a clean 1D "data point"
     x0 = np.array([3.0])
-    eps = np.random.randn(T_diff, 1)  # pre-sample noise for each step
+    eps = rng.standard_normal((T_diff, 1))  # pre-sample noise for each step
 
     # Closed-form: x_t = sqrt(alpha_bar_t) * x0 + sqrt(1 - alpha_bar_t) * eps
     x_t_vals = np.sqrt(alpha_bar)[:, None] * x0 + np.sqrt(1 - alpha_bar)[:, None] * eps
@@ -461,20 +461,20 @@ def _(alpha_bar, np):
     # L = E[||eps - eps_theta(x_t, t)||^2]
 
     d_data = 8  # data dimension
-    x0_train = np.random.randn(d_data) * 0.5 + 2.0  # one training sample
+    x0_train = rng.standard_normal(d_data) * 0.5 + 2.0  # one training sample
 
     # 1. Sample random timestep
-    t_step = np.random.randint(0, len(alpha_bar))
+    t_step = rng.integers(0, len(alpha_bar))
     ab_t = alpha_bar[t_step]
 
     # 2. Sample noise
-    eps_true = np.random.randn(d_data)
+    eps_true = rng.standard_normal(d_data)
 
     # 3. Create noisy version (closed-form)
     x_t_noisy = np.sqrt(ab_t) * x0_train + np.sqrt(1 - ab_t) * eps_true
 
     # 4. "Network prediction" (placeholder -- in practice a U-Net)
-    eps_pred = eps_true + 0.1 * np.random.randn(d_data)  # imperfect prediction
+    eps_pred = eps_true + 0.1 * rng.standard_normal(d_data)  # imperfect prediction
 
     # 5. Loss = MSE between true and predicted noise
     loss = np.mean((eps_true - eps_pred) ** 2)
@@ -509,7 +509,7 @@ def _(alpha_bar, betas, np):
     true_x0 = 3.0  # ground truth we want to recover
 
     # Start from pure noise
-    x_t_samp = np.random.randn()
+    x_t_samp = rng.standard_normal()
 
     for t in reversed(range(T_samp)):
         # In reality, a network predicts the noise. Here we simulate a
@@ -522,7 +522,7 @@ def _(alpha_bar, betas, np):
         mu_t = (1 / np.sqrt(1 - beta_t)) * (x_t_samp - beta_t / np.sqrt(1 - ab_t + 1e-8) * pred_noise)
 
         if t > 0:
-            x_t_samp = mu_t + np.sqrt(beta_t) * np.random.randn()
+            x_t_samp = mu_t + np.sqrt(beta_t) * rng.standard_normal()
         else:
             x_t_samp = mu_t  # final step: no noise
 
@@ -570,9 +570,9 @@ def _(np):
     # Langevin dynamics: sample from mixture of two Gaussians
     means_ld, stds_ld, weights_ld = [-2, 2], [0.7, 0.7], [0.5, 0.5]
     eta = 0.05  # step size
-    x_lang = np.random.randn() * 3  # start from noise
+    x_lang = rng.standard_normal() * 3  # start from noise
     for _ in range(200):
-        x_lang = x_lang + (eta / 2) * gmm_score(x_lang, means_ld, stds_ld, weights_ld) + np.sqrt(eta) * np.random.randn()
+        x_lang = x_lang + (eta / 2) * gmm_score(x_lang, means_ld, stds_ld, weights_ld) + np.sqrt(eta) * rng.standard_normal()
 
     print(f"Langevin sample after 200 steps: {x_lang:.3f}")
     print(f"(Target modes at x=-2 and x=2)")
@@ -650,7 +650,7 @@ def _(np):
         return np.log(np.abs(1 + a_flow * b_flow * (1 - np.tanh(b_flow * z_in)**2)))
 
     # Sample from base distribution and transform
-    z_flow = np.random.randn(5000)
+    z_flow = rng.standard_normal(5000)
     x_flow = flow_forward(z_flow)
 
     # Exact log-likelihood for a specific point (using numerical inverse)
@@ -824,7 +824,7 @@ def _(np):
         log_var = None  # shape (N, L)
 
         # TODO: Reparameterize -- sample z = mu + exp(0.5*log_var) * epsilon
-        epsilon = np.random.randn(*mu.shape)
+        epsilon = rng.standard_normal(mu.shape)
         z = None  # shape (N, L)
 
         # TODO: Decode -- reconstruct x
@@ -842,9 +842,9 @@ def _(np):
 
     # Test dimensions (uncomment after implementing):
     # N, D, L = 32, 10, 3
-    # x_test = np.random.randn(N, D)
-    # elbo, x_r, z_v = vae_forward(x_test, np.random.randn(D,L)*0.1,
-    #                                np.random.randn(D,L)*0.1, np.random.randn(L,D)*0.1)
+    # x_test = rng.standard_normal((N, D))
+    # elbo, x_r, z_v = vae_forward(x_test, rng.standard_normal((D,L))*0.1,
+    #                                rng.standard_normal((D,L))*0.1, rng.standard_normal((L,D))*0.1)
     # print(f"ELBO: {elbo:.4f}, recon shape: {x_r.shape}, z shape: {z_v.shape}")
     return (vae_forward,)
 
@@ -884,7 +884,7 @@ def _(np):
         _sigmoid = lambda x: 1.0 / (1.0 + np.exp(-np.clip(x, -20, 20)))
 
         # TODO: Sample noise and generate fake data
-        z = np.random.randn(N, z_dim)
+        z = rng.standard_normal((N, z_dim))
         fake_data = None  # shape (N, D)
 
         # TODO: Discriminator scores (apply sigmoid to D_weights^T x)
@@ -910,8 +910,8 @@ def _(np):
 
     # Test (uncomment after implementing):
     # z_dim_test, D_dim = 2, 5
-    # dl, gl, _, _ = gan_training_step(np.random.randn(64, D_dim),
-    #     np.random.randn(z_dim_test, D_dim)*0.1, np.random.randn(D_dim, 1)*0.1, z_dim_test)
+    # dl, gl, _, _ = gan_training_step(rng.standard_normal((64, D_dim)),
+    #     rng.standard_normal((z_dim_test, D_dim))*0.1, rng.standard_normal((D_dim, 1))*0.1, z_dim_test)
     # print(f"D_loss: {dl:.4f}, G_loss: {gl:.4f}")
     return (gan_training_step,)
 
@@ -961,7 +961,7 @@ def _(np):
         x_t = None  # shape (N, D)
 
         # Placeholder "network prediction" (in practice this is a neural net)
-        eps_pred_ex = eps_ex + 0.05 * np.random.randn(N, D)
+        eps_pred_ex = eps_ex + 0.05 * rng.standard_normal((N, D))
 
         # TODO: Loss = mean squared error between eps and eps_pred
         loss = None
@@ -969,7 +969,7 @@ def _(np):
         return loss, alpha_bar_sched
 
     # Test (uncomment after implementing):
-    # loss_test, ab_test = diffusion_training_loss(np.random.randn(64, 8))
+    # loss_test, ab_test = diffusion_training_loss(rng.standard_normal((64, 8)))
     # print(f"Diffusion loss: {loss_test:.6f}")
     # print(f"alpha_bar at t=0: {ab_test[0]:.4f}, at t=T: {ab_test[-1]:.4f}")
     return (diffusion_training_loss,)
@@ -1052,9 +1052,9 @@ def _(np):
 
     # Test (uncomment after implementing):
     # D_flow = 4
-    # x_test_flow = np.random.randn(10, D_flow)
-    # Ws, bs = np.random.randn(D_flow//2, D_flow//2)*0.1, np.zeros(D_flow//2)
-    # Wt, bt = np.random.randn(D_flow//2, D_flow//2)*0.1, np.zeros(D_flow//2)
+    # x_test_flow = rng.standard_normal((10, D_flow))
+    # Ws, bs = rng.standard_normal((D_flow//2, D_flow//2))*0.1, np.zeros(D_flow//2)
+    # Wt, bt = rng.standard_normal((D_flow//2, D_flow//2))*0.1, np.zeros(D_flow//2)
     # y_flow, ld = affine_coupling_forward(x_test_flow, Ws, bs, Wt, bt)
     # x_rec = affine_coupling_inverse(y_flow, Ws, bs, Wt, bt)
     # print(f"Reconstruction error: {np.max(np.abs(x_test_flow - x_rec)):.2e}")

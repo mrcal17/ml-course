@@ -48,12 +48,12 @@ def _(mo):
 @app.cell
 def _(np):
     # y = Xw + epsilon: the linear model in numpy
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     n_demo, p_demo = 50, 2
-    X_demo = np.random.randn(n_demo, p_demo)             # design matrix (n x p)
+    X_demo = rng.standard_normal((n_demo, p_demo))             # design matrix (n x p)
     X_demo = np.c_[np.ones(n_demo), X_demo]               # prepend 1s column for intercept
     w_demo_true = np.array([5.0, -2.0, 3.0])              # true weights [intercept, w1, w2]
-    epsilon_demo = 0.4 * np.random.randn(n_demo)           # Gaussian noise
+    epsilon_demo = 0.4 * rng.standard_normal(n_demo)           # Gaussian noise
     y_demo = X_demo @ w_demo_true + epsilon_demo           # y = Xw + eps
 
     print(f"X shape: {X_demo.shape}  (n={n_demo}, p={p_demo}+1 with intercept)")
@@ -193,9 +193,9 @@ def _(mo):
 @app.cell
 def _(np):
     # Demonstrating multicollinearity and condition number
-    np.random.seed(0)
-    X_good = np.random.randn(50, 3)
-    X_bad = np.column_stack([X_good, X_good[:, 0] + 1e-8 * np.random.randn(50)])  # near-duplicate column
+    rng = np.random.default_rng(0)
+    X_good = rng.standard_normal((50, 3))
+    X_bad = np.column_stack([X_good, X_good[:, 0] + 1e-8 * rng.standard_normal(50)])  # near-duplicate column
 
     cond_good = np.linalg.cond(X_good.T @ X_good)
     cond_bad = np.linalg.cond(X_bad.T @ X_bad)
@@ -255,12 +255,12 @@ def _(mo):
 @app.cell
 def _(np):
     # Generate synthetic data
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n, p = 100, 3
-    X_synth = np.random.randn(n, p)
+    X_synth = rng.standard_normal((n, p))
     X_synth = np.c_[np.ones(n), X_synth]  # Add intercept column
     w_true = np.array([2.0, -1.0, 0.5, 3.0])
-    y_synth = X_synth @ w_true + 0.5 * np.random.randn(n)
+    y_synth = X_synth @ w_true + 0.5 * rng.standard_normal(n)
 
     # --- Closed-form (Normal Equation) ---
     w_ols = np.linalg.solve(X_synth.T @ X_synth, X_synth.T @ y_synth)   # numerically stabler than inv()
@@ -281,7 +281,7 @@ def _(np):
     w_sgd = np.zeros(X_synth.shape[1])
     lr_sgd = 0.005
     for epoch in range(50):
-        indices = np.random.permutation(n)
+        indices = rng.permutation(n)
         for i in indices:
             xi = X_synth[i:i+1]
             yi = y_synth[i:i+1]
@@ -512,9 +512,9 @@ def _(mo):
 @app.cell
 def _(np, PolynomialFeatures, LinearRegression, mean_squared_error):
     # True function: y = 0.5x^2 - x + 2 + noise
-    np.random.seed(0)
-    x_poly = np.sort(np.random.uniform(-3, 3, 30))
-    y_poly = 0.5 * x_poly**2 - x_poly + 2 + np.random.randn(30) * 0.8
+    rng = np.random.default_rng(0)
+    x_poly = np.sort(rng.uniform(-3, 3, 30))
+    y_poly = 0.5 * x_poly**2 - x_poly + 2 + rng.standard_normal(30) * 0.8
 
     # Fit polynomials of increasing degree
     for degree in [1, 2, 5, 15]:
@@ -711,10 +711,10 @@ def _(mo):
 @app.cell
 def _(np, PolynomialFeatures, RidgeCV, LassoCV):
     # Using polynomial features (degree 10, easy to overfit)
-    np.random.seed(0)
-    x_reg = np.sort(np.random.uniform(-3, 3, 30))
+    rng = np.random.default_rng(0)
+    x_reg = np.sort(rng.uniform(-3, 3, 30))
     y_true_reg = 0.5 * x_reg**2 - x_reg + 2
-    y_reg = y_true_reg + np.random.randn(30) * 0.8
+    y_reg = y_true_reg + rng.standard_normal(30) * 0.8
 
     poly_reg = PolynomialFeatures(10)
     X_poly_reg = poly_reg.fit_transform(x_reg.reshape(-1, 1))
@@ -854,7 +854,7 @@ def _(mo):
 
 @app.cell
 def _(np, Ridge, PolynomialFeatures, mean_squared_error):
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
 
     def _true_fn(x):
         return 0.5 * x**2 - x + 2
@@ -872,8 +872,8 @@ def _(np, Ridge, PolynomialFeatures, mean_squared_error):
     for _alpha in alphas_bv:
         _trial_train, _trial_test = [], []
         for _ in range(n_trials):
-            _x_train = np.random.uniform(-3, 3, 30)
-            _y_train = _true_fn(_x_train) + np.random.randn(30) * 0.8
+            _x_train = rng.uniform(-3, 3, 30)
+            _y_train = _true_fn(_x_train) + rng.standard_normal(30) * 0.8
 
             _poly = PolynomialFeatures(_degree)
             _X_tr = _poly.fit_transform(_x_train.reshape(-1, 1))
@@ -958,10 +958,10 @@ def _(np):
         return X_aug @ w
 
     # Test data
-    np.random.seed(99)
-    _X_ex = np.random.randn(80, 3)
+    rng = np.random.default_rng(99)
+    _X_ex = rng.standard_normal((80, 3))
     _w_ex_true = np.array([1.5, -0.8, 2.1, 0.3])  # intercept + 3 features
-    _y_ex = np.c_[np.ones(80), _X_ex] @ _w_ex_true + 0.2 * np.random.randn(80)
+    _y_ex = np.c_[np.ones(80), _X_ex] @ _w_ex_true + 0.2 * rng.standard_normal(80)
 
     w_fit = ols_fit(_X_ex, _y_ex)
     print(f"True weights:  {_w_ex_true}")
@@ -999,10 +999,10 @@ def _(np):
         return w, losses
 
     # Test: compare GD to OLS on same data
-    np.random.seed(99)
-    _X_gd = np.random.randn(80, 3)
+    rng = np.random.default_rng(99)
+    _X_gd = rng.standard_normal((80, 3))
     _w_gd_true = np.array([1.5, -0.8, 2.1, 0.3])
-    _y_gd = np.c_[np.ones(80), _X_gd] @ _w_gd_true + 0.2 * np.random.randn(80)
+    _y_gd = np.c_[np.ones(80), _X_gd] @ _w_gd_true + 0.2 * rng.standard_normal(80)
 
     w_gd_ex, loss_hist = gd_fit(_X_gd, _y_gd, lr=0.001, n_iters=3000)
     print(f"True:  {_w_gd_true}")
@@ -1034,10 +1034,10 @@ def _(np, plt):
         return w
 
     # Sweep lambda and plot ||w||_2
-    np.random.seed(99)
-    _X_r = np.random.randn(80, 5)
+    rng = np.random.default_rng(99)
+    _X_r = rng.standard_normal((80, 5))
     _w_r_true = np.array([1.0, -2.0, 3.0, 0.5, -1.5, 2.5])
-    _y_r = np.c_[np.ones(80), _X_r] @ _w_r_true + 0.3 * np.random.randn(80)
+    _y_r = np.c_[np.ones(80), _X_r] @ _w_r_true + 0.3 * rng.standard_normal(80)
 
     lambdas = np.logspace(-3, 3, 50)
     norms = [np.linalg.norm(ridge_fit(_X_r, _y_r, l)) for l in lambdas]
@@ -1088,10 +1088,10 @@ def _(np):
         return w
 
     # Data: 3 real features + 4 irrelevant ones
-    np.random.seed(42)
-    _X_l = np.random.randn(100, 7)
+    rng = np.random.default_rng(42)
+    _X_l = rng.standard_normal((100, 7))
     _w_l_true = np.array([1.0, 2.0, -1.5, 3.0, 0, 0, 0, 0])  # last 4 are zero
-    _y_l = np.c_[np.ones(100), _X_l] @ _w_l_true + 0.3 * np.random.randn(100)
+    _y_l = np.c_[np.ones(100), _X_l] @ _w_l_true + 0.3 * rng.standard_normal(100)
 
     w_lasso_ex = lasso_fit(_X_l, _y_l, lam=10.0)
     print(f"True:  {_w_l_true}")
@@ -1112,13 +1112,13 @@ def _(mo):
 
 @app.cell
 def _(np, ols_fit, ols_predict, ridge_fit, lasso_fit):
-    np.random.seed(123)
+    rng = np.random.default_rng(123)
     # Overparameterized: 20 features, only 5 matter, 60 training samples
     _n_pipe, _p_pipe = 60, 20
-    _X_pipe = np.random.randn(_n_pipe, _p_pipe)
+    _X_pipe = rng.standard_normal((_n_pipe, _p_pipe))
     _w_pipe_true = np.zeros(_p_pipe + 1)
     _w_pipe_true[:6] = [3.0, -2.0, 1.5, 0.8, -1.2, 2.0]  # intercept + 5 features
-    _y_pipe = np.c_[np.ones(_n_pipe), _X_pipe] @ _w_pipe_true + 0.5 * np.random.randn(_n_pipe)
+    _y_pipe = np.c_[np.ones(_n_pipe), _X_pipe] @ _w_pipe_true + 0.5 * rng.standard_normal(_n_pipe)
 
     # Train/test split
     _split = 45

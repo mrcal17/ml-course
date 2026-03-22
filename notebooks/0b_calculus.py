@@ -249,10 +249,10 @@ def _():
     import numpy as np
 
     # MSE partial derivatives for simple linear regression: y_hat = w*x + b
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n = 50
-    x_data = np.random.randn(n)
-    y_data = 2.5 * x_data + 1.0 + 0.3 * np.random.randn(n)  # true w=2.5, b=1.0
+    x_data = rng.standard_normal(n)
+    y_data = 2.5 * x_data + 1.0 + 0.3 * rng.standard_normal(n)  # true w=2.5, b=1.0
 
     w, b = 1.0, 0.0  # initial guess
     residuals = y_data - w * x_data - b
@@ -631,9 +631,9 @@ def _():
     print(f"  (A+A^T)x = {grad_analytic}, numeric = {np.round(grad_num2, 4)}")
 
     # Normal equation: w* = (X^T X)^{-1} X^T y
-    np.random.seed(0)
-    X = np.random.randn(20, 3)
-    y = X @ np.array([1.5, -2.0, 0.5]) + 0.1 * np.random.randn(20)
+    rng = np.random.default_rng(0)
+    X = rng.standard_normal((20, 3))
+    y = X @ np.array([1.5, -2.0, 0.5]) + 0.1 * rng.standard_normal(20)
     w_star = np.linalg.solve(X.T @ X, X.T @ y)
     print(f"\nNormal equation solution: w* = {np.round(w_star, 4)}")
     print(f"True weights:                   [1.5, -2.0, 0.5]")
@@ -849,9 +849,9 @@ def _():
     sigmoid = lambda z: 1 / (1 + np.exp(-z))
 
     # Generate linearly separable 2D data
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n = 100
-    X = np.random.randn(n, 2)
+    X = rng.standard_normal((n, 2))
     true_w = np.array([2.0, -1.5])
     y = (X @ true_w > 0).astype(float)
 
@@ -1137,11 +1137,11 @@ def _():
     import numpy as np
 
     # Generate synthetic data
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     n, d = 50, 4
-    X = np.random.randn(n, d)
+    X = rng.standard_normal((n, d))
     w_true = np.array([3.0, -1.0, 0.5, 2.0])
-    y = X @ w_true + 0.5 * np.random.randn(n)
+    y = X @ w_true + 0.5 * rng.standard_normal(n)
     lam = 1.0  # regularization strength
 
     # TODO: Closed-form Ridge solution

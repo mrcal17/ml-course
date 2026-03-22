@@ -322,11 +322,11 @@ def _(mo):
 @app.cell
 def _(np, softmax):
     # --- Scaled dot-product attention (single head) ---
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     seq_len, d_k = 4, 8  # 4 tokens, embedding dim 8
-    Q = np.random.randn(seq_len, d_k)  # queries
-    K = np.random.randn(seq_len, d_k)  # keys
-    V = np.random.randn(seq_len, d_k)  # values
+    Q = rng.standard_normal((seq_len, d_k))  # queries
+    K = rng.standard_normal((seq_len, d_k))  # keys
+    V = rng.standard_normal((seq_len, d_k))  # values
 
     # scores = Q K^T / sqrt(d_k)
     scores = Q @ K.T / np.sqrt(d_k)
@@ -370,17 +370,17 @@ def _(np):
     sentence_tokens = ["the", "cat", "sat", "on", "the", "mat"]
     mask_prob = 0.15  # BERT masks ~15% of tokens
 
-    np.random.seed(7)
+    rng = np.random.default_rng(7)
     masked = sentence_tokens.copy()
     masked_positions = []
     for i in range(len(masked)):
-        if np.random.rand() < mask_prob or i == 2:  # force at least one mask
+        if rng.random() < mask_prob or i == 2:  # force at least one mask
             masked[i] = "[MASK]"
             masked_positions.append(i)
 
     # Simulate model output: probability distribution over small vocab
     small_vocab = ["the", "cat", "sat", "on", "mat", "dog", "ran"]
-    fake_logits = np.random.randn(len(masked_positions), len(small_vocab))
+    fake_logits = rng.standard_normal((len(masked_positions)), len(small_vocab))
     # Make correct answer have highest logit (pretend model is good)
     for idx, pos in enumerate(masked_positions):
         correct_word = sentence_tokens[pos]
@@ -418,12 +418,12 @@ def _(mo):
 @app.cell
 def _(np, softmax):
     # --- Causal (autoregressive) attention: the GPT masking pattern ---
-    np.random.seed(0)
+    rng = np.random.default_rng(0)
     seq_len_ar = 5
     d = 4
-    Q_ar = np.random.randn(seq_len_ar, d)
-    K_ar = np.random.randn(seq_len_ar, d)
-    V_ar = np.random.randn(seq_len_ar, d)
+    Q_ar = rng.standard_normal((seq_len_ar, d))
+    K_ar = rng.standard_normal((seq_len_ar, d))
+    V_ar = rng.standard_normal((seq_len_ar, d))
 
     scores_ar = Q_ar @ K_ar.T / np.sqrt(d)
 
@@ -527,7 +527,7 @@ def _(mo):
 def _(np):
     # --- Minimal RAG: embed, index, retrieve with cosine similarity ---
     # Fake embeddings (in practice you'd use a real embedding model)
-    np.random.seed(99)
+    rng = np.random.default_rng(99)
     knowledge_base = [
         "Python was created by Guido van Rossum in 1991.",
         "The Eiffel Tower is 330 meters tall.",
@@ -535,13 +535,13 @@ def _(np):
         "Water boils at 100 degrees Celsius at sea level.",
     ]
     # Simulate embeddings (dim=16)
-    doc_embeddings = np.random.randn(len(knowledge_base), 16)
+    doc_embeddings = rng.standard_normal((len(knowledge_base)), 16)
     # Normalize for cosine similarity
     doc_embeddings = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
 
     # Query embedding (simulated — biased toward doc 2)
     query = "What paper introduced transformers?"
-    query_emb = doc_embeddings[2] + np.random.randn(16) * 0.3
+    query_emb = doc_embeddings[2] + rng.standard_normal(16) * 0.3
     query_emb = query_emb / np.linalg.norm(query_emb)
 
     # Retrieve: cosine similarity = dot product (since normalized)
@@ -820,11 +820,11 @@ def _(np):
         return output
 
     # Test:
-    # np.random.seed(42)
+    # rng = np.random.default_rng(42)
     # seq, dm = 6, 16
-    # Q_test = np.random.randn(seq, dm)
-    # K_test = np.random.randn(seq, dm)
-    # V_test = np.random.randn(seq, dm)
+    # Q_test = rng.standard_normal((seq, dm))
+    # K_test = rng.standard_normal((seq, dm))
+    # V_test = rng.standard_normal((seq, dm))
     # out = multi_head_attention(Q_test, K_test, V_test, num_heads=4)
     # print(f"Output shape: {out.shape}")  # should be (6, 16)
     return (multi_head_attention,)

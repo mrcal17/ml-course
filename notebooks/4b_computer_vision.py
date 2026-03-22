@@ -275,7 +275,7 @@ def _(np):
         return out
 
     # Compare receptive fields: dilation=1 vs dilation=2
-    test_img = np.random.randn(8, 8)
+    test_img = rng.standard_normal((8, 8))
     kernel = np.ones((3, 3)) / 9  # averaging kernel
     out_d1 = dilated_conv2d(test_img, kernel, dilation=1)  # 3x3 receptive field
     out_d2 = dilated_conv2d(test_img, kernel, dilation=2)  # 5x5 receptive field
@@ -317,8 +317,8 @@ def _(np):
         return loss / (H * W)
 
     # Tiny 4x4 segmentation map with 3 classes
-    pred = np.random.randn(4, 4, 3)
-    labels = np.random.randint(0, 3, (4, 4))
+    pred = rng.standard_normal((4, 4, 3))
+    labels = rng.integers(0, 3, (4, 4))
     loss = pixel_cross_entropy(pred, labels)
     print(f"Pixel-wise cross-entropy loss: {loss:.4f}")
 
@@ -441,10 +441,10 @@ def _(np):
                 patches.append(patch)
         patches = np.array(patches)  # (N, patch_size^2 * C)
         # Step 2: Linear projection (random weights for demo)
-        proj = np.random.randn(patches.shape[1], embed_dim) * 0.02
+        proj = rng.standard_normal((patches.shape[1], embed_dim)) * 0.02
         embeddings = patches @ proj  # (N, embed_dim)
         # Step 3: Add learnable position embeddings
-        pos_embed = np.random.randn(num_patches + 1, embed_dim) * 0.02
+        pos_embed = rng.standard_normal((num_patches + 1, embed_dim)) * 0.02
         # Step 4: Prepend [CLS] token
         cls_token = np.zeros((1, embed_dim))
         tokens = np.vstack([cls_token, embeddings])  # (N+1, embed_dim)
@@ -452,7 +452,7 @@ def _(np):
         return tokens
 
     # 8x8 RGB image -> 4 patches of 4x4 -> 5 tokens (4 patches + CLS)
-    dummy_img = np.random.randn(8, 8, 3)
+    dummy_img = rng.standard_normal((8, 8, 3))
     tokens = vit_patch_embed(dummy_img, patch_size=4, embed_dim=8)
     print(f"Image shape: {dummy_img.shape}")
     print(f"Token sequence shape: {tokens.shape}")  # (5, 8)
@@ -478,9 +478,9 @@ def _(np):
         """Single-head self-attention over token sequence (N, D)."""
         N, D = tokens.shape
         # Learnable projection matrices (random for demo)
-        W_q = np.random.randn(D, d_k) * 0.1
-        W_k = np.random.randn(D, d_k) * 0.1
-        W_v = np.random.randn(D, d_k) * 0.1
+        W_q = rng.standard_normal((D, d_k)) * 0.1
+        W_k = rng.standard_normal((D, d_k)) * 0.1
+        W_v = rng.standard_normal((D, d_k)) * 0.1
         Q, K, V = tokens @ W_q, tokens @ W_k, tokens @ W_v
         # Scaled dot-product attention: softmax(QK^T / sqrt(d_k)) V
         scores = (Q @ K.T) / np.sqrt(d_k)
@@ -489,7 +489,7 @@ def _(np):
         output = attn_weights @ V  # (N, d_k)
         return output, attn_weights
 
-    demo_tokens = np.random.randn(5, 8)  # 5 tokens, dim 8
+    demo_tokens = rng.standard_normal((5, 8))  # 5 tokens, dim 8
     out, weights = self_attention(demo_tokens, d_k=8)
     print(f"Attention output shape: {out.shape}")
     print(f"CLS token attends to patches with weights: {weights[0].round(3)}")
@@ -545,8 +545,8 @@ def _(np):
         return loss, logits * temperature  # return similarity matrix too
 
     # Batch of 4 image-text pairs (embed_dim=16)
-    img_emb = np.random.randn(4, 16)
-    txt_emb = img_emb + np.random.randn(4, 16) * 0.1  # text similar to matching image
+    img_emb = rng.standard_normal((4, 16))
+    txt_emb = img_emb + rng.standard_normal((4, 16)) * 0.1  # text similar to matching image
     loss, sim = clip_contrastive_loss(img_emb, txt_emb)
     print(f"CLIP loss: {loss:.4f}")
     print(f"Similarity matrix (should be high on diagonal):\n{sim.round(2)}")
@@ -732,22 +732,22 @@ def _(mo):
 def _(np):
     def random_horizontal_flip(img, p=0.5):
         """Flip image left-right with probability p."""
-        if np.random.rand() < p:
+        if rng.random() < p:
             return img[:, ::-1].copy()
         return img
 
     def random_crop(img, crop_h, crop_w):
         """Random crop of size (crop_h, crop_w) from image."""
         H, W = img.shape[:2]
-        top = np.random.randint(0, H - crop_h + 1)
-        left = np.random.randint(0, W - crop_w + 1)
+        top = rng.integers(0, H - crop_h + 1)
+        left = rng.integers(0, W - crop_w + 1)
         return img[top:top+crop_h, left:left+crop_w]
 
     def cutout(img, mask_size=4):
         """Cutout: randomly zero out a square region (regularization)."""
         out = img.copy()
         H, W = img.shape[:2]
-        cy, cx = np.random.randint(0, H), np.random.randint(0, W)
+        cy, cx = rng.integers(0, H), rng.integers(0, W)
         y1, y2 = max(0, cy - mask_size//2), min(H, cy + mask_size//2)
         x1, x2 = max(0, cx - mask_size//2), min(W, cx + mask_size//2)
         out[y1:y2, x1:x2] = 0
@@ -915,9 +915,9 @@ def _(np):
         return combined
 
     # Test: 3 feature maps at decreasing resolution
-    fm1 = np.random.randn(8, 8)   # full resolution
-    fm2 = np.random.randn(4, 4)   # 2x downsampled
-    fm3 = np.random.randn(2, 2)   # 4x downsampled
+    fm1 = rng.standard_normal((8, 8))   # full resolution
+    fm2 = rng.standard_normal((4, 4))   # 2x downsampled
+    fm3 = rng.standard_normal((2, 2))   # 4x downsampled
     result = build_feature_pyramid([fm1, fm2, fm3])
     print(f"Expected output shape: (8, 8, 3), Got: {result.shape if result is not None else 'None'}")
     return (build_feature_pyramid,)
@@ -1018,7 +1018,7 @@ def _(np):
         output = np.zeros_like(tokens)  # placeholder
         return output
 
-    demo = np.random.randn(5, 8)
+    demo = rng.standard_normal((5, 8))
     mha_out = multi_head_attention(demo, num_heads=2)
     print(f"Input shape: {demo.shape}, Output shape: {mha_out.shape}")
     return (multi_head_attention,)
@@ -1081,7 +1081,7 @@ def _(np):
 
     # Test with random predictions
     S, B, C = 3, 2, 3
-    preds = np.random.rand(S, S, B * 5 + C)
+    preds = rng.random((S, S, B * 5 + C))
     decoded = decode_yolo_grid(preds, S=S, B=B, C=C)
     print(f"Decoded {len(decoded)} boxes from {S}x{S} grid with {B} boxes/cell")
     return (decode_yolo_grid,)

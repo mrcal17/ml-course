@@ -69,7 +69,7 @@ def _(np):
         model[(s, a)] = (s_next, r)  # store in learned model
         # Planning: replay from model (simulated experience)
         for _ in range(n_planning):
-            si, ai = list(model.keys())[np.random.randint(len(model))]
+            si, ai = list(model.keys())[rng.integers(len(model))]
             sn, ri = model[(si, ai)]
             Q[si, ai] += alpha * (ri + gamma * np.max(Q[sn]) - Q[si, ai])
 
@@ -238,7 +238,7 @@ def _(np):
         for i in range(2):
             opp = 1 - i
             if counts[opp].sum() == 0:
-                strategies.append(np.random.randint(3))
+                strategies.append(rng.integers(3))
             else:
                 # Best-respond to opponent's empirical distribution
                 opp_freq = counts[opp] / counts[opp].sum()
@@ -448,8 +448,8 @@ def _(np):
         return pos
 
     # Domain randomization: sample friction from a wide range during training
-    np.random.seed(42)
-    frictions = np.random.uniform(0.5, 3.0, size=100)  # randomized friction
+    rng = np.random.default_rng(42)
+    frictions = rng.uniform(0.5, 3.0, size=100)  # randomized friction
     positions = [simulate_push(force=5.0, friction=f) for f in frictions]
 
     print(f"Force = 5.0 across {len(frictions)} randomized friction values")
@@ -783,9 +783,9 @@ def _(np):
         return weights, loss
 
     # Test:
-    # np.random.seed(0)
-    # _X_c = np.random.randn(50, 5)  # chosen responses
-    # _X_r = np.random.randn(50, 5)  # rejected responses (different distribution)
+    # rng = np.random.default_rng(0)
+    # _X_c = rng.standard_normal((50, 5))  # chosen responses
+    # _X_r = rng.standard_normal((50, 5))  # rejected responses (different distribution)
     # _X_c[:, 0] += 1.0  # chosen responses have higher feature 0
     # _w = np.zeros(5)
     # _w, _loss = train_reward_model(_X_c, _X_r, _w, lr=0.1, n_steps=200)
@@ -841,10 +841,10 @@ def _(np):
         return policy_loss, advantages
 
     # Test:
-    # np.random.seed(42)
-    # _lp = np.log(np.random.uniform(0.1, 0.9, size=10))
-    # _r = np.random.randn(10)
-    # _v = np.random.randn(10) * 0.5
+    # rng = np.random.default_rng(42)
+    # _lp = np.log(rng.uniform(0.1, 0.9, size=10))
+    # _r = rng.standard_normal(10)
+    # _v = rng.standard_normal(10) * 0.5
     # _loss, _adv = policy_gradient_with_gae(_lp, _r, _v)
     # print(f"Policy loss: {_loss:.4f}")
     # print(f"Advantages (first 5): {np.round(_adv[:5], 3)}")

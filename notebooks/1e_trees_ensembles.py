@@ -339,7 +339,7 @@ def _(DecisionTreeClassifier, make_moons, np):
 
     for seed in range(10):
         # Bootstrap resample (simulating small data perturbation)
-        rng = np.random.RandomState(seed)
+        rng = np.random.default_rng(seed)
         idx = rng.choice(len(X_instab), len(X_instab), replace=True)
         dt_inst = DecisionTreeClassifier(random_state=0)
         dt_inst.fit(X_instab[idx], y_instab[idx])
@@ -626,7 +626,7 @@ def _(DecisionTreeClassifier, np):
     # Gradient boosting from scratch (regression, squared error loss)
     # For L2 loss, pseudo-residuals = y - F(x), i.e. literal residuals
     from sklearn.tree import DecisionTreeRegressor
-    rng_gb = np.random.RandomState(42)
+    rng_gb = np.random.default_rng(42)
     X_gb_demo = rng_gb.uniform(0, 10, (100, 1))
     y_gb_demo = np.sin(X_gb_demo.ravel()) + rng_gb.normal(0, 0.2, 100)
 
@@ -756,7 +756,7 @@ def _(mo):
 def _(np):
     # Histogram-based splitting: bin continuous features into buckets
     # This is the core speedup in XGBoost/LightGBM
-    x_cont = np.random.RandomState(0).normal(0, 1, 10000)
+    x_cont = np.random.default_rng(0).normal(0, 1, 10000)
 
     n_bins = 256  # typical default
     bin_edges = np.linspace(x_cont.min(), x_cont.max(), n_bins + 1)
@@ -1037,7 +1037,7 @@ def _(DecisionTreeClassifier, np):
         predictions = []
 
         for b in range(B):
-            rng_bag = np.random.RandomState(b)
+            rng_bag = np.random.default_rng(b)
             # TODO: draw bootstrap sample (sample n indices with replacement)
             idx = None  # replace this
 
@@ -1119,7 +1119,7 @@ def _(DecisionTreeClassifier, np):
         predictions = []
 
         for b in range(B):
-            rng_rf = np.random.RandomState(b)
+            rng_rf = np.random.default_rng(b)
             # TODO: draw bootstrap sample
             idx = None  # replace this
 
@@ -1162,7 +1162,7 @@ def _(np):
         for j in range(n_features):
             drops = []
             for r in range(n_repeats):
-                rng_pi = np.random.RandomState(r + j * 1000)
+                rng_pi = np.random.default_rng(r + j * 1000)
                 X_perm = X_val_pi.copy()
                 # TODO: shuffle column j of X_perm
                 # Hint: rng_pi.shuffle(X_perm[:, j])
