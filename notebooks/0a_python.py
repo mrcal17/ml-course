@@ -23,7 +23,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -104,7 +104,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### List Comprehensions and Generators
@@ -136,7 +136,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     The nested comprehension syntax (`for batch in batches for pred in batch`) reads left-to-right in the same order you'd write nested for-loops. It trips people up at first, but it becomes second nature. You'll use this pattern when you need to flatten lists of predictions from multiple batches into a single list for computing metrics.
@@ -196,7 +196,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     A few things to notice here:
@@ -273,7 +273,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### F-strings, Context Managers, Decorators
@@ -294,7 +294,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Let's break down those format specifiers because you'll use them constantly:
@@ -430,7 +430,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Now indexing and slicing. If you've used Python lists, you know the basics, but NumPy extends this to multiple dimensions and adds two powerful features: **boolean indexing** and **fancy indexing**.
@@ -796,7 +796,7 @@ def _(df):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     **Common gotcha**: `loc[0:2]` includes row 2. `iloc[0:2]` excludes row 2. This is because `loc` uses inclusive-on-both-ends label slicing, while `iloc` follows Python's half-open convention. This will bite you at least once -- now you know why.
@@ -873,7 +873,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     Two strategies for missing data, each with tradeoffs:
@@ -1182,7 +1182,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     This exercise is designed to test your broadcasting skills. The hint gives you the key identity:
@@ -1286,7 +1286,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 6: End-to-End Mini Pipeline
@@ -1303,7 +1303,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

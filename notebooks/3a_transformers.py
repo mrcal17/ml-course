@@ -29,7 +29,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -293,7 +293,7 @@ def _(np, softmax):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -376,7 +376,7 @@ def _(np, softmax):
     return (multihead_attention,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -537,7 +537,7 @@ def _(ffn, layer_norm, multihead_attention, np):
     return (transformer_block_np,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -618,7 +618,7 @@ def _(np):
     return (sinusoidal_pe,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -675,7 +675,7 @@ def _(np, softmax):
     return (masked_attention,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -714,7 +714,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -748,7 +748,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -830,7 +830,7 @@ def _(np, softmax):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -1038,7 +1038,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -1214,7 +1214,7 @@ def _(np):
     return (positional_encoding_exercise,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Causal Masking
@@ -1309,7 +1309,7 @@ def _(np):
     return (encoder_block_exercise,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

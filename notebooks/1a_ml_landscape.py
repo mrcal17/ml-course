@@ -16,7 +16,7 @@ def _():
     return (np, plt)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Module 1A: The ML Landscape
@@ -77,7 +77,7 @@ def _(np, plt):
     return (x_data, y_data, x_true, f_true, n_samples, rng)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -192,7 +192,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Overfitting vs. underfitting in action
@@ -234,7 +234,7 @@ def _(np, plt, rng, x_data, y_data, x_true, f_true):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Computing training and test error in numpy
@@ -336,7 +336,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -396,7 +396,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -457,7 +457,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -542,7 +542,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### No Free Lunch in action: right model for the right problem
@@ -586,7 +586,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -612,7 +612,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Preview: sklearn makes the pipeline concrete
@@ -643,7 +643,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -657,7 +657,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

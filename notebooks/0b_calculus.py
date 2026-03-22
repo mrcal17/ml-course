@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Calculus Refresh
@@ -129,7 +129,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### The Exponential and Logarithm: Why They're Everywhere
@@ -181,7 +181,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -341,7 +341,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -424,7 +424,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### The Jacobian
@@ -486,7 +486,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -552,7 +552,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -730,7 +730,7 @@ def _(epsilon_slider, mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -879,7 +879,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -1049,7 +1049,7 @@ def _():
     return (gradient_descent_momentum,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 3: Backpropagation by Hand (in Code)
@@ -1118,7 +1118,7 @@ def _():
     return (tiny_network_forward_backward,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Ridge Regression -- Normal Equation vs Gradient Descent
@@ -1164,7 +1164,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

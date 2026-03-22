@@ -27,7 +27,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -98,7 +98,7 @@ def _(np):
     return (rotations,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -210,7 +210,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 3.3 Span Corruption (T5-style)
@@ -236,7 +236,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -367,7 +367,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 4.2 Non-Contrastive Methods (BYOL, SimSiam)
@@ -452,7 +452,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 4.3 Masked Image Modeling (MAE)
@@ -512,7 +512,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -645,7 +645,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -769,7 +769,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 7.4 Prompt Tuning and Prefix Tuning
@@ -795,7 +795,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -873,7 +873,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -892,7 +892,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -940,7 +940,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 1: NT-Xent Loss from Scratch

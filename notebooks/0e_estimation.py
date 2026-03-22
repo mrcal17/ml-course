@@ -16,7 +16,7 @@ def _():
     return (np, plt)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Module 0E: Statistical Estimation
@@ -48,7 +48,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -152,7 +152,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -195,7 +195,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Worked Example: MLE for Bernoulli
@@ -251,7 +251,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Worked Example: MLE for Gaussian Parameters
@@ -303,7 +303,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Worked Example: MLE for Linear Regression
@@ -349,7 +349,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Properties of MLE
@@ -538,7 +538,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -606,7 +606,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -716,7 +716,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -865,7 +865,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -915,7 +915,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -936,7 +936,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -994,7 +994,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     **Exercise 7: MAP vs MLE with small samples.** Generate 5 coin flips from a coin with $p = 0.7$. Suppose all 5 come up heads. (a) Compute the MLE. (b) Compute the MAP with a $\text{Beta}(2, 2)$ prior. (c) Repeat with a $\text{Beta}(10, 10)$ prior. (d) Plot the prior, likelihood, and posterior for each case.
@@ -1055,7 +1055,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     **Exercise 8: Bootstrap confidence intervals.** Using the Gaussian data from exercise 6: (a) Compute the bootstrap 95% CI for the mean using 10,000 bootstrap samples. (b) Compare with the analytical CI using the t-distribution. (c) Now compute a bootstrap CI for the median.
@@ -1097,7 +1097,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     **Exercise 9: MLE for linear regression.** Generate data from $y = 2x_1 + 3x_2 + 1 + \epsilon$ where $\epsilon \sim \mathcal{N}(0, 1)$. (a) Compute OLS estimates using the normal equation. (b) Compute MLE by numerically maximizing the Gaussian log-likelihood. (c) Verify they give the same weights. (d) Add an L2 penalty and compute the MAP (Ridge) solution. Plot how the weights change as $\lambda$ varies from 0 to 100.
@@ -1275,7 +1275,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code It 1: MLE for the Exponential Distribution
@@ -1308,7 +1308,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code It 2: Simulate Bias-Variance Tradeoff
@@ -1352,7 +1352,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code It 3: Bootstrap Confidence Interval for Correlation
@@ -1474,7 +1474,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

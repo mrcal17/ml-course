@@ -17,7 +17,7 @@ def _():
     return (np,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Path D --- Bayesian Machine Learning
@@ -33,7 +33,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -109,7 +109,7 @@ def _(alpha_post, beta_post, np):
     return (theta_samples,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -170,7 +170,7 @@ def _(np):
     return X_grid, matern32_kernel, rbf_kernel, samples_mat, samples_rbf
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### GP Regression
@@ -250,7 +250,7 @@ def _(K, K_inv, np, y_train):
     return (log_marg_lik,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### The Computational Bottleneck
@@ -310,7 +310,7 @@ def _(np):
     return (kl_gaussian,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     **Bayes by Backprop** (Blundell et al., 2015; [arXiv:1505.05424](https://arxiv.org/abs/1505.05424)) implements this for neural networks. Each forward pass samples weights from $q_\phi$, making the network stochastic. Uncertainty estimates come from running multiple forward passes and measuring the spread of predictions.
@@ -354,7 +354,7 @@ def _(np):
     return (mc_dropout_predict,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Laplace Approximation
@@ -508,7 +508,7 @@ def _(np, observed_data):
     return (hmc_chain,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### When MCMC is Practical
@@ -530,7 +530,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -590,7 +590,7 @@ def _(np):
     return (log_marginal_likelihood_linear,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     The Bayes factor correctly favors the simpler linear model --- Bayesian Occam's razor in action.
@@ -654,7 +654,7 @@ def _(np, rbf_kernel):
     return (expected_improvement, gp_predict)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -691,7 +691,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 1: Bayesian Linear Regression
@@ -753,7 +753,7 @@ def _(np):
     return (bayesian_linear_regression,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 2: GP Regression from Scratch
@@ -812,7 +812,7 @@ def _(np):
     return (gp_regression,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 3: Metropolis-Hastings Sampler
@@ -872,7 +872,7 @@ def _(np):
     return (metropolis_hastings,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Expected Improvement for Bayesian Optimization
@@ -962,7 +962,7 @@ def _(np, rbf_kernel):
     return (bayesopt_loop, compute_ei)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

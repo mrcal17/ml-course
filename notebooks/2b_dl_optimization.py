@@ -16,7 +16,7 @@ def _():
     return np, plt
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 # 2B — Optimization for Deep Learning
@@ -30,7 +30,7 @@ Primary reference: [DLBook Ch 8: Optimization for Training Deep Models](file:///
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -68,7 +68,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -144,7 +144,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -217,7 +217,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -320,7 +320,7 @@ def _(np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -456,7 +456,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -559,7 +559,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -677,7 +677,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -787,7 +787,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -1086,7 +1086,7 @@ def _(np):
     return (full_training_loop,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---

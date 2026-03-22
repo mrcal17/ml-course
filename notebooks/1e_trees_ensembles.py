@@ -36,7 +36,7 @@ def _():
     )
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Trees & Ensembles
@@ -111,7 +111,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 1.2 Splitting Criteria: Gini Impurity and Entropy
@@ -199,7 +199,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 1.3 Tree Pruning
@@ -314,7 +314,7 @@ def _(DecisionTreeClassifier, depth_slider, make_moons, np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -351,7 +351,7 @@ def _(DecisionTreeClassifier, make_moons, np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -444,7 +444,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 4.2 Feature Importance
@@ -643,7 +643,7 @@ def _(DecisionTreeClassifier, np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 5.3 Key Hyperparameters
@@ -710,7 +710,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -816,7 +816,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -863,7 +863,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -901,7 +901,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -964,7 +964,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 1: Decision Tree Stump (Best Single Split)
@@ -1060,7 +1060,7 @@ def _(DecisionTreeClassifier, np):
     return (bagging_predict,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 3: Gradient Boosting Regressor from Scratch
@@ -1141,7 +1141,7 @@ def _(DecisionTreeClassifier, np):
     return (random_forest_predict,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 5: Permutation Feature Importance

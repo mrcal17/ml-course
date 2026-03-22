@@ -25,7 +25,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -43,7 +43,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code Demo: Hand-Crafted Edge Detection (Sobel Filter)
@@ -97,7 +97,7 @@ def _(image, np, sobel_x, sobel_y):
     return (convolve2d,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -219,7 +219,7 @@ def _(np):
     return (anchors,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -328,7 +328,7 @@ def _(np):
     return (pixel_cross_entropy,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -346,7 +346,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code Demo: RoI Align vs RoI Pooling
@@ -388,7 +388,7 @@ def _(np):
     return (bilinear_sample,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -496,7 +496,7 @@ def _(np):
     return (self_attention,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -553,7 +553,7 @@ def _(np):
     return (clip_contrastive_loss,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -616,7 +616,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code Demo: 3D Convolution for Video
@@ -654,7 +654,7 @@ def _(np):
     return (conv3d_naive,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -679,7 +679,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code Demo: mIoU for Segmentation Evaluation
@@ -718,7 +718,7 @@ def _(np):
     return (mean_iou,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Code Demo: Image Augmentation
@@ -761,7 +761,7 @@ def _(np):
     return (cutout, random_crop, random_horizontal_flip)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -923,7 +923,7 @@ def _(np):
     return (build_feature_pyramid,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 3: Implement Precision-Recall for Detection
@@ -1087,7 +1087,7 @@ def _(np):
     return (decode_yolo_grid,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---

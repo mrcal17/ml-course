@@ -23,7 +23,7 @@ def _():
             roc_auc_score, confusion_matrix, classification_report, roc_curve)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Module 1C: Classification
@@ -49,7 +49,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -140,7 +140,7 @@ def _(np, sigmoid):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Deriving the Loss Function (Cross-Entropy from MLE)
@@ -282,7 +282,7 @@ def _(np, LogisticRegression, make_moons):
     return (X_lr, y_lr)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -400,7 +400,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -568,7 +568,7 @@ def _(X_lr, y_lr, GaussianNB):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     See [ISLR Section 4.4.4](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) and [ESL Section 6.6.3](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf).
@@ -657,7 +657,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### The Kernel Trick
@@ -710,7 +710,7 @@ def _(X_lr, y_lr, SVC, StandardScaler):
     return (scaler_svm,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### SVMs vs Logistic Regression
@@ -926,7 +926,7 @@ def _(X_lr, y_lr, np, plt, LogisticRegression, classification_report, roc_curve,
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     See [ISLR Section 4.5](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) for a thorough treatment of classification assessment.
@@ -948,7 +948,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -965,7 +965,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -1114,7 +1114,7 @@ def _(np, plt, make_moons):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Softmax from Scratch

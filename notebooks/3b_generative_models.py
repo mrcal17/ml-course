@@ -16,7 +16,7 @@ def _():
     return (np,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Module 3B: Generative Models
@@ -32,7 +32,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -101,7 +101,7 @@ def _(np):
     return (W_enc, z_ae)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -209,7 +209,7 @@ def _(np):
     return (z_samples,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 3.5 Why VAEs Produce Blurry Outputs
@@ -243,7 +243,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -296,7 +296,7 @@ def _(np):
     return (sigmoid,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 4.2 Training Dynamics
@@ -338,7 +338,7 @@ def _(np):
     return (D_star,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 4.4 Wasserstein GAN (WGAN)
@@ -363,7 +363,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -531,7 +531,7 @@ def _(alpha_bar, betas, np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 5.6 The Score Matching Perspective
@@ -579,7 +579,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### 5.7 Connection to SDEs
@@ -610,7 +610,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -667,7 +667,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -721,7 +721,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -737,7 +737,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -849,7 +849,7 @@ def _(np):
     return (vae_forward,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 2: GAN Training Step
@@ -975,7 +975,7 @@ def _(np):
     return (diffusion_training_loss,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Normalizing Flow (Affine Coupling Layer)

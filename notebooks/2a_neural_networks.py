@@ -15,7 +15,7 @@ def _():
     return (np,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 # Module 2A: Neural Networks & Backpropagation
@@ -29,7 +29,7 @@ Take your time with this one.
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -117,7 +117,7 @@ def _(np):
     return (sigmoid,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -207,7 +207,7 @@ def _(np):
     return (relu, relu_deriv, sigmoid_fn, sigmoid_deriv,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -278,7 +278,7 @@ def _(np, relu):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -345,7 +345,7 @@ def _(np, sigmoid_fn):
     return (mse_loss, softmax,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -410,7 +410,7 @@ def _(np):
     return (W1_fp, b1_fp, b2_fp, h1_fp, loss_fp, w2_fp, x_fp, y_fp, y_hat_fp, z1_fp,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -442,7 +442,7 @@ See [DLBook 6.5.1](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for a 
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Deriving Backprop for Our 2-Layer Network
@@ -519,7 +519,7 @@ def _(W1_fp, b1_fp, b2_fp, h1_fp, np, w2_fp, x_fp, y_fp, y_hat_fp, z1_fp):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### The General Pattern
@@ -607,7 +607,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -675,7 +675,7 @@ Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd) is a roughl
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -749,7 +749,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### The Training Loop in PyTorch
@@ -807,7 +807,7 @@ Note `optimizer.zero_grad()`: PyTorch *accumulates* gradients by default (it add
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -941,7 +941,7 @@ def _(hidden_neurons_slider):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -968,7 +968,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -1056,7 +1056,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Exercise 2: Forward Pass Function
@@ -1102,7 +1102,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Exercise 3: Backward Pass Function
@@ -1197,7 +1197,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Exercise 5: Gradient Checking
@@ -1234,7 +1234,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---

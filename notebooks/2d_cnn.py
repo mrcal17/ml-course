@@ -15,7 +15,7 @@ def _():
     return (np,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 # Convolutional Neural Networks
@@ -29,7 +29,7 @@ CNNs are the architecture that brought deep learning back from the dead. They wo
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -110,7 +110,7 @@ def _(np):
     return (conv1d,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Extending to 2D
@@ -175,7 +175,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### What Filters Detect
@@ -207,7 +207,7 @@ def _(conv2d, np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -318,7 +318,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -507,7 +507,7 @@ Notice the progression: spatial dimensions shrink ($32 \to 16 \to 8 \to 1$), cha
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -615,7 +615,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Brief Mentions
@@ -629,7 +629,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -669,7 +669,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 **Fine-tuning:** Start from pretrained weights, but unfreeze some or all layers and train the entire network with a small learning rate. The pretrained weights provide a good initialization, and fine-tuning adapts them to your specific domain.
@@ -692,7 +692,7 @@ Transfer learning is why CNNs are practical. Without it, you'd need millions of 
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -769,7 +769,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -875,7 +875,7 @@ Notice the key components: data augmentation (random crops and flips — a form 
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -963,7 +963,7 @@ def _(np):
     return (my_conv2d,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Exercise 2: Implement Max Pooling with Arbitrary Pool Size

@@ -15,7 +15,7 @@ def _():
     return (np,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Path C --- Advanced Reinforcement Learning
@@ -80,7 +80,7 @@ def _(np):
     return (Q, alpha, dyna_q_step, gamma, model, n_actions, n_planning, n_states)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -204,7 +204,7 @@ def _(np):
     return (compute_gae,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -281,7 +281,7 @@ def _(np):
     return (ucb_score,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -370,7 +370,7 @@ def _(np):
     return (hindsight_relabel,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -459,7 +459,7 @@ def _(np):
     return (simulate_push,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -530,7 +530,7 @@ def _(np):
     return (preference_probability, reward_model_loss)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -559,7 +559,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -696,7 +696,7 @@ def _(np):
     return (prioritized_dyna_step,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 3: Soft Value Function (SAC)
@@ -735,7 +735,7 @@ def _(np):
     return (soft_bellman_backup,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Reward Model from Pairwise Preferences

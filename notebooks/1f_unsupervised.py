@@ -30,7 +30,7 @@ def _():
     )
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     # Unsupervised Learning
@@ -48,7 +48,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -76,7 +76,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Derivation from Maximum Variance
@@ -195,7 +195,7 @@ def _(X_centered, eigenvalues, eigenvectors, np):
     return (Vt_svd,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### How Many Components to Keep?
@@ -328,7 +328,7 @@ def _(PCA, X_scaled_digits, load_digits, np, pca_slider, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -416,7 +416,7 @@ def _(kmeans_scratch, make_blobs, np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Initialization Matters: K-Means++
@@ -544,7 +544,7 @@ def _(KMeans, k_slider, make_blobs, np, plt, silhouette_score):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -603,7 +603,7 @@ def _(make_blobs, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -718,7 +718,7 @@ def _(em_gmm, make_blobs, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Why EM Works
@@ -795,7 +795,7 @@ def _(StandardScaler, make_blobs, np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -880,7 +880,7 @@ def _(PCA, StandardScaler, load_digits, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -983,7 +983,7 @@ def _(StandardScaler, make_blobs, np, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -1024,7 +1024,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ---
@@ -1068,7 +1068,7 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 1: PCA from Scratch on Real Data
@@ -1116,7 +1116,7 @@ def _(np, load_digits, StandardScaler, PCA):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 2: PCA via SVD
@@ -1200,7 +1200,7 @@ def _(np, make_blobs, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 4: Reconstruction Error vs. Number of Components
@@ -1244,7 +1244,7 @@ def _(np, load_digits, StandardScaler, plt):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
     ### Exercise 5: EM for a 1D Gaussian Mixture

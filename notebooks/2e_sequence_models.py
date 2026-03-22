@@ -9,7 +9,7 @@ def _():
     return (mo,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 # Sequence Models
@@ -25,7 +25,7 @@ This module builds recurrent neural networks from first principles, diagnoses th
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -51,7 +51,7 @@ This is exactly what recurrent neural networks provide. See [DLBook, Section 10.
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -185,7 +185,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -255,7 +255,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -355,7 +355,7 @@ def _(np):
     return (sigmoid,)
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 Notice how the forget gate values hover near 0.5 with random weights. A trained LSTM learns to push forget gates close to 1 for information it needs to remember long-term, which is exactly what creates the unimpeded gradient highway through the cell state.
@@ -454,7 +454,7 @@ def _(np, sigmoid):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -516,7 +516,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -585,7 +585,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -669,7 +669,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### 9.2 LSTM Version
@@ -715,7 +715,7 @@ def _():
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 The training loop for these models would include two critical details:
@@ -806,7 +806,7 @@ Setting `bidirectional=True` is all it takes. The output hidden size doubles bec
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -848,7 +848,7 @@ These modern recurrent models represent a remarkable full-circle moment: the fie
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ---
@@ -1003,7 +1003,7 @@ def _(np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(mo):
     mo.md(r"""
 ### Exercise 3: Vanishing Gradient Experiment
