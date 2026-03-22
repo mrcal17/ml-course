@@ -355,8 +355,8 @@ def _(DecisionTreeClassifier, make_moons, np):
 
         for seed in range(10):
             # Bootstrap resample (simulating small data perturbation)
-            rng = np.random.default_rng(seed)
-            idx = rng.choice(len(X_instab), len(X_instab), replace=True)
+            _rng = np.random.default_rng(seed)
+            idx = _rng.choice(len(X_instab), len(X_instab), replace=True)
             dt_inst = DecisionTreeClassifier(random_state=0)
             dt_inst.fit(X_instab[idx], y_instab[idx])
             preds_list.append(dt_inst.predict(x_test_pt)[0])

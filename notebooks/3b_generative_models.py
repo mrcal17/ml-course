@@ -12,7 +12,7 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    rng = np.random.default_rng(42)
+    _rng = np.random.default_rng(42)
     return (np,)
 
 

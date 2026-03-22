@@ -52,10 +52,10 @@ def _():
     # 2. Loss: mean squared error L(theta) = (1/N) * ||y - X@theta||^2
     # 3. Optimize: find theta that minimizes L
 
-    rng = np.random.default_rng(0)
-    X = np.column_stack([np.ones(50), rng.standard_normal(50)])  # 50 samples, 2 features
+    _rng = np.random.default_rng(0)
+    X = np.column_stack([np.ones(50), _rng.standard_normal(50)])  # 50 samples, 2 features
     theta_true = np.array([3.0, 1.5])
-    y = X @ theta_true + 0.3 * rng.standard_normal(50)
+    y = X @ theta_true + 0.3 * _rng.standard_normal(50)
 
     # Loss function: maps parameters -> scalar
     def mse_loss(theta, X, y):
@@ -165,8 +165,8 @@ def _():
     def _run():
 
         # Hessian check: OLS Hessian is 2*X^T*X, should be PSD
-        rng = np.random.default_rng(1)
-        X = rng.standard_normal((20, 3))
+        _rng = np.random.default_rng(1)
+        X = _rng.standard_normal((20, 3))
         H_ols = 2 * X.T @ X  # Hessian of ||y - Xθ||^2
 
         eigenvalues = np.linalg.eigvalsh(H_ols)
@@ -492,11 +492,11 @@ def _():
     def _run():
 
         # SGD vs full-batch GD on linear regression
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         N, d = 200, 2
-        X = rng.standard_normal((N, d))
+        X = _rng.standard_normal((N, d))
         theta_true = np.array([3.0, -1.0])
-        y = X @ theta_true + 0.5 * rng.standard_normal(N)
+        y = X @ theta_true + 0.5 * _rng.standard_normal(N)
 
         # Full gradient: average over ALL samples
         def full_gradient(theta, X, y):
@@ -504,7 +504,7 @@ def _():
 
         # Mini-batch gradient: average over a random subset
         def minibatch_gradient(theta, X, y, batch_size=32):
-            idx = rng.choice(len(y), batch_size, replace=False)
+            idx = _rng.choice(len(y), batch_size, replace=False)
             return -(2 / batch_size) * X[idx].T @ (y[idx] - X[idx] @ theta)
 
         theta_gd = np.zeros(d)
@@ -1022,13 +1022,13 @@ def _():
         # At a critical point, the Hessian has d eigenvalues.
         # Probability ALL are positive (local min) shrinks exponentially with d.
 
-        rng = np.random.default_rng(7)
+        _rng = np.random.default_rng(7)
         for d in [2, 10, 50, 200]:
             # Simulate: random symmetric matrix eigenvalues (like a random critical point)
             n_trials = 1000
             n_local_min = 0
             for _ in range(n_trials):
-                eigs = rng.standard_normal(d)  # random eigenvalues
+                eigs = _rng.standard_normal(d)  # random eigenvalues
                 if np.all(eigs > 0):       # local min requires ALL positive
                     n_local_min += 1
             frac = n_local_min / n_trials
@@ -1137,10 +1137,10 @@ def _():
     def _run():
 
         # Verify numerically that the Hessian of logistic regression is PSD
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         n, d = 50, 3
-        X = rng.standard_normal((n, d))
-        theta = rng.standard_normal(d)
+        X = _rng.standard_normal((n, d))
+        theta = _rng.standard_normal(d)
 
         def sigmoid(z):
             return 1 / (1 + np.exp(-z))
@@ -1232,11 +1232,11 @@ def _(mo):
 def _():
     def _run():
 
-        rng = np.random.default_rng(99)
+        _rng = np.random.default_rng(99)
         N, d = 100, 3
-        X = rng.standard_normal((N, d))
+        X = _rng.standard_normal((N, d))
         theta_true = np.array([2.0, -1.0, 0.5])
-        y = X @ theta_true + 0.2 * rng.standard_normal(N)
+        y = X @ theta_true + 0.2 * _rng.standard_normal(N)
 
         # TODO: implement gradient descent
         theta = np.zeros(d)
@@ -1271,11 +1271,11 @@ def _(mo):
 def _():
     def _run():
 
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         N, d = 200, 3
-        X = rng.standard_normal((N, d))
+        X = _rng.standard_normal((N, d))
         theta_true = np.array([1.0, -2.0, 3.0])
-        y = X @ theta_true + 0.3 * rng.standard_normal(N)
+        y = X @ theta_true + 0.3 * _rng.standard_normal(N)
 
         theta = np.zeros(d)
         lr = 0.01

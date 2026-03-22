@@ -257,7 +257,7 @@ def _(np, relu):
     def _run():
         # A 3-layer MLP forward pass in numpy
         # Architecture: 3 inputs -> 4 hidden -> 4 hidden -> 1 output
-        rng = np.random.default_rng(0)
+        _rng = np.random.default_rng(0)
         dims = [3, 4, 4, 1]  # layer sizes
 
         # Kaiming initialization for ReLU layers
@@ -265,7 +265,7 @@ def _(np, relu):
         biases_mlp = []
         for l in range(len(dims) - 1):
             scale = np.sqrt(2.0 / dims[l])              # He init: sqrt(2/n_in)
-            W = rng.standard_normal((dims[l+1], dims[l])) * scale
+            W = _rng.standard_normal((dims[l+1], dims[l])) * scale
             b = np.zeros(dims[l+1])
             weights_mlp.append(W)
             biases_mlp.append(b)
@@ -734,29 +734,29 @@ Typical batch sizes: 32, 64, 128, 256. Larger batches give more stable gradient 
 def _(np):
     def _run():
         # Weight initialization: observe how scale affects forward pass
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         n_in, n_out = 256, 256
-        x_init = rng.standard_normal(n_in)
+        x_init = _rng.standard_normal(n_in)
 
         # Bad: too large
-        W_large = rng.standard_normal((n_out, n_in)) * 1.0
+        W_large = _rng.standard_normal((n_out, n_in)) * 1.0
         h_large = np.maximum(0, W_large @ x_init)
         print(f"Std=1.0 init:  activation mean={h_large.mean():.2f}, std={h_large.std():.2f}")
 
         # Bad: too small
-        W_small = rng.standard_normal((n_out, n_in)) * 0.001
+        W_small = _rng.standard_normal((n_out, n_in)) * 0.001
         h_small = np.maximum(0, W_small @ x_init)
         print(f"Std=0.001 init: activation mean={h_small.mean():.4f}, std={h_small.std():.4f}")
 
         # Good: Kaiming/He initialization for ReLU — sqrt(2/n_in)
-        W_he = rng.standard_normal((n_out, n_in)) * np.sqrt(2.0 / n_in)
+        W_he = _rng.standard_normal((n_out, n_in)) * np.sqrt(2.0 / n_in)
         h_he = np.maximum(0, W_he @ x_init)
         print(f"He init:        activation mean={h_he.mean():.2f}, std={h_he.std():.2f}")
 
         # Show variance preservation across 10 layers
-        h = rng.standard_normal(256)
+        h = _rng.standard_normal(256)
         for layer in range(10):
-            W = rng.standard_normal((256, 256)) * np.sqrt(2.0 / 256)
+            W = _rng.standard_normal((256, 256)) * np.sqrt(2.0 / 256)
             h = np.maximum(0, W @ h)
         print(f"\nAfter 10 ReLU layers (He init): mean={h.mean():.2f}, std={h.std():.2f}")
 
@@ -911,7 +911,7 @@ def _(hidden_neurons_slider):
         n_hidden = hidden_neurons_slider.value
 
         # Generate data
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         X_data, y_data = make_moons(n_samples=300, noise=0.2, random_state=42)
         X_tensor = _torch2.tensor(X_data, dtype=_torch2.float32)
         y_tensor = _torch2.tensor(y_data, dtype=_torch2.float32).unsqueeze(1)

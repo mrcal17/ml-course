@@ -102,10 +102,10 @@ def _(np):
         true_mu, true_sigma2 = 5.0, 4.0
         n_samples, n_trials = 10, 50_000
 
-        rng = np.random.default_rng(0)
+        _rng = np.random.default_rng(0)
         biased_vars, unbiased_vars = [], []
         for _ in range(n_trials):
-            x = rng.normal(true_mu, np.sqrt(true_sigma2), size=n_samples)
+            x = _rng.normal(true_mu, np.sqrt(true_sigma2), size=n_samples)
             biased_vars.append(np.var(x))          # divides by n (MLE)
             unbiased_vars.append(np.var(x, ddof=1)) # divides by n-1
 
@@ -1015,8 +1015,8 @@ def _():
     def _run():
         from scipy.optimize import minimize
 
-        rng = np.random.default_rng(42)
-        data = rng.normal(loc=3, scale=2, size=100)
+        _rng = np.random.default_rng(42)
+        data = _rng.normal(loc=3, scale=2, size=100)
 
         # (a) Analytical MLE
         mu_mle = np.mean(data)
@@ -1113,13 +1113,13 @@ def _():
     def _run():
         from scipy import stats
 
-        rng = np.random.default_rng(42)
-        data = rng.normal(loc=3, scale=2, size=100)
+        _rng = np.random.default_rng(42)
+        data = _rng.normal(loc=3, scale=2, size=100)
 
         # (a) Bootstrap CI for the mean
         n_bootstrap = 10000
         boot_means = np.array([
-            rng.choice(data, size=len(data), replace=True).mean()
+            _rng.choice(data, size=len(data), replace=True).mean()
             for _ in range(n_bootstrap)
         ])
         ci_boot_mean = np.percentile(boot_means, [2.5, 97.5])
@@ -1134,7 +1134,7 @@ def _():
 
         # (c) Bootstrap CI for the median
         boot_medians = np.array([
-            np.median(rng.choice(data, size=len(data), replace=True))
+            np.median(_rng.choice(data, size=len(data), replace=True))
             for _ in range(n_bootstrap)
         ])
         ci_boot_median = np.percentile(boot_medians, [2.5, 97.5])
@@ -1157,12 +1157,12 @@ def _():
     def _run():
         from scipy.optimize import minimize
 
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         n = 200
-        X = rng.standard_normal((n, 2))
+        X = _rng.standard_normal((n, 2))
         X_bias = np.column_stack([np.ones(n), X])  # add intercept
         true_w = np.array([1.0, 2.0, 3.0])
-        y = X_bias @ true_w + rng.standard_normal(n)
+        y = X_bias @ true_w + _rng.standard_normal(n)
 
         # (a) OLS via normal equation
         w_ols = np.linalg.solve(X_bias.T @ X_bias, X_bias.T @ y)
@@ -1225,12 +1225,12 @@ def _():
         from sklearn.linear_model import LinearRegression
         from sklearn.model_selection import cross_val_score
 
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         n = 100
-        x = np.sort(rng.uniform(-3, 3, n))
+        x = np.sort(_rng.uniform(-3, 3, n))
         # True model: degree 3
         y_true = 0.5 * x**3 - 2 * x**2 + x + 3
-        y = y_true + rng.standard_normal(n) * 3
+        y = y_true + _rng.standard_normal(n) * 3
 
         degrees = range(1, 11)
         aics = []

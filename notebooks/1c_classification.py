@@ -234,11 +234,11 @@ def _(np, sigmoid):
 def _(np, plt, sigmoid, cross_entropy_loss):
     def _run():
         # Logistic regression from scratch via gradient descent
-        rng = np.random.default_rng(0)
+        _rng = np.random.default_rng(0)
         # Simple 1D dataset with bias term
-        X_gd = np.column_stack([np.ones(80), rng.standard_normal(80)])
+        X_gd = np.column_stack([np.ones(80), _rng.standard_normal(80)])
         w_true_gd = np.array([0.5, 2.0])
-        y_gd = (rng.random(80) < sigmoid(X_gd @ w_true_gd)).astype(float)
+        y_gd = (_rng.random(80) < sigmoid(X_gd @ w_true_gd)).astype(float)
 
         # Gradient descent: w <- w - lr * X^T (sigma(Xw) - y) / n
         w_gd = np.zeros(2)
@@ -272,7 +272,7 @@ def _(mo):
 @app.cell
 def _(np, LogisticRegression, make_moons):
     # Generate a 2D binary classification dataset
-    rng = np.random.default_rng(42)
+    _rng = np.random.default_rng(42)
     X_lr, y_lr = make_moons(n_samples=200, noise=0.2, random_state=42)
 
     model_lr = LogisticRegression(C=1.0, penalty='l2', solver='lbfgs')
@@ -465,13 +465,13 @@ def _(np):
     def _run():
         # LDA from scratch: compute discriminant function delta_k(x)
         # Generate two Gaussian classes sharing one covariance
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         mu0 = np.array([0.0, 0.0])
         mu1 = np.array([2.0, 1.0])
         Sigma_shared = np.array([[1.0, 0.3], [0.3, 0.8]])
 
-        X0_lda = rng.multivariate_normal(mu0, Sigma_shared, 50)
-        X1_lda = rng.multivariate_normal(mu1, Sigma_shared, 50)
+        X0_lda = _rng.multivariate_normal(mu0, Sigma_shared, 50)
+        X1_lda = _rng.multivariate_normal(mu1, Sigma_shared, 50)
 
         # Estimate parameters from data
         mu0_hat = X0_lda.mean(axis=0)
@@ -546,10 +546,10 @@ def _(np):
     def _run():
         # Naive Bayes from scratch (Gaussian) for 2 features, 2 classes
         # P(y=k|x) proportional to pi_k * prod_j N(x_j; mu_kj, sigma_kj^2)
-        rng = np.random.default_rng(7)
+        _rng = np.random.default_rng(7)
         # Class 0: feature means [0, 0], Class 1: feature means [1.5, 1]
-        X0_nb = rng.standard_normal((40, 2)) + np.array([0, 0])
-        X1_nb = rng.standard_normal((40, 2)) + np.array([1.5, 1])
+        X0_nb = _rng.standard_normal((40, 2)) + np.array([0, 0])
+        X1_nb = _rng.standard_normal((40, 2)) + np.array([1.5, 1])
 
         # Estimate per-class, per-feature mean and variance (the "naive" part)
         mu_nb = np.array([X0_nb.mean(axis=0), X1_nb.mean(axis=0)])
@@ -791,7 +791,7 @@ def _(c_slider, kernel_dropdown, np, plt, SVC, StandardScaler, make_moons):
         _kernel = kernel_dropdown.value
 
         # Generate dataset
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         _X, _y = make_moons(n_samples=200, noise=0.2, random_state=42)
         _scaler = StandardScaler()
         _X_scaled = _scaler.fit_transform(_X)
@@ -932,7 +932,7 @@ def _(mo):
 def _(X_lr, y_lr, np, plt, LogisticRegression, classification_report, roc_curve, roc_auc_score):
     def _run():
         from sklearn.model_selection import train_test_split as _tts
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         _X_train, _X_test, _y_train, _y_test = _tts(X_lr, y_lr, test_size=0.3, random_state=42)
 
         _model = LogisticRegression(C=1.0, solver='lbfgs')
@@ -1143,7 +1143,7 @@ def _(np, plt, make_moons):
             return w_fit, losses
 
         # Generate data and test your implementation
-        # rng = np.random.default_rng(42)
+        # _rng = np.random.default_rng(42)
         # X_ex, y_ex = make_moons(n_samples=200, noise=0.2, random_state=42)
         # X_ex_bias = np.column_stack([np.ones(len(X_ex)), X_ex])  # add bias column
         # w_learned, loss_curve = fit_logistic_regression_gd(X_ex_bias, y_ex, lr_fit=0.5, n_epochs=300)

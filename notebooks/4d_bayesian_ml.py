@@ -13,7 +13,7 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    rng = np.random.default_rng(42)
+    _rng = np.random.default_rng(42)
     return (np,)
 
 
@@ -574,9 +574,9 @@ def _(np):
     # Compare degree-1 vs degree-3 polynomial using marginal likelihood
     # For linear regression with known noise, marginal likelihood is analytic
 
-    rng = np.random.default_rng(7)
+    _rng = np.random.default_rng(7)
     x_mc = np.linspace(-1, 1, 15)
-    y_mc = 0.5 * x_mc + 0.1 * rng.standard_normal(15)  # true model is linear
+    y_mc = 0.5 * x_mc + 0.1 * _rng.standard_normal(15)  # true model is linear
 
     def log_marginal_likelihood_linear(X_design, y, noise_var=0.01, prior_var=1.0):
         """Analytic log marginal likelihood for Bayesian linear regression.

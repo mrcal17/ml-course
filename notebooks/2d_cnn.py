@@ -273,9 +273,9 @@ def _(np):
             return out
 
         # Demo: 3-channel 6x6 input, 2 filters of size 3x3, same padding
-        rng = np.random.default_rng(0)
-        x_in = rng.standard_normal((3, 6, 6))
-        W_filters = rng.standard_normal((2, 3, 3, 3)) * 0.1  # (F=2, C_in=3, 3, 3)
+        _rng = np.random.default_rng(0)
+        x_in = _rng.standard_normal((3, 6, 6))
+        W_filters = _rng.standard_normal((2, 3, 3, 3)) * 0.1  # (F=2, C_in=3, 3, 3)
         b = np.zeros(2)
 
         out_valid = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=0)  # valid
@@ -493,11 +493,11 @@ def _(np):
     def _run():
         # Full forward pass of a tiny CNN in pure numpy:
         # Conv(3x3, 1->2 filters) -> ReLU -> MaxPool(2x2) -> GAP -> Linear -> softmax
-        rng = np.random.default_rng(42)
-        img_tiny = rng.standard_normal((1, 8, 8))  # 1 channel, 8x8
+        _rng = np.random.default_rng(42)
+        img_tiny = _rng.standard_normal((1, 8, 8))  # 1 channel, 8x8
 
         # Conv: 2 filters, 3x3
-        W1 = rng.standard_normal((2, 1, 3, 3)) * 0.5
+        W1 = _rng.standard_normal((2, 1, 3, 3)) * 0.5
         b1 = np.zeros(2)
         # manual conv (valid)
         conv_out = np.zeros((2, 6, 6))
@@ -509,7 +509,7 @@ def _(np):
         relu_out = np.maximum(0, conv_out)                 # ReLU
         pool_out = relu_out.reshape(2, 3, 2, 3, 2).max(axis=(2, 4))  # MaxPool 2x2
         gap_out  = pool_out.mean(axis=(1, 2))              # GAP -> (2,)
-        logits   = gap_out @ rng.standard_normal((2, 3))         # Linear -> 3 classes
+        logits   = gap_out @ _rng.standard_normal((2, 3))         # Linear -> 3 classes
         probs    = np.exp(logits) / np.exp(logits).sum()   # softmax
 
         print(f"Input:     {img_tiny.shape}")
@@ -623,12 +623,12 @@ def _(np):
     def _run():
         # Residual block in numpy: output = relu(f(x) + x)
         # f(x) is two "conv" layers (simulated as matrix ops on a vector)
-        rng = np.random.default_rng(7)
-        x_res = rng.standard_normal(4)            # feature vector
+        _rng = np.random.default_rng(7)
+        x_res = _rng.standard_normal(4)            # feature vector
 
         # Two "layers" (simplified as weight matrices)
-        W1_res = rng.standard_normal((4, 4)) * 0.01   # small weights -> f(x) near 0
-        W2_res = rng.standard_normal((4, 4)) * 0.01
+        W1_res = _rng.standard_normal((4, 4)) * 0.01   # small weights -> f(x) near 0
+        W2_res = _rng.standard_normal((4, 4)) * 0.01
 
         f_x = np.maximum(0, W1_res @ x_res)       # layer 1 + ReLU
         f_x = W2_res @ f_x                         # layer 2
@@ -780,9 +780,9 @@ def _(np):
     def _run():
         # Simplified Grad-CAM math in numpy
         # Given: feature_maps (C, H, W) and gradients (C, H, W)
-        rng = np.random.default_rng(99)
-        fmaps = rng.standard_normal((4, 3, 3))         # 4 channels, 3x3 spatial
-        grads = rng.standard_normal((4, 3, 3))         # gradients of class score w.r.t. fmaps
+        _rng = np.random.default_rng(99)
+        fmaps = _rng.standard_normal((4, 3, 3))         # 4 channels, 3x3 spatial
+        grads = _rng.standard_normal((4, 3, 3))         # gradients of class score w.r.t. fmaps
 
         # Step 1: global average pool gradients -> per-channel importance weights
         alpha = grads.mean(axis=(1, 2))           # shape (4,)
@@ -1082,9 +1082,9 @@ def _(np):
         return out
 
     # Test: 3-channel 5x5 input, 2 filters of 3x3
-    rng = np.random.default_rng(123)
-    _x_test = rng.standard_normal((3, 5, 5))
-    _f_test = rng.standard_normal((2, 3, 3, 3)) * 0.5
+    _rng = np.random.default_rng(123)
+    _x_test = _rng.standard_normal((3, 5, 5))
+    _f_test = _rng.standard_normal((2, 3, 3, 3)) * 0.5
     _b_test = np.zeros(2)
     # _out = conv_layer(_x_test, _f_test, _b_test)
     # print(f"Output shape: {_out.shape}")  # expect (2, 3, 3)
@@ -1131,16 +1131,16 @@ def _(np):
             pass
 
         # Setup: 1-channel 8x8 input -> conv(1->4, 3x3) -> pool(2) -> conv(4->8, 3x3) -> GAP -> linear(8->3)
-        rng = np.random.default_rng(0)
+        _rng = np.random.default_rng(0)
         _params = {
-            'W1': rng.standard_normal((4, 1, 3, 3)) * 0.5,   # 4 filters on 1-channel input
+            'W1': _rng.standard_normal((4, 1, 3, 3)) * 0.5,   # 4 filters on 1-channel input
             'b1': np.zeros(4),
-            'W2': rng.standard_normal((8, 4, 3, 3)) * 0.5,   # 8 filters on 4-channel input
+            'W2': _rng.standard_normal((8, 4, 3, 3)) * 0.5,   # 8 filters on 4-channel input
             'b2': np.zeros(8),
-            'W_fc': rng.standard_normal((8, 3)) * 0.5,        # 8 features -> 3 classes
+            'W_fc': _rng.standard_normal((8, 3)) * 0.5,        # 8 features -> 3 classes
             'b_fc': np.zeros(3),
         }
-        # _x_input = rng.standard_normal((1, 8, 8))
+        # _x_input = _rng.standard_normal((1, 8, 8))
         # _logits = tiny_cnn_forward(_x_input, _params)
         # print(f"Input: (1, 8, 8) -> Logits: {_logits.shape}")
         # print(f"Logits: {_logits.round(3)}")
@@ -1186,11 +1186,11 @@ def _(np):
             pass
 
         # Test: with near-zero weights, output should approximate ReLU(x)
-        # rng = np.random.default_rng(42)
+        # _rng = np.random.default_rng(42)
         # _C = 2
-        # _x_rb = rng.standard_normal((_C, 6, 6))
-        # _W1_rb = rng.standard_normal((_C, _C, 3, 3)) * 0.001  # near zero
-        # _W2_rb = rng.standard_normal((_C, _C, 3, 3)) * 0.001
+        # _x_rb = _rng.standard_normal((_C, 6, 6))
+        # _W1_rb = _rng.standard_normal((_C, _C, 3, 3)) * 0.001  # near zero
+        # _W2_rb = _rng.standard_normal((_C, _C, 3, 3)) * 0.001
         # _b1_rb, _b2_rb = np.zeros(_C), np.zeros(_C)
         # _out_rb = residual_block_np(_x_rb, _W1_rb, _b1_rb, _W2_rb, _b2_rb)
         # _relu_x = np.maximum(0, _x_rb)

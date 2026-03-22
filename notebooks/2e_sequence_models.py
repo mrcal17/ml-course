@@ -350,11 +350,11 @@ def _(np):
 
     # Tiny example: input_dim=2, hidden_dim=3
     H, X = 3, 2
-    rng = np.random.default_rng(42)
-    Wf = rng.standard_normal((H, H + X)) * 0.1
-    Wi = rng.standard_normal((H, H + X)) * 0.1
-    Wc = rng.standard_normal((H, H + X)) * 0.1
-    Wo = rng.standard_normal((H, H + X)) * 0.1
+    _rng = np.random.default_rng(42)
+    Wf = _rng.standard_normal((H, H + X)) * 0.1
+    Wi = _rng.standard_normal((H, H + X)) * 0.1
+    Wc = _rng.standard_normal((H, H + X)) * 0.1
+    Wo = _rng.standard_normal((H, H + X)) * 0.1
     bf, bi, bc, bo = np.zeros(H), np.zeros(H), np.zeros(H), np.zeros(H)
 
     h, c = np.zeros(H), np.zeros(H)
@@ -449,10 +449,10 @@ def _(np, sigmoid):
 
         # Same dimensions as LSTM example: input_dim=2, hidden_dim=3
         H, X = 3, 2
-        rng = np.random.default_rng(0)
-        Wz = rng.standard_normal((H, H + X)) * 0.1
-        Wr = rng.standard_normal((H, H + X)) * 0.1
-        Wh = rng.standard_normal((H, H + X)) * 0.1
+        _rng = np.random.default_rng(0)
+        Wz = _rng.standard_normal((H, H + X)) * 0.1
+        Wr = _rng.standard_normal((H, H + X)) * 0.1
+        Wh = _rng.standard_normal((H, H + X)) * 0.1
         bz, br, bh = np.zeros(H), np.zeros(H), np.zeros(H)
 
         h_gru = np.zeros(H)
@@ -512,15 +512,15 @@ def _(np):
             return np.array(states)
 
         # Small example: 4-step sequence, input_dim=2, hidden_dim=3
-        rng = np.random.default_rng(7)
+        _rng = np.random.default_rng(7)
         H, X, T = 3, 2, 4
-        W_hh_f = rng.standard_normal((H, H)) * 0.3
-        W_xh_f = rng.standard_normal((H, X)) * 0.3
-        W_hh_b = rng.standard_normal((H, H)) * 0.3  # separate backward weights
-        W_xh_b = rng.standard_normal((H, X)) * 0.3
+        W_hh_f = _rng.standard_normal((H, H)) * 0.3
+        W_xh_f = _rng.standard_normal((H, X)) * 0.3
+        W_hh_b = _rng.standard_normal((H, H)) * 0.3  # separate backward weights
+        W_xh_b = _rng.standard_normal((H, X)) * 0.3
         b_h = np.zeros(H)
 
-        xs = rng.standard_normal((T, X))
+        xs = _rng.standard_normal((T, X))
         fwd_states = rnn_forward(xs, W_hh_f, W_xh_f, b_h)
         bwd_states = rnn_forward(xs[::-1], W_hh_b, W_xh_b, b_h)[::-1]  # reverse input & output
 
@@ -589,13 +589,13 @@ def _(np):
             return np.array(outputs)
 
         H, X_dim = 4, 2
-        rng = np.random.default_rng(3)
-        We_hh, We_xh = rng.standard_normal((H, H)) * 0.3, rng.standard_normal((H, X_dim)) * 0.3
-        Wd_hh, Wd_xh = rng.standard_normal((H, H)) * 0.3, rng.standard_normal((H, X_dim)) * 0.3
-        W_hy = rng.standard_normal((X_dim, H)) * 0.3
+        _rng = np.random.default_rng(3)
+        We_hh, We_xh = _rng.standard_normal((H, H)) * 0.3, _rng.standard_normal((H, X_dim)) * 0.3
+        Wd_hh, Wd_xh = _rng.standard_normal((H, H)) * 0.3, _rng.standard_normal((H, X_dim)) * 0.3
+        W_hy = _rng.standard_normal((X_dim, H)) * 0.3
         b = np.zeros(H)
 
-        encoder_input = rng.standard_normal((5, X_dim))  # 5-step input
+        encoder_input = _rng.standard_normal((5, X_dim))  # 5-step input
         context = seq2seq_encode(encoder_input, We_hh, We_xh, b)
         decoder_output = seq2seq_decode(context, Wd_hh, Wd_xh, W_hy, b, np.zeros(X_dim), steps=3)
         print(f"Encoder input:  {encoder_input.shape[0]} steps")

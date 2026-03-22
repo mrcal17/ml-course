@@ -1006,8 +1006,8 @@ def _(mo):
 def _(np):
     def power_iteration(A, num_iters=100):
         """Find dominant eigenvector via power iteration."""
-        rng = np.random.default_rng(42)
-        b = rng.standard_normal(A.shape[0])
+        _rng = np.random.default_rng(42)
+        b = _rng.standard_normal(A.shape[0])
         b = b / np.linalg.norm(b)
 
         for _ in range(num_iters):

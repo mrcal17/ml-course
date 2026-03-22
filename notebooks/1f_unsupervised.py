@@ -965,8 +965,8 @@ def _(StandardScaler, make_blobs, np, plt):
 
         # Create data with some outliers
         X_anom, _ = make_blobs(n_samples=280, centers=3, cluster_std=0.8, random_state=42)
-        rng = np.random.default_rng(42)
-        X_outliers = rng.uniform(low=-10, high=10, size=(20, 2))
+        _rng = np.random.default_rng(42)
+        X_outliers = _rng.uniform(low=-10, high=10, size=(20, 2))
         X_anom_full = np.vstack([X_anom, X_outliers])
         X_anom_scaled = StandardScaler().fit_transform(X_anom_full)
 
@@ -1213,18 +1213,18 @@ def _(np, make_blobs, plt):
 
         def kmeans_pp_init(X, K, seed=42):
             """K-means++ initialization. Returns (K, D) array of centroids."""
-            rng = np.random.default_rng(seed)
+            _rng = np.random.default_rng(seed)
             N, D = X.shape
             centroids = np.empty((K, D))
 
             # Pick first centroid uniformly at random
-            centroids[0] = X[rng.randint(N)]
+            centroids[0] = X[_rng.randint(N)]
 
             for k in range(1, K):
                 # Compute D(x)^2 = min distance^2 to any existing centroid
                 # dists_sq = ...
                 # probs = dists_sq / dists_sq.sum()
-                # centroids[k] = X[rng.choice(N, p=probs)]
+                # centroids[k] = X[_rng.choice(N, p=probs)]
                 pass  # Replace with your implementation
 
             return centroids

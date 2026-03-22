@@ -835,12 +835,12 @@ def _():
     def _run():
 
         # Covariance and correlation from data
-        rng = np.random.default_rng(0)
+        _rng = np.random.default_rng(0)
         n = 50_000
 
         # Correlated pair: X ~ N(0,1), Y = 2X + noise
-        X = rng.standard_normal(n)
-        Y = 2 * X + rng.standard_normal(n) * 0.5
+        X = _rng.standard_normal(n)
+        Y = 2 * X + _rng.standard_normal(n) * 0.5
 
         cov_XY = np.cov(X, Y)[0, 1]           # off-diagonal of covariance matrix
         corr_XY = np.corrcoef(X, Y)[0, 1]     # normalized to [-1, 1]
@@ -848,7 +848,7 @@ def _():
         print(f"Corr(X,Y) = {corr_XY:.3f}  (strong positive linear relationship)")
 
         # Full covariance matrix for 3 variables
-        Z = -X + rng.standard_normal(n) * 0.3
+        Z = -X + _rng.standard_normal(n) * 0.3
         data = np.stack([X, Y, Z])
         cov_matrix = np.cov(data)
         print(f"\nCovariance matrix (3×3):\n{np.round(cov_matrix, 2)}")
@@ -1001,9 +1001,9 @@ def _():
     def _run():
 
         # Law of Large Numbers: running average converges to true mean
-        rng = np.random.default_rng(7)
+        _rng = np.random.default_rng(7)
         true_mean = 3.5  # E[fair die]
-        rolls = rng.integers(1, 7, size=5000)
+        rolls = _rng.integers(1, 7, size=5000)
         running_avg = np.cumsum(rolls) / np.arange(1, len(rolls) + 1)
 
         fig_lln, ax_lln = plt.subplots(figsize=(8, 3))
@@ -1320,9 +1320,9 @@ def _():
         # Prior: Beta(1,1) = Uniform (we know nothing)
         # After each flip, posterior updates.
 
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         true_p = 0.7
-        flips = rng.random(100) < true_p  # 100 flips of a biased coin
+        flips = _rng.random(100) < true_p  # 100 flips of a biased coin
 
         x_beta = np.linspace(0, 1, 200)
         a_prior, b_prior = 1, 1  # Beta prior parameters

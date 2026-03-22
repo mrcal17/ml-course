@@ -161,14 +161,14 @@ def _(np):
         p_drop = 0.5                             # dropout rate
         h = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) # hidden activations
 
-        rng = np.random.default_rng(0)
-        mask = (rng.random(h.shape) > p_drop).astype(float)  # Bernoulli(1-p)
+        _rng = np.random.default_rng(0)
+        mask = (_rng.random(h.shape) > p_drop).astype(float)  # Bernoulli(1-p)
         h_train = h * mask / (1 - p_drop)        # inverted dropout
 
         # Key property: E[h_train] == h  (unbiased)
         n_trials = 100_000
         samples = np.array([
-            h * (rng.random(h.shape) > p_drop).astype(float) / (1 - p_drop)
+            h * (_rng.random(h.shape) > p_drop).astype(float) / (1 - p_drop)
             for _ in range(n_trials)
         ])
         print(f"Original h:      {h}")
@@ -745,7 +745,7 @@ def _(dropout_slider):
         dropout_rate = dropout_slider.value
 
         # Generate data
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         X_data, y_data = make_moons(n_samples=200, noise=0.2, random_state=42)
         X_tensor = torch.tensor(X_data, dtype=torch.float32)
         y_tensor = torch.tensor(y_data, dtype=torch.float32).unsqueeze(1)
@@ -895,22 +895,22 @@ Implement inverted dropout for a hidden layer activation. During training, zero 
 @app.cell
 def _(np):
     def _run():
-        def inverted_dropout(h, p, training=True, rng=None):
+        def inverted_dropout(h, p, training=True, _rng=None):
             """Apply inverted dropout to hidden activations.
 
             Args:
                 h: activation vector (numpy array)
                 p: dropout probability (fraction to DROP)
                 training: if False, return h unchanged
-                rng: numpy random Generator
+                _rng: numpy random Generator
 
             Returns:
                 Dropped-out activations (same shape as h).
             """
             if not training or p == 0:
                 return h
-            if rng is None:
-                rng = np.random.default_rng()
+            if _rng is None:
+                _rng = np.random.default_rng()
 
             # TODO: create binary mask where each entry is 1 with prob (1-p)
             mask = None  # TODO
@@ -921,7 +921,7 @@ def _(np):
         # -- Test --
         _rng = np.random.default_rng(42)
         _h = np.ones(10000)
-        _out = inverted_dropout(_h, p=0.5, training=True, rng=_rng)
+        _out = inverted_dropout(_h, p=0.5, training=True, _rng=_rng)
         print(f"Fraction kept: {(_out > 0).mean():.3f}  (expect ~0.5)")
         print(f"Mean output:   {_out.mean():.3f}  (expect ~1.0, proving unbiased)")
 
@@ -1037,20 +1037,20 @@ Implement the Mixup augmentation scheme. Given two batches of data `(x1, y1)` an
 @app.cell
 def _(np):
     def _run():
-        def mixup(x1, y1, x2, y2, beta_param=0.2, rng=None):
+        def mixup(x1, y1, x2, y2, beta_param=0.2, _rng=None):
             """Mixup augmentation for one pair of examples.
 
             Args:
                 x1, x2: input vectors (numpy arrays, same shape)
                 y1, y2: one-hot label vectors (numpy arrays, same shape)
                 beta_param: parameter for Beta(a, a) distribution
-                rng: numpy random Generator
+                _rng: numpy random Generator
 
             Returns:
                 (x_mix, y_mix) tuple of mixed input and label.
             """
-            if rng is None:
-                rng = np.random.default_rng()
+            if _rng is None:
+                _rng = np.random.default_rng()
 
             # TODO: sample alpha from Beta(beta_param, beta_param)
             alpha = None  # TODO
@@ -1067,7 +1067,7 @@ def _(np):
         _x2 = np.array([0.0, 0.0, 1.0])
         _y2 = np.array([0.0, 1.0])       # class 1
 
-        _xm, _ym = mixup(_x1, _y1, _x2, _y2, beta_param=0.2, rng=_rng_mx)
+        _xm, _ym = mixup(_x1, _y1, _x2, _y2, beta_param=0.2, _rng=_rng_mx)
         print(f"Mixed input: {_xm}")
         print(f"Mixed label: {_ym}  (should be a soft distribution)")
 

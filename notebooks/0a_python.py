@@ -726,13 +726,13 @@ def _(mo):
 def _():
     def _run():
 
-        rng = np.random.default_rng(seed=42)  # modern API -- use this, not rng = np.random.default_rng()
+        _rng = np.random.default_rng(seed=42)  # modern API -- use this, not _rng = np.random.default_rng()
 
-        print(f"Standard normal:\n{rng.standard_normal((3, 4))}\n")
-        print(f"Uniform [0, 1):\n{rng.uniform(0, 1, size=(3, 4))}\n")
-        print(f"Random integers: {rng.integers(0, 10, size=5)}")
-        print(f"Choice without replacement: {rng.choice([1, 2, 3, 4], size=2, replace=False)}")
-        print(f"Permutation: {rng.permutation(10)}")
+        print(f"Standard normal:\n{_rng.standard_normal((3, 4))}\n")
+        print(f"Uniform [0, 1):\n{_rng.uniform(0, 1, size=(3, 4))}\n")
+        print(f"Random integers: {_rng.integers(0, 10, size=5)}")
+        print(f"Choice without replacement: {_rng.choice([1, 2, 3, 4], size=2, replace=False)}")
+        print(f"Permutation: {_rng.permutation(10)}")
 
 
     _run()
@@ -745,7 +745,7 @@ def _(mo):
 
     - **Always seed your RNG for reproducibility.** When comparing two models, you need identical train/test splits and identical weight initializations. Unseeded randomness makes debugging nearly impossible and makes your experiments non-reproducible.
 
-    - **Use the modern `default_rng` API**, not the legacy `rng = np.random.default_rng()` / `rng.standard_normal()`. The legacy API uses a global state, which means any library you import could silently change your random state. `default_rng` creates an independent generator object that only you control.
+    - **Use the modern `default_rng` API**, not the legacy `_rng = np.random.default_rng()` / `_rng.standard_normal()`. The legacy API uses a global state, which means any library you import could silently change your random state. `default_rng` creates an independent generator object that only you control.
 
     - **`standard_normal` vs `uniform`**: You'll use normal distributions for weight initialization (with appropriate scaling), and uniform distributions for things like random search over hyperparameters.
 
@@ -960,9 +960,9 @@ def _():
 
         # Line plot -- training curves
         epochs = range(1, 51)
-        rng = np.random.default_rng(42)
-        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
-        val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * rng.standard_normal(50) * 0.05
+        _rng = np.random.default_rng(42)
+        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * _rng.standard_normal(50) * 0.05
+        val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * _rng.standard_normal(50) * 0.05
 
         fig, ax = plt.subplots(figsize=(8, 5))
         ax.plot(epochs, train_loss, label="Train Loss", color="blue")
@@ -991,8 +991,8 @@ def _():
     def _run():
 
         # Scatter plot -- 2D data visualization
-        rng = np.random.default_rng(42)
-        X = rng.standard_normal((200, 2))
+        _rng = np.random.default_rng(42)
+        X = _rng.standard_normal((200, 2))
         labels = (X[:, 0] + X[:, 1] > 0).astype(int)
 
         fig, ax = plt.subplots(figsize=(6, 5))
@@ -1018,8 +1018,8 @@ def _():
     def _run():
 
         # Histogram -- distribution inspection
-        rng = np.random.default_rng(42)
-        data = rng.standard_normal(10000)
+        _rng = np.random.default_rng(42)
+        data = _rng.standard_normal(10000)
 
         fig, ax = plt.subplots(figsize=(6, 4))
         ax.hist(data, bins=50, density=True, alpha=0.7, color="steelblue", edgecolor="white")
@@ -1045,8 +1045,8 @@ def _():
     def _run():
 
         # Heatmap -- correlation matrices, confusion matrices
-        rng = np.random.default_rng(42)
-        corr_matrix = np.corrcoef(rng.standard_normal((5, 100)))
+        _rng = np.random.default_rng(42)
+        corr_matrix = np.corrcoef(_rng.standard_normal((5, 100)))
 
         fig, ax = plt.subplots(figsize=(5, 4))
         im = ax.imshow(corr_matrix, cmap="coolwarm", vmin=-1, vmax=1)
@@ -1072,11 +1072,11 @@ def _(mo):
 def _():
     def _run():
 
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         epochs = range(1, 51)
-        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
-        data = rng.standard_normal(10000)
-        X = rng.standard_normal((200, 2))
+        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * _rng.standard_normal(50) * 0.05
+        data = _rng.standard_normal(10000)
+        X = _rng.standard_normal((200, 2))
         labels = (X[:, 0] + X[:, 1] > 0).astype(int)
 
         fig, axes = plt.subplots(1, 3, figsize=(15, 4))
@@ -1114,10 +1114,10 @@ def _(mo):
 def _():
     def _run():
 
-        rng = np.random.default_rng(42)
+        _rng = np.random.default_rng(42)
         epochs = range(1, 51)
-        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
-        val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * rng.standard_normal(50) * 0.05
+        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * _rng.standard_normal(50) * 0.05
+        val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * _rng.standard_normal(50) * 0.05
 
         # OO approach -- preferred for production/reusable code
         fig, ax = plt.subplots(figsize=(8, 5))
