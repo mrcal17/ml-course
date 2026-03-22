@@ -45,6 +45,7 @@ for nb in notebooks:
             "python", "-m", "marimo", "export", "html-wasm",
             nb, "-o", out_dir,
             "--mode", "run",
+            "--show-code",
         ],
         capture_output=True, text=True, timeout=120,
     )
