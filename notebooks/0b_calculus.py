@@ -104,30 +104,32 @@ def _():
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Common ML activation functions and their derivatives
-    x_vals = np.linspace(-4, 4, 9)
+        # Common ML activation functions and their derivatives
+        x_vals = np.linspace(-4, 4, 9)
 
-    # Sigmoid: sigma(x) = 1/(1+e^{-x}), derivative = sigma(x)*(1-sigma(x))
-    sigmoid = lambda x: 1 / (1 + np.exp(-x))
-    sigmoid_deriv = lambda x: sigmoid(x) * (1 - sigmoid(x))
+        # Sigmoid: sigma(x) = 1/(1+e^{-x}), derivative = sigma(x)*(1-sigma(x))
+        sigmoid = lambda x: 1 / (1 + np.exp(-x))
+        sigmoid_deriv = lambda x: sigmoid(x) * (1 - sigmoid(x))
 
-    # tanh: derivative = 1 - tanh^2(x)
-    tanh_deriv = lambda x: 1 - np.tanh(x)**2
+        # tanh: derivative = 1 - tanh^2(x)
+        tanh_deriv = lambda x: 1 - np.tanh(x)**2
 
-    # ReLU: derivative = 1 if x>0, else 0
-    relu = lambda x: np.maximum(0, x)
-    relu_deriv = lambda x: (x > 0).astype(float)
+        # ReLU: derivative = 1 if x>0, else 0
+        relu = lambda x: np.maximum(0, x)
+        relu_deriv = lambda x: (x > 0).astype(float)
 
-    print("x       | sigmoid  | sig'(x)  | tanh(x)  | tanh'(x) | ReLU   | ReLU'")
-    print("-" * 80)
-    for xi in x_vals:
-        print(f"{xi:+6.2f}  | {sigmoid(xi):.4f}  | {sigmoid_deriv(xi):.4f}  "
-              f"| {np.tanh(xi):+.4f}  | {tanh_deriv(xi):.4f}  "
-              f"| {relu(xi):.4f} | {relu_deriv(xi):.1f}")
+        print("x       | sigmoid  | sig'(x)  | tanh(x)  | tanh'(x) | ReLU   | ReLU'")
+        print("-" * 80)
+        for xi in x_vals:
+            print(f"{xi:+6.2f}  | {sigmoid(xi):.4f}  | {sigmoid_deriv(xi):.4f}  "
+                  f"| {np.tanh(xi):+.4f}  | {tanh_deriv(xi):.4f}  "
+                  f"| {relu(xi):.4f} | {relu_deriv(xi):.1f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -153,33 +155,35 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Bernoulli log-likelihood: l(w) = y*ln(sigma(w*x)) + (1-y)*ln(1 - sigma(w*x))
-    sigmoid = lambda z: 1 / (1 + np.exp(-z))
+        # Bernoulli log-likelihood: l(w) = y*ln(sigma(w*x)) + (1-y)*ln(1 - sigma(w*x))
+        sigmoid = lambda z: 1 / (1 + np.exp(-z))
 
-    w, x, y = 0.5, 2.0, 1  # weight, feature, true label
-    z = w * x
+        w, x, y = 0.5, 2.0, 1  # weight, feature, true label
+        z = w * x
 
-    # Log-likelihood value
-    log_lik = y * np.log(sigmoid(z)) + (1 - y) * np.log(1 - sigmoid(z))
+        # Log-likelihood value
+        log_lik = y * np.log(sigmoid(z)) + (1 - y) * np.log(1 - sigmoid(z))
 
-    # Analytic gradient: dl/dw = (y - sigma(w*x)) * x
-    grad_analytic = (y - sigmoid(z)) * x
+        # Analytic gradient: dl/dw = (y - sigma(w*x)) * x
+        grad_analytic = (y - sigmoid(z)) * x
 
-    # Numerical gradient for verification
-    eps = 1e-7
-    z_plus = (w + eps) * x
-    log_lik_plus = y * np.log(sigmoid(z_plus)) + (1 - y) * np.log(1 - sigmoid(z_plus))
-    grad_numeric = (log_lik_plus - log_lik) / eps
+        # Numerical gradient for verification
+        eps = 1e-7
+        z_plus = (w + eps) * x
+        log_lik_plus = y * np.log(sigmoid(z_plus)) + (1 - y) * np.log(1 - sigmoid(z_plus))
+        grad_numeric = (log_lik_plus - log_lik) / eps
 
-    print(f"Bernoulli log-likelihood at w={w}, x={x}, y={y}")
-    print(f"  sigma(w*x) = {sigmoid(z):.4f}  (predicted probability)")
-    print(f"  log-lik    = {log_lik:.4f}")
-    print(f"  dl/dw (analytic) = {grad_analytic:.6f}")
-    print(f"  dl/dw (numeric)  = {grad_numeric:.6f}")
+        print(f"Bernoulli log-likelihood at w={w}, x={x}, y={y}")
+        print(f"  sigma(w*x) = {sigmoid(z):.4f}  (predicted probability)")
+        print(f"  log-lik    = {log_lik:.4f}")
+        print(f"  dl/dw (analytic) = {grad_analytic:.6f}")
+        print(f"  dl/dw (numeric)  = {grad_numeric:.6f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -222,58 +226,62 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Partial derivatives of f(x,y) = x^2*y + 3*x*y^2 - 7*y
-    def f(x, y):
-        return x**2 * y + 3 * x * y**2 - 7 * y
+        # Partial derivatives of f(x,y) = x^2*y + 3*x*y^2 - 7*y
+        def f(x, y):
+            return x**2 * y + 3 * x * y**2 - 7 * y
 
-    # Analytic partial derivatives
-    df_dx = lambda x, y: 2 * x * y + 3 * y**2       # df/dx
-    df_dy = lambda x, y: x**2 + 6 * x * y - 7       # df/dy
+        # Analytic partial derivatives
+        df_dx = lambda x, y: 2 * x * y + 3 * y**2       # df/dx
+        df_dy = lambda x, y: x**2 + 6 * x * y - 7       # df/dy
 
-    # Numerical partial derivatives (nudge one variable, hold the other)
-    h = 1e-7
-    x0, y0 = 2.0, 3.0
-    num_df_dx = (f(x0 + h, y0) - f(x0, y0)) / h
-    num_df_dy = (f(x0, y0 + h) - f(x0, y0)) / h
+        # Numerical partial derivatives (nudge one variable, hold the other)
+        h = 1e-7
+        x0, y0 = 2.0, 3.0
+        num_df_dx = (f(x0 + h, y0) - f(x0, y0)) / h
+        num_df_dy = (f(x0, y0 + h) - f(x0, y0)) / h
 
-    print(f"f(x,y) = x^2*y + 3*x*y^2 - 7*y  at ({x0}, {y0})")
-    print(f"  df/dx: analytic = {df_dx(x0,y0):.4f}, numeric = {num_df_dx:.4f}")
-    print(f"  df/dy: analytic = {df_dy(x0,y0):.4f}, numeric = {num_df_dy:.4f}")
+        print(f"f(x,y) = x^2*y + 3*x*y^2 - 7*y  at ({x0}, {y0})")
+        print(f"  df/dx: analytic = {df_dx(x0,y0):.4f}, numeric = {num_df_dx:.4f}")
+        print(f"  df/dy: analytic = {df_dy(x0,y0):.4f}, numeric = {num_df_dy:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # MSE partial derivatives for simple linear regression: y_hat = w*x + b
-    rng = np.random.default_rng(42)
-    n = 50
-    x_data = rng.standard_normal(n)
-    y_data = 2.5 * x_data + 1.0 + 0.3 * rng.standard_normal(n)  # true w=2.5, b=1.0
+        # MSE partial derivatives for simple linear regression: y_hat = w*x + b
+        rng = np.random.default_rng(42)
+        n = 50
+        x_data = rng.standard_normal(n)
+        y_data = 2.5 * x_data + 1.0 + 0.3 * rng.standard_normal(n)  # true w=2.5, b=1.0
 
-    w, b = 1.0, 0.0  # initial guess
-    residuals = y_data - w * x_data - b
+        w, b = 1.0, 0.0  # initial guess
+        residuals = y_data - w * x_data - b
 
-    # Analytic gradients: dL/dw = (-2/n) * sum(x_i * residual_i)
-    dL_dw = (-2 / n) * np.sum(x_data * residuals)
-    dL_db = (-2 / n) * np.sum(residuals)
+        # Analytic gradients: dL/dw = (-2/n) * sum(x_i * residual_i)
+        dL_dw = (-2 / n) * np.sum(x_data * residuals)
+        dL_db = (-2 / n) * np.sum(residuals)
 
-    # Numerical check
-    h = 1e-7
-    mse = lambda w, b: np.mean((y_data - w * x_data - b)**2)
-    num_dL_dw = (mse(w + h, b) - mse(w, b)) / h
-    num_dL_db = (mse(w, b + h) - mse(w, b)) / h
+        # Numerical check
+        h = 1e-7
+        mse = lambda w, b: np.mean((y_data - w * x_data - b)**2)
+        num_dL_dw = (mse(w + h, b) - mse(w, b)) / h
+        num_dL_db = (mse(w, b + h) - mse(w, b)) / h
 
-    print(f"MSE gradient at w={w}, b={b}:")
-    print(f"  dL/dw: analytic = {dL_dw:.6f}, numeric = {num_dL_dw:.6f}")
-    print(f"  dL/db: analytic = {dL_db:.6f}, numeric = {num_dL_db:.6f}")
-    print(f"\nGradient is negative => increasing w,b would decrease loss")
-    print(f"(Makes sense: true values are w=2.5, b=1.0 which are larger)")
+        print(f"MSE gradient at w={w}, b={b}:")
+        print(f"  dL/dw: analytic = {dL_dw:.6f}, numeric = {num_dL_dw:.6f}")
+        print(f"  dL/db: analytic = {dL_db:.6f}, numeric = {num_dL_db:.6f}")
+        print(f"\nGradient is negative => increasing w,b would decrease loss")
+        print(f"(Makes sense: true values are w=2.5, b=1.0 which are larger)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -319,27 +327,29 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Gradient descent on f(x,y) = (x-3)^2 + (y+1)^2
-    # Gradient: [2(x-3), 2(y+1)]
-    # Minimum at (3, -1)
-    f = lambda x, y: (x - 3)**2 + (y + 1)**2
-    grad_f = lambda x, y: np.array([2 * (x - 3), 2 * (y + 1)])
+        # Gradient descent on f(x,y) = (x-3)^2 + (y+1)^2
+        # Gradient: [2(x-3), 2(y+1)]
+        # Minimum at (3, -1)
+        f = lambda x, y: (x - 3)**2 + (y + 1)**2
+        grad_f = lambda x, y: np.array([2 * (x - 3), 2 * (y + 1)])
 
-    eta = 0.1  # learning rate
-    pos = np.array([0.0, 0.0])
+        eta = 0.1  # learning rate
+        pos = np.array([0.0, 0.0])
 
-    print(f"Gradient descent: f(x,y) = (x-3)^2 + (y+1)^2, lr={eta}")
-    print(f"{'Step':>4}  {'x':>8}  {'y':>8}  {'f(x,y)':>10}  {'|grad|':>8}")
-    print("-" * 50)
-    for step in range(11):
-        g = grad_f(pos[0], pos[1])
-        val = f(pos[0], pos[1])
-        print(f"{step:4d}  {pos[0]:8.4f}  {pos[1]:8.4f}  {val:10.4f}  {np.linalg.norm(g):8.4f}")
-        pos = pos - eta * g  # x_{t+1} = x_t - eta * grad f
+        print(f"Gradient descent: f(x,y) = (x-3)^2 + (y+1)^2, lr={eta}")
+        print(f"{'Step':>4}  {'x':>8}  {'y':>8}  {'f(x,y)':>10}  {'|grad|':>8}")
+        print("-" * 50)
+        for step in range(11):
+            g = grad_f(pos[0], pos[1])
+            val = f(pos[0], pos[1])
+            print(f"{step:4d}  {pos[0]:8.4f}  {pos[1]:8.4f}  {val:10.4f}  {np.linalg.norm(g):8.4f}")
+            pos = pos - eta * g  # x_{t+1} = x_t - eta * grad f
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -389,40 +399,42 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Chain rule through a 2-layer network:
-    # z = sigma(w2 * sigma(w1 * x + b1) + b2)
-    sigmoid = lambda z: 1 / (1 + np.exp(-z))
-    sigmoid_deriv = lambda z: sigmoid(z) * (1 - sigmoid(z))
+        # Chain rule through a 2-layer network:
+        # z = sigma(w2 * sigma(w1 * x + b1) + b2)
+        sigmoid = lambda z: 1 / (1 + np.exp(-z))
+        sigmoid_deriv = lambda z: sigmoid(z) * (1 - sigmoid(z))
 
-    x = 1.5
-    w1, b1 = 0.8, -0.2
-    w2, b2 = 1.2, 0.3
+        x = 1.5
+        w1, b1 = 0.8, -0.2
+        w2, b2 = 1.2, 0.3
 
-    # Forward pass (save intermediates for backprop)
-    z1 = w1 * x + b1          # pre-activation layer 1
-    a1 = sigmoid(z1)           # activation layer 1
-    z2 = w2 * a1 + b2          # pre-activation layer 2
-    output = sigmoid(z2)        # final output
+        # Forward pass (save intermediates for backprop)
+        z1 = w1 * x + b1          # pre-activation layer 1
+        a1 = sigmoid(z1)           # activation layer 1
+        z2 = w2 * a1 + b2          # pre-activation layer 2
+        output = sigmoid(z2)        # final output
 
-    # Analytic gradient via chain rule: dout/dw1 = sig'(z2) * w2 * sig'(z1) * x
-    dout_dw1 = sigmoid_deriv(z2) * w2 * sigmoid_deriv(z1) * x
+        # Analytic gradient via chain rule: dout/dw1 = sig'(z2) * w2 * sig'(z1) * x
+        dout_dw1 = sigmoid_deriv(z2) * w2 * sigmoid_deriv(z1) * x
 
-    # Numerical check
-    eps = 1e-7
-    z1_p = (w1 + eps) * x + b1
-    a1_p = sigmoid(z1_p)
-    z2_p = w2 * a1_p + b2
-    out_p = sigmoid(z2_p)
-    dout_dw1_num = (out_p - output) / eps
+        # Numerical check
+        eps = 1e-7
+        z1_p = (w1 + eps) * x + b1
+        a1_p = sigmoid(z1_p)
+        z2_p = w2 * a1_p + b2
+        out_p = sigmoid(z2_p)
+        dout_dw1_num = (out_p - output) / eps
 
-    print("2-layer network: z = sigma(w2 * sigma(w1*x + b1) + b2)")
-    print(f"  Forward: z1={z1:.4f}, a1={a1:.4f}, z2={z2:.4f}, out={output:.4f}")
-    print(f"\n  dout/dw1 (chain rule): {dout_dw1:.8f}")
-    print(f"  dout/dw1 (numeric):    {dout_dw1_num:.8f}")
+        print("2-layer network: z = sigma(w2 * sigma(w1*x + b1) + b2)")
+        print(f"  Forward: z1={z1:.4f}, a1={a1:.4f}, z2={z2:.4f}, out={output:.4f}")
+        print(f"\n  dout/dw1 (chain rule): {dout_dw1:.8f}")
+        print(f"  dout/dw1 (numeric):    {dout_dw1_num:.8f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -446,45 +458,47 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Jacobian of a vector-valued function f: R^2 -> R^3
-    # f(x1, x2) = [x1^2 + x2, sin(x1*x2), x1*x2^2]
-    def f_vec(x):
-        x1, x2 = x
-        return np.array([x1**2 + x2, np.sin(x1 * x2), x1 * x2**2])
+        # Jacobian of a vector-valued function f: R^2 -> R^3
+        # f(x1, x2) = [x1^2 + x2, sin(x1*x2), x1*x2^2]
+        def f_vec(x):
+            x1, x2 = x
+            return np.array([x1**2 + x2, np.sin(x1 * x2), x1 * x2**2])
 
-    # Analytic Jacobian: J[i,j] = df_i/dx_j
-    def jacobian_analytic(x):
-        x1, x2 = x
-        return np.array([
-            [2 * x1,              1],                # d(x1^2+x2)/dx
-            [x2 * np.cos(x1*x2), x1 * np.cos(x1*x2)],  # d(sin(x1*x2))/dx
-            [x2**2,              2 * x1 * x2],       # d(x1*x2^2)/dx
-        ])
+        # Analytic Jacobian: J[i,j] = df_i/dx_j
+        def jacobian_analytic(x):
+            x1, x2 = x
+            return np.array([
+                [2 * x1,              1],                # d(x1^2+x2)/dx
+                [x2 * np.cos(x1*x2), x1 * np.cos(x1*x2)],  # d(sin(x1*x2))/dx
+                [x2**2,              2 * x1 * x2],       # d(x1*x2^2)/dx
+            ])
 
-    # Numerical Jacobian: perturb each input, observe all outputs
-    def jacobian_numerical(f, x, h=1e-7):
-        n = len(x)
-        f0 = f(x)
-        m = len(f0)
-        J = np.zeros((m, n))
-        for j in range(n):
-            x_plus = x.copy()
-            x_plus[j] += h
-            J[:, j] = (f(x_plus) - f0) / h
-        return J
+        # Numerical Jacobian: perturb each input, observe all outputs
+        def jacobian_numerical(f, x, h=1e-7):
+            n = len(x)
+            f0 = f(x)
+            m = len(f0)
+            J = np.zeros((m, n))
+            for j in range(n):
+                x_plus = x.copy()
+                x_plus[j] += h
+                J[:, j] = (f(x_plus) - f0) / h
+            return J
 
-    x0 = np.array([1.0, 2.0])
-    J_a = jacobian_analytic(x0)
-    J_n = jacobian_numerical(f_vec, x0)
+        x0 = np.array([1.0, 2.0])
+        J_a = jacobian_analytic(x0)
+        J_n = jacobian_numerical(f_vec, x0)
 
-    print(f"Jacobian at x = {x0}")
-    print(f"\nAnalytic:\n{J_a}")
-    print(f"\nNumerical:\n{np.round(J_n, 6)}")
-    print(f"\nMax difference: {np.max(np.abs(J_a - J_n)):.2e}")
+        print(f"Jacobian at x = {x0}")
+        print(f"\nAnalytic:\n{J_a}")
+        print(f"\nNumerical:\n{np.round(J_n, 6)}")
+        print(f"\nMax difference: {np.max(np.abs(J_a - J_n)):.2e}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -524,33 +538,35 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Hessian and convexity check for f(x,y) = x^2 + 10*y^2
-    # Gradient: [2x, 20y]
-    # Hessian: [[2, 0], [0, 20]] -- constant, eigenvalues 2 and 20
-    H = np.array([[2, 0],
-                   [0, 20]])
-    eigenvalues = np.linalg.eigvalsh(H)
-    is_psd = np.all(eigenvalues >= 0)
-    condition_number = eigenvalues.max() / eigenvalues.min()
+        # Hessian and convexity check for f(x,y) = x^2 + 10*y^2
+        # Gradient: [2x, 20y]
+        # Hessian: [[2, 0], [0, 20]] -- constant, eigenvalues 2 and 20
+        H = np.array([[2, 0],
+                       [0, 20]])
+        eigenvalues = np.linalg.eigvalsh(H)
+        is_psd = np.all(eigenvalues >= 0)
+        condition_number = eigenvalues.max() / eigenvalues.min()
 
-    print(f"f(x,y) = x^2 + 10*y^2")
-    print(f"Hessian:\n{H}")
-    print(f"Eigenvalues: {eigenvalues}")
-    print(f"PSD (convex)? {is_psd}")
-    print(f"Condition number: {condition_number}")
-    print(f"\nThe 10:1 eigenvalue ratio explains zig-zagging in gradient descent:")
-    print(f"  the y-direction curves 10x steeper than x, so a fixed learning rate")
-    print(f"  that works for y overshoots in x, and vice versa.")
+        print(f"f(x,y) = x^2 + 10*y^2")
+        print(f"Hessian:\n{H}")
+        print(f"Eigenvalues: {eigenvalues}")
+        print(f"PSD (convex)? {is_psd}")
+        print(f"Condition number: {condition_number}")
+        print(f"\nThe 10:1 eigenvalue ratio explains zig-zagging in gradient descent:")
+        print(f"  the y-direction curves 10x steeper than x, so a fixed learning rate")
+        print(f"  that works for y overshoots in x, and vice versa.")
 
-    # Newton's method converges in 1 step on quadratics
-    x0 = np.array([5.0, 3.0])
-    grad = np.array([2 * x0[0], 20 * x0[1]])
-    x_newton = x0 - np.linalg.solve(H, grad)  # x - H^{-1} * grad
-    print(f"\nNewton's method from {x0}: one step -> {x_newton}  (exact minimum!)")
+        # Newton's method converges in 1 step on quadratics
+        x0 = np.array([5.0, 3.0])
+        grad = np.array([2 * x0[0], 20 * x0[1]])
+        x_newton = x0 - np.linalg.solve(H, grad)  # x - H^{-1} * grad
+        print(f"\nNewton's method from {x0}: one step -> {x_newton}  (exact minimum!)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -608,37 +624,39 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Verify matrix calculus identities numerically
+        # Verify matrix calculus identities numerically
 
-    # Identity 1: grad(w^T x) = w
-    w = np.array([3.0, -1.0, 2.0])
-    x = np.array([1.0, 4.0, -2.0])
-    f_linear = lambda x: w @ x
-    # Numerical gradient
-    h = 1e-7
-    grad_num = np.array([(f_linear(x + h * np.eye(3)[i]) - f_linear(x)) / h for i in range(3)])
-    print(f"grad(w^T x) = w? analytic: {w}, numeric: {np.round(grad_num, 4)}")
+        # Identity 1: grad(w^T x) = w
+        w = np.array([3.0, -1.0, 2.0])
+        x = np.array([1.0, 4.0, -2.0])
+        f_linear = lambda x: w @ x
+        # Numerical gradient
+        h = 1e-7
+        grad_num = np.array([(f_linear(x + h * np.eye(3)[i]) - f_linear(x)) / h for i in range(3)])
+        print(f"grad(w^T x) = w? analytic: {w}, numeric: {np.round(grad_num, 4)}")
 
-    # Identity 2: grad(x^T A x) = (A + A^T) x  for general A
-    A = np.array([[2, 1], [3, 4]])  # non-symmetric
-    x2 = np.array([1.0, 2.0])
-    f_quad = lambda x: x @ A @ x
-    grad_analytic = (A + A.T) @ x2
-    grad_num2 = np.array([(f_quad(x2 + h * np.eye(2)[i]) - f_quad(x2)) / h for i in range(2)])
-    print(f"\ngrad(x^T A x), A non-symmetric:")
-    print(f"  (A+A^T)x = {grad_analytic}, numeric = {np.round(grad_num2, 4)}")
+        # Identity 2: grad(x^T A x) = (A + A^T) x  for general A
+        A = np.array([[2, 1], [3, 4]])  # non-symmetric
+        x2 = np.array([1.0, 2.0])
+        f_quad = lambda x: x @ A @ x
+        grad_analytic = (A + A.T) @ x2
+        grad_num2 = np.array([(f_quad(x2 + h * np.eye(2)[i]) - f_quad(x2)) / h for i in range(2)])
+        print(f"\ngrad(x^T A x), A non-symmetric:")
+        print(f"  (A+A^T)x = {grad_analytic}, numeric = {np.round(grad_num2, 4)}")
 
-    # Normal equation: w* = (X^T X)^{-1} X^T y
-    rng = np.random.default_rng(0)
-    X = rng.standard_normal((20, 3))
-    y = X @ np.array([1.5, -2.0, 0.5]) + 0.1 * rng.standard_normal(20)
-    w_star = np.linalg.solve(X.T @ X, X.T @ y)
-    print(f"\nNormal equation solution: w* = {np.round(w_star, 4)}")
-    print(f"True weights:                   [1.5, -2.0, 0.5]")
+        # Normal equation: w* = (X^T X)^{-1} X^T y
+        rng = np.random.default_rng(0)
+        X = rng.standard_normal((20, 3))
+        y = X @ np.array([1.5, -2.0, 0.5]) + 0.1 * rng.standard_normal(20)
+        w_star = np.linalg.solve(X.T @ X, X.T @ y)
+        print(f"\nNormal equation solution: w* = {np.round(w_star, 4)}")
+        print(f"True weights:                   [1.5, -2.0, 0.5]")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -665,7 +683,6 @@ def _(mo):
 
 @app.cell
 def _(epsilon_slider, mo):
-    import numpy as np
     import matplotlib.pyplot as plt
 
     # f(x) = x^2, true derivative f'(x) = 2x
@@ -788,31 +805,33 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Numerical integration: expectation and variance of a Gaussian
-    mu, sigma = 2.0, 1.5
+        # Numerical integration: expectation and variance of a Gaussian
+        mu, sigma = 2.0, 1.5
 
-    # Approximate integrals via dense grid (quadrature)
-    x = np.linspace(mu - 6*sigma, mu + 6*sigma, 10000)
-    dx = x[1] - x[0]
-    pdf = (1 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(-0.5 * ((x - mu) / sigma)**2)
+        # Approximate integrals via dense grid (quadrature)
+        x = np.linspace(mu - 6*sigma, mu + 6*sigma, 10000)
+        dx = x[1] - x[0]
+        pdf = (1 / (np.sqrt(2 * np.pi) * sigma)) * np.exp(-0.5 * ((x - mu) / sigma)**2)
 
-    # Total probability: should be 1
-    total_prob = np.sum(pdf) * dx
+        # Total probability: should be 1
+        total_prob = np.sum(pdf) * dx
 
-    # E[X] = integral of x * p(x) dx
-    mean_numerical = np.sum(x * pdf) * dx
+        # E[X] = integral of x * p(x) dx
+        mean_numerical = np.sum(x * pdf) * dx
 
-    # Var(X) = integral of (x - mu)^2 * p(x) dx
-    var_numerical = np.sum((x - mu)**2 * pdf) * dx
+        # Var(X) = integral of (x - mu)^2 * p(x) dx
+        var_numerical = np.sum((x - mu)**2 * pdf) * dx
 
-    print(f"Gaussian(mu={mu}, sigma={sigma})")
-    print(f"  Total probability: {total_prob:.6f}  (should be 1)")
-    print(f"  E[X]:  numerical = {mean_numerical:.6f}, exact = {mu}")
-    print(f"  Var(X): numerical = {var_numerical:.6f}, exact = {sigma**2}")
+        print(f"Gaussian(mu={mu}, sigma={sigma})")
+        print(f"  Total probability: {total_prob:.6f}  (should be 1)")
+        print(f"  E[X]:  numerical = {mean_numerical:.6f}, exact = {mu}")
+        print(f"  Var(X): numerical = {var_numerical:.6f}, exact = {sigma**2}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -843,41 +862,43 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Full logistic regression training from scratch -- tying it all together
-    sigmoid = lambda z: 1 / (1 + np.exp(-z))
+        # Full logistic regression training from scratch -- tying it all together
+        sigmoid = lambda z: 1 / (1 + np.exp(-z))
 
-    # Generate linearly separable 2D data
-    rng = np.random.default_rng(42)
-    n = 100
-    X = rng.standard_normal((n, 2))
-    true_w = np.array([2.0, -1.5])
-    y = (X @ true_w > 0).astype(float)
+        # Generate linearly separable 2D data
+        rng = np.random.default_rng(42)
+        n = 100
+        X = rng.standard_normal((n, 2))
+        true_w = np.array([2.0, -1.5])
+        y = (X @ true_w > 0).astype(float)
 
-    # Gradient descent on negative log-likelihood
-    w = np.zeros(2)
-    lr = 0.1
-    losses = []
+        # Gradient descent on negative log-likelihood
+        w = np.zeros(2)
+        lr = 0.1
+        losses = []
 
-    for step in range(50):
-        # Forward: predictions
-        y_hat = sigmoid(X @ w)
-        # Loss: -sum[y*log(yhat) + (1-y)*log(1-yhat)]
-        loss = -np.mean(y * np.log(y_hat + 1e-12) + (1 - y) * np.log(1 - y_hat + 1e-12))
-        losses.append(loss)
-        # Gradient: -X^T (y - y_hat) / n
-        grad = -X.T @ (y - y_hat) / n
-        # Update: w <- w - lr * grad
-        w = w - lr * grad
+        for step in range(50):
+            # Forward: predictions
+            y_hat = sigmoid(X @ w)
+            # Loss: -sum[y*log(yhat) + (1-y)*log(1-yhat)]
+            loss = -np.mean(y * np.log(y_hat + 1e-12) + (1 - y) * np.log(1 - y_hat + 1e-12))
+            losses.append(loss)
+            # Gradient: -X^T (y - y_hat) / n
+            grad = -X.T @ (y - y_hat) / n
+            # Update: w <- w - lr * grad
+            w = w - lr * grad
 
-    accuracy = np.mean((sigmoid(X @ w) > 0.5) == y)
-    print(f"Logistic regression via gradient descent (50 steps, lr={lr})")
-    print(f"  Learned w: [{w[0]:.3f}, {w[1]:.3f}]  (true: [2.0, -1.5])")
-    print(f"  Final loss: {losses[-1]:.4f}  (started at {losses[0]:.4f})")
-    print(f"  Accuracy: {accuracy:.1%}")
+        accuracy = np.mean((sigmoid(X @ w) > 0.5) == y)
+        print(f"Logistic regression via gradient descent (50 steps, lr={lr})")
+        print(f"  Learned w: [{w[0]:.3f}, {w[1]:.3f}]  (true: [2.0, -1.5])")
+        print(f"  Final loss: {losses[-1]:.4f}  (started at {losses[0]:.4f})")
+        print(f"  Accuracy: {accuracy:.1%}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -947,7 +968,6 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
 
     def gradient_checker(f, analytic_grad_fn, x, h=1e-5):
         """Compare analytic gradient to central-difference numerical gradient.
@@ -998,7 +1018,6 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
 
     def gradient_descent_momentum(grad_fn, x0, lr=0.01, beta=0.9, n_steps=200):
         """Gradient descent with momentum.
@@ -1067,7 +1086,6 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
 
     def tiny_network_forward_backward(x, y, w1, b1, w2, b2):
         """Forward + backward pass for: y_hat = w2 * sigmoid(w1*x + b1) + b2
@@ -1134,35 +1152,37 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Generate synthetic data
-    rng = np.random.default_rng(7)
-    n, d = 50, 4
-    X = rng.standard_normal((n, d))
-    w_true = np.array([3.0, -1.0, 0.5, 2.0])
-    y = X @ w_true + 0.5 * rng.standard_normal(n)
-    lam = 1.0  # regularization strength
+        # Generate synthetic data
+        rng = np.random.default_rng(7)
+        n, d = 50, 4
+        X = rng.standard_normal((n, d))
+        w_true = np.array([3.0, -1.0, 0.5, 2.0])
+        y = X @ w_true + 0.5 * rng.standard_normal(n)
+        lam = 1.0  # regularization strength
 
-    # TODO: Closed-form Ridge solution
-    # w* = (X^T X + lambda * I)^{-1} X^T y
-    w_closed = ...  # <-- fill this in
+        # TODO: Closed-form Ridge solution
+        # w* = (X^T X + lambda * I)^{-1} X^T y
+        w_closed = ...  # <-- fill this in
 
-    # TODO: Gradient descent for Ridge
-    # grad L = 2 * X^T(Xw - y) + 2*lambda*w  (don't forget the regularization term!)
-    w_gd = np.zeros(d)
-    lr = 0.01
-    for step in range(1000):
-        # grad = ...  # <-- compute the gradient
-        # w_gd = w_gd - lr * grad
-        pass
+        # TODO: Gradient descent for Ridge
+        # grad L = 2 * X^T(Xw - y) + 2*lambda*w  (don't forget the regularization term!)
+        w_gd = np.zeros(d)
+        lr = 0.01
+        for step in range(1000):
+            # grad = ...  # <-- compute the gradient
+            # w_gd = w_gd - lr * grad
+            pass
 
-    # print(f"Closed-form: {np.round(w_closed, 4)}")
-    # print(f"Grad descent: {np.round(w_gd, 4)}")
-    # print(f"True weights: {w_true}")
-    # print(f"Max difference (closed vs GD): {np.max(np.abs(w_closed - w_gd)):.6f}")
+        # print(f"Closed-form: {np.round(w_closed, 4)}")
+        # print(f"Grad descent: {np.round(w_gd, 4)}")
+        # print(f"True weights: {w_true}")
+        # print(f"Max difference (closed vs GD): {np.max(np.abs(w_closed - w_gd)):.6f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

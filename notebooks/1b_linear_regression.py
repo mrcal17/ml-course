@@ -192,19 +192,23 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Demonstrating multicollinearity and condition number
-    rng = np.random.default_rng(0)
-    X_good = rng.standard_normal((50, 3))
-    X_bad = np.column_stack([X_good, X_good[:, 0] + 1e-8 * rng.standard_normal(50)])  # near-duplicate column
+    def _run():
+        # Demonstrating multicollinearity and condition number
+        rng = np.random.default_rng(0)
+        X_good = rng.standard_normal((50, 3))
+        X_bad = np.column_stack([X_good, X_good[:, 0] + 1e-8 * rng.standard_normal(50)])  # near-duplicate column
 
-    cond_good = np.linalg.cond(X_good.T @ X_good)
-    cond_bad = np.linalg.cond(X_bad.T @ X_bad)
+        cond_good = np.linalg.cond(X_good.T @ X_good)
+        cond_bad = np.linalg.cond(X_bad.T @ X_bad)
 
-    print(f"Condition number (independent features):  {cond_good:.1f}")
-    print(f"Condition number (collinear features):    {cond_bad:.1e}")
-    print("High condition number => small data changes cause large weight changes")
-    return ()
+        print(f"Condition number (independent features):  {cond_good:.1f}")
+        print(f"Condition number (collinear features):    {cond_bad:.1e}")
+        print("High condition number => small data changes cause large weight changes")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -411,20 +415,24 @@ def _(mo):
 
 @app.cell
 def _(np, X_synth, y_synth, w_ols):
-    # R^2 from scratch: R^2 = 1 - SS_res / SS_tot
-    y_hat_r2 = X_synth @ w_ols
-    ss_res = np.sum((y_synth - y_hat_r2)**2)        # sum of squared residuals
-    ss_tot = np.sum((y_synth - np.mean(y_synth))**2) # total sum of squares
-    r2_manual = 1 - ss_res / ss_tot
+    def _run():
+        # R^2 from scratch: R^2 = 1 - SS_res / SS_tot
+        y_hat_r2 = X_synth @ w_ols
+        ss_res = np.sum((y_synth - y_hat_r2)**2)        # sum of squared residuals
+        ss_tot = np.sum((y_synth - np.mean(y_synth))**2) # total sum of squares
+        r2_manual = 1 - ss_res / ss_tot
 
-    # MSE from scratch: MSE = (1/n) * ||y - y_hat||^2
-    mse_manual = np.mean((y_synth - y_hat_r2)**2)
+        # MSE from scratch: MSE = (1/n) * ||y - y_hat||^2
+        mse_manual = np.mean((y_synth - y_hat_r2)**2)
 
-    print(f"R^2 (from scratch): {r2_manual:.6f}")
-    print(f"MSE (from scratch): {mse_manual:.6f}")
-    print(f"SS_res = {ss_res:.4f},  SS_tot = {ss_tot:.4f}")
-    return ()
+        print(f"R^2 (from scratch): {r2_manual:.6f}")
+        print(f"MSE (from scratch): {mse_manual:.6f}")
+        print(f"SS_res = {ss_res:.4f},  SS_tot = {ss_tot:.4f}")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -434,22 +442,25 @@ def _(mo):
 
 @app.cell
 def _(X_synth, y_synth, LinearRegression, train_test_split, r2_score, mean_squared_error):
-    X_train_eval, X_test_eval, y_train_eval, y_test_eval = train_test_split(
-        X_synth[:, 1:], y_synth, test_size=0.2, random_state=42   # drop intercept col; sklearn adds it
-    )
+    def _run():
+        X_train_eval, X_test_eval, y_train_eval, y_test_eval = train_test_split(
+            X_synth[:, 1:], y_synth, test_size=0.2, random_state=42   # drop intercept col; sklearn adds it
+        )
 
-    model_eval = LinearRegression()
-    model_eval.fit(X_train_eval, y_train_eval)
+        model_eval = LinearRegression()
+        model_eval.fit(X_train_eval, y_train_eval)
 
-    y_pred_train_eval = model_eval.predict(X_train_eval)
-    y_pred_test_eval = model_eval.predict(X_test_eval)
+        y_pred_train_eval = model_eval.predict(X_train_eval)
+        y_pred_test_eval = model_eval.predict(X_test_eval)
 
-    print(f"Train R2: {r2_score(y_train_eval, y_pred_train_eval):.4f}")
-    print(f"Test  R2: {r2_score(y_test_eval, y_pred_test_eval):.4f}")
-    print(f"Train MSE: {mean_squared_error(y_train_eval, y_pred_train_eval):.4f}")
-    print(f"Test  MSE: {mean_squared_error(y_test_eval, y_pred_test_eval):.4f}")
+        print(f"Train R2: {r2_score(y_train_eval, y_pred_train_eval):.4f}")
+        print(f"Test  R2: {r2_score(y_test_eval, y_pred_test_eval):.4f}")
+        print(f"Train MSE: {mean_squared_error(y_train_eval, y_pred_train_eval):.4f}")
+        print(f"Test  MSE: {mean_squared_error(y_test_eval, y_pred_test_eval):.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -485,23 +496,27 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Basis functions: build polynomial design matrix from scratch
-    # phi(x) = [1, x, x^2, ..., x^d]  =>  Phi is (n x (d+1))
-    x_basis = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    degree_basis = 3
+    def _run():
+        # Basis functions: build polynomial design matrix from scratch
+        # phi(x) = [1, x, x^2, ..., x^d]  =>  Phi is (n x (d+1))
+        x_basis = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        degree_basis = 3
 
-    # Build Phi manually: each row is [1, x_i, x_i^2, ..., x_i^d]
-    Phi_manual = np.column_stack([x_basis**k for k in range(degree_basis + 1)])
-    print(f"Phi (degree {degree_basis}) for x = {x_basis}:")
-    print(Phi_manual)
+        # Build Phi manually: each row is [1, x_i, x_i^2, ..., x_i^d]
+        Phi_manual = np.column_stack([x_basis**k for k in range(degree_basis + 1)])
+        print(f"Phi (degree {degree_basis}) for x = {x_basis}:")
+        print(Phi_manual)
 
-    # Normal equation still applies: w* = (Phi^T Phi)^{-1} Phi^T y
-    y_basis = 2 - x_basis + 0.5 * x_basis**2  # true quadratic
-    w_basis = np.linalg.solve(Phi_manual.T @ Phi_manual, Phi_manual.T @ y_basis)
-    print(f"\nFitted weights: {w_basis}")
-    print(f"(True: [2, -1, 0.5, 0])")
-    return ()
+        # Normal equation still applies: w* = (Phi^T Phi)^{-1} Phi^T y
+        y_basis = 2 - x_basis + 0.5 * x_basis**2  # true quadratic
+        w_basis = np.linalg.solve(Phi_manual.T @ Phi_manual, Phi_manual.T @ y_basis)
+        print(f"\nFitted weights: {w_basis}")
+        print(f"(True: [2, -1, 0.5, 0])")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -556,36 +571,39 @@ def _(mo):
 
 @app.cell
 def _(degree_slider, np, plt, PolynomialFeatures, LinearRegression, mean_squared_error, x_poly, y_poly):
-    _degree = degree_slider.value
+    def _run():
+        _degree = degree_slider.value
 
-    # Fit polynomial of chosen degree
-    _poly = PolynomialFeatures(_degree)
-    _X_poly = _poly.fit_transform(x_poly.reshape(-1, 1))
-    _model = LinearRegression().fit(_X_poly, y_poly)
+        # Fit polynomial of chosen degree
+        _poly = PolynomialFeatures(_degree)
+        _X_poly = _poly.fit_transform(x_poly.reshape(-1, 1))
+        _model = LinearRegression().fit(_X_poly, y_poly)
 
-    # Generate smooth curve for plotting
-    _x_smooth = np.linspace(-3.2, 3.2, 300)
-    _X_smooth = _poly.transform(_x_smooth.reshape(-1, 1))
-    _y_smooth = _model.predict(_X_smooth)
+        # Generate smooth curve for plotting
+        _x_smooth = np.linspace(-3.2, 3.2, 300)
+        _X_smooth = _poly.transform(_x_smooth.reshape(-1, 1))
+        _y_smooth = _model.predict(_X_smooth)
 
-    # True function
-    _y_true_smooth = 0.5 * _x_smooth**2 - _x_smooth + 2
+        # True function
+        _y_true_smooth = 0.5 * _x_smooth**2 - _x_smooth + 2
 
-    _train_mse = mean_squared_error(y_poly, _model.predict(_X_poly))
+        _train_mse = mean_squared_error(y_poly, _model.predict(_X_poly))
 
-    _fig, _ax = plt.subplots(1, 1, figsize=(9, 5))
-    _ax.scatter(x_poly, y_poly, color="steelblue", s=40, zorder=5, label="Training data")
-    _ax.plot(_x_smooth, _y_true_smooth, "k--", alpha=0.5, label="True function")
-    _ax.plot(_x_smooth, _y_smooth, "r-", linewidth=2, label=f"Degree {_degree} fit")
-    _ax.set_ylim(-5, 20)
-    _ax.set_xlabel("x")
-    _ax.set_ylabel("y")
-    _ax.set_title(f"Polynomial Degree = {_degree}  |  Train MSE = {_train_mse:.4f}")
-    _ax.legend()
-    plt.tight_layout()
-    _fig
+        _fig, _ax = plt.subplots(1, 1, figsize=(9, 5))
+        _ax.scatter(x_poly, y_poly, color="steelblue", s=40, zorder=5, label="Training data")
+        _ax.plot(_x_smooth, _y_true_smooth, "k--", alpha=0.5, label="True function")
+        _ax.plot(_x_smooth, _y_smooth, "r-", linewidth=2, label=f"Degree {_degree} fit")
+        _ax.set_ylim(-5, 20)
+        _ax.set_xlabel("x")
+        _ax.set_ylabel("y")
+        _ax.set_title(f"Polynomial Degree = {_degree}  |  Train MSE = {_train_mse:.4f}")
+        _ax.legend()
+        plt.tight_layout()
+        _fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -656,45 +674,53 @@ def _(mo):
 
 @app.cell
 def _(np, X_synth, y_synth, w_ols):
-    # Ridge from scratch: w_ridge = (X^T X + lambda * I)^{-1} X^T y
-    lam_demo = 5.0
-    I_p = np.eye(X_synth.shape[1])
-    w_ridge_scratch = np.linalg.solve(
-        X_synth.T @ X_synth + lam_demo * I_p,  # regularized normal equation
-        X_synth.T @ y_synth
-    )
+    def _run():
+        # Ridge from scratch: w_ridge = (X^T X + lambda * I)^{-1} X^T y
+        lam_demo = 5.0
+        I_p = np.eye(X_synth.shape[1])
+        w_ridge_scratch = np.linalg.solve(
+            X_synth.T @ X_synth + lam_demo * I_p,  # regularized normal equation
+            X_synth.T @ y_synth
+        )
 
-    # Compare norms: ridge shrinks weights toward zero
-    print(f"OLS   weights: {w_ols},  ||w|| = {np.linalg.norm(w_ols):.4f}")
-    print(f"Ridge weights: {w_ridge_scratch},  ||w|| = {np.linalg.norm(w_ridge_scratch):.4f}")
-    print(f"Ridge shrinks ||w|| by {(1 - np.linalg.norm(w_ridge_scratch)/np.linalg.norm(w_ols))*100:.1f}%")
-    return ()
+        # Compare norms: ridge shrinks weights toward zero
+        print(f"OLS   weights: {w_ols},  ||w|| = {np.linalg.norm(w_ols):.4f}")
+        print(f"Ridge weights: {w_ridge_scratch},  ||w|| = {np.linalg.norm(w_ridge_scratch):.4f}")
+        print(f"Ridge shrinks ||w|| by {(1 - np.linalg.norm(w_ridge_scratch)/np.linalg.norm(w_ols))*100:.1f}%")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell
 def _(np, X_synth, y_synth):
-    # Lasso via coordinate descent (from scratch)
-    # For each j: minimize over w_j holding others fixed
-    # Soft-thresholding: w_j = sign(rho_j) * max(|rho_j| - lambda/2, 0) / (X_j^T X_j)
-    def lasso_coordinate_descent(X, y, lam, n_iters=1000):
-        n, p = X.shape
-        w = np.zeros(p)
-        for _ in range(n_iters):
-            for j in range(p):
-                # Partial residual excluding feature j
-                r_j = y - X @ w + X[:, j] * w[j]
-                rho_j = X[:, j] @ r_j
-                z_j = X[:, j] @ X[:, j]
-                # Soft-thresholding operator
-                w[j] = np.sign(rho_j) * max(abs(rho_j) - lam / 2, 0) / z_j
-        return w
+    def _run():
+        # Lasso via coordinate descent (from scratch)
+        # For each j: minimize over w_j holding others fixed
+        # Soft-thresholding: w_j = sign(rho_j) * max(|rho_j| - lambda/2, 0) / (X_j^T X_j)
+        def lasso_coordinate_descent(X, y, lam, n_iters=1000):
+            n, p = X.shape
+            w = np.zeros(p)
+            for _ in range(n_iters):
+                for j in range(p):
+                    # Partial residual excluding feature j
+                    r_j = y - X @ w + X[:, j] * w[j]
+                    rho_j = X[:, j] @ r_j
+                    z_j = X[:, j] @ X[:, j]
+                    # Soft-thresholding operator
+                    w[j] = np.sign(rho_j) * max(abs(rho_j) - lam / 2, 0) / z_j
+            return w
 
-    w_lasso_scratch = lasso_coordinate_descent(X_synth, y_synth, lam=5.0)
-    print(f"Lasso weights (lambda=5): {w_lasso_scratch}")
-    print(f"Non-zero: {np.sum(np.abs(w_lasso_scratch) > 1e-8)} / {len(w_lasso_scratch)}")
-    print(f"L1 norm: {np.sum(np.abs(w_lasso_scratch)):.4f}")
-    return ()
+        w_lasso_scratch = lasso_coordinate_descent(X_synth, y_synth, lam=5.0)
+        print(f"Lasso weights (lambda=5): {w_lasso_scratch}")
+        print(f"Non-zero: {np.sum(np.abs(w_lasso_scratch) > 1e-8)} / {len(w_lasso_scratch)}")
+        print(f"L1 norm: {np.sum(np.abs(w_lasso_scratch)):.4f}")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -742,21 +768,25 @@ def _(np, PolynomialFeatures, RidgeCV, LassoCV):
 
 @app.cell
 def _(np, X_synth, y_synth, w_ols):
-    # Comparing penalty terms: L1 vs L2 vs Elastic Net
-    # Ridge penalty: lambda * ||w||_2^2
-    # Lasso penalty: lambda * ||w||_1
-    # Elastic Net:   lambda1 * ||w||_1 + lambda2 * ||w||_2^2
-    lam_compare = 2.0
-    ols_loss = np.sum((y_synth - X_synth @ w_ols)**2)
+    def _run():
+        # Comparing penalty terms: L1 vs L2 vs Elastic Net
+        # Ridge penalty: lambda * ||w||_2^2
+        # Lasso penalty: lambda * ||w||_1
+        # Elastic Net:   lambda1 * ||w||_1 + lambda2 * ||w||_2^2
+        lam_compare = 2.0
+        ols_loss = np.sum((y_synth - X_synth @ w_ols)**2)
 
-    print(f"OLS loss (no penalty):    {ols_loss:.4f}")
-    print(f"+ Ridge penalty (L2):     {ols_loss + lam_compare * np.sum(w_ols**2):.4f}")
-    print(f"+ Lasso penalty (L1):     {ols_loss + lam_compare * np.sum(np.abs(w_ols)):.4f}")
-    print(f"+ Elastic Net (L1+L2):    {ols_loss + lam_compare * np.sum(np.abs(w_ols)) + lam_compare * np.sum(w_ols**2):.4f}")
-    print(f"\n||w||_1 = {np.sum(np.abs(w_ols)):.4f}")
-    print(f"||w||_2^2 = {np.sum(w_ols**2):.4f}")
-    return ()
+        print(f"OLS loss (no penalty):    {ols_loss:.4f}")
+        print(f"+ Ridge penalty (L2):     {ols_loss + lam_compare * np.sum(w_ols**2):.4f}")
+        print(f"+ Lasso penalty (L1):     {ols_loss + lam_compare * np.sum(np.abs(w_ols)):.4f}")
+        print(f"+ Elastic Net (L1+L2):    {ols_loss + lam_compare * np.sum(np.abs(w_ols)) + lam_compare * np.sum(w_ols**2):.4f}")
+        print(f"\n||w||_1 = {np.sum(np.abs(w_ols)):.4f}")
+        print(f"||w||_2^2 = {np.sum(w_ols**2):.4f}")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -781,43 +811,46 @@ def _(mo):
 
 @app.cell
 def _(lambda_slider, np, plt, Ridge, PolynomialFeatures, x_reg, y_reg):
-    _lam = 10 ** lambda_slider.value
+    def _run():
+        _lam = 10 ** lambda_slider.value
 
-    # Fit degree-10 polynomial with Ridge
-    _poly = PolynomialFeatures(10)
-    _X = _poly.fit_transform(x_reg.reshape(-1, 1))
-    _model = Ridge(alpha=_lam).fit(_X, y_reg)
+        # Fit degree-10 polynomial with Ridge
+        _poly = PolynomialFeatures(10)
+        _X = _poly.fit_transform(x_reg.reshape(-1, 1))
+        _model = Ridge(alpha=_lam).fit(_X, y_reg)
 
-    # Smooth curve
-    _x_sm = np.linspace(-3.2, 3.2, 300)
-    _X_sm = _poly.transform(_x_sm.reshape(-1, 1))
-    _y_sm = _model.predict(_X_sm)
-    _y_true_sm = 0.5 * _x_sm**2 - _x_sm + 2
+        # Smooth curve
+        _x_sm = np.linspace(-3.2, 3.2, 300)
+        _X_sm = _poly.transform(_x_sm.reshape(-1, 1))
+        _y_sm = _model.predict(_X_sm)
+        _y_true_sm = 0.5 * _x_sm**2 - _x_sm + 2
 
-    _fig, (_ax1, _ax2) = plt.subplots(1, 2, figsize=(14, 5))
+        _fig, (_ax1, _ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Left panel: fit
-    _ax1.scatter(x_reg, y_reg, color="steelblue", s=40, zorder=5, label="Training data")
-    _ax1.plot(_x_sm, _y_true_sm, "k--", alpha=0.5, label="True function")
-    _ax1.plot(_x_sm, _y_sm, "r-", linewidth=2, label=f"Ridge fit")
-    _ax1.set_ylim(-5, 20)
-    _ax1.set_xlabel("x")
-    _ax1.set_ylabel("y")
-    _ax1.set_title(f"Ridge Regression  |  λ = {_lam:.4f}")
-    _ax1.legend()
+        # Left panel: fit
+        _ax1.scatter(x_reg, y_reg, color="steelblue", s=40, zorder=5, label="Training data")
+        _ax1.plot(_x_sm, _y_true_sm, "k--", alpha=0.5, label="True function")
+        _ax1.plot(_x_sm, _y_sm, "r-", linewidth=2, label=f"Ridge fit")
+        _ax1.set_ylim(-5, 20)
+        _ax1.set_xlabel("x")
+        _ax1.set_ylabel("y")
+        _ax1.set_title(f"Ridge Regression  |  λ = {_lam:.4f}")
+        _ax1.legend()
 
-    # Right panel: coefficients
-    _coefs = _model.coef_[1:]  # skip intercept feature coef
-    _ax2.bar(range(1, len(_coefs)+1), _coefs, color="steelblue", alpha=0.8)
-    _ax2.set_xlabel("Coefficient index")
-    _ax2.set_ylabel("Coefficient value")
-    _ax2.set_title(f"Coefficient magnitudes  |  ||w||₂ = {np.linalg.norm(_model.coef_):.2f}")
-    _ax2.axhline(y=0, color="k", linewidth=0.5)
+        # Right panel: coefficients
+        _coefs = _model.coef_[1:]  # skip intercept feature coef
+        _ax2.bar(range(1, len(_coefs)+1), _coefs, color="steelblue", alpha=0.8)
+        _ax2.set_xlabel("Coefficient index")
+        _ax2.set_ylabel("Coefficient value")
+        _ax2.set_title(f"Coefficient magnitudes  |  ||w||₂ = {np.linalg.norm(_model.coef_):.2f}")
+        _ax2.axhline(y=0, color="k", linewidth=0.5)
 
-    plt.tight_layout()
-    _fig
+        plt.tight_layout()
+        _fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -854,45 +887,48 @@ def _(mo):
 
 @app.cell
 def _(np, Ridge, PolynomialFeatures, mean_squared_error):
-    rng = np.random.default_rng(42)
+    def _run():
+        rng = np.random.default_rng(42)
 
-    def _true_fn(x):
-        return 0.5 * x**2 - x + 2
+        def _true_fn(x):
+            return 0.5 * x**2 - x + 2
 
-    # Test set (fixed)
-    x_test_bv = np.linspace(-3, 3, 200)
-    y_test_bv = _true_fn(x_test_bv)
+        # Test set (fixed)
+        x_test_bv = np.linspace(-3, 3, 200)
+        y_test_bv = _true_fn(x_test_bv)
 
-    _degree = 10
-    alphas_bv = np.logspace(-2, 4, 20)
-    n_trials = 50
-    train_errors_bv = []
-    test_errors_bv = []
+        _degree = 10
+        alphas_bv = np.logspace(-2, 4, 20)
+        n_trials = 50
+        train_errors_bv = []
+        test_errors_bv = []
 
-    for _alpha in alphas_bv:
-        _trial_train, _trial_test = [], []
-        for _ in range(n_trials):
-            _x_train = rng.uniform(-3, 3, 30)
-            _y_train = _true_fn(_x_train) + rng.standard_normal(30) * 0.8
+        for _alpha in alphas_bv:
+            _trial_train, _trial_test = [], []
+            for _ in range(n_trials):
+                _x_train = rng.uniform(-3, 3, 30)
+                _y_train = _true_fn(_x_train) + rng.standard_normal(30) * 0.8
 
-            _poly = PolynomialFeatures(_degree)
-            _X_tr = _poly.fit_transform(_x_train.reshape(-1, 1))
-            _X_te = _poly.transform(x_test_bv.reshape(-1, 1))
+                _poly = PolynomialFeatures(_degree)
+                _X_tr = _poly.fit_transform(_x_train.reshape(-1, 1))
+                _X_te = _poly.transform(x_test_bv.reshape(-1, 1))
 
-            _model = Ridge(alpha=_alpha).fit(_X_tr, _y_train)
-            _trial_train.append(mean_squared_error(_y_train, _model.predict(_X_tr)))
-            _trial_test.append(mean_squared_error(y_test_bv, _model.predict(_X_te)))
+                _model = Ridge(alpha=_alpha).fit(_X_tr, _y_train)
+                _trial_train.append(mean_squared_error(_y_train, _model.predict(_X_tr)))
+                _trial_test.append(mean_squared_error(y_test_bv, _model.predict(_X_te)))
 
-        train_errors_bv.append(np.mean(_trial_train))
-        test_errors_bv.append(np.mean(_trial_test))
+            train_errors_bv.append(np.mean(_trial_train))
+            test_errors_bv.append(np.mean(_trial_test))
 
-    best_idx = np.argmin(test_errors_bv)
-    print(f"Best alpha: {alphas_bv[best_idx]:.4f}")
-    print(f"Best test MSE: {test_errors_bv[best_idx]:.4f}")
-    print(f"Train MSE at best alpha: {train_errors_bv[best_idx]:.4f}")
-    # Observe: train error increases with alpha, test error is U-shaped
+        best_idx = np.argmin(test_errors_bv)
+        print(f"Best alpha: {alphas_bv[best_idx]:.4f}")
+        print(f"Best test MSE: {test_errors_bv[best_idx]:.4f}")
+        print(f"Train MSE at best alpha: {train_errors_bv[best_idx]:.4f}")
+        # Observe: train error increases with alpha, test error is U-shaped
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1112,36 +1148,40 @@ def _(mo):
 
 @app.cell
 def _(np, ols_fit, ols_predict, ridge_fit, lasso_fit):
-    rng = np.random.default_rng(123)
-    # Overparameterized: 20 features, only 5 matter, 60 training samples
-    _n_pipe, _p_pipe = 60, 20
-    _X_pipe = rng.standard_normal((_n_pipe, _p_pipe))
-    _w_pipe_true = np.zeros(_p_pipe + 1)
-    _w_pipe_true[:6] = [3.0, -2.0, 1.5, 0.8, -1.2, 2.0]  # intercept + 5 features
-    _y_pipe = np.c_[np.ones(_n_pipe), _X_pipe] @ _w_pipe_true + 0.5 * rng.standard_normal(_n_pipe)
+    def _run():
+        rng = np.random.default_rng(123)
+        # Overparameterized: 20 features, only 5 matter, 60 training samples
+        _n_pipe, _p_pipe = 60, 20
+        _X_pipe = rng.standard_normal((_n_pipe, _p_pipe))
+        _w_pipe_true = np.zeros(_p_pipe + 1)
+        _w_pipe_true[:6] = [3.0, -2.0, 1.5, 0.8, -1.2, 2.0]  # intercept + 5 features
+        _y_pipe = np.c_[np.ones(_n_pipe), _X_pipe] @ _w_pipe_true + 0.5 * rng.standard_normal(_n_pipe)
 
-    # Train/test split
-    _split = 45
-    X_tr, X_te = _X_pipe[:_split], _X_pipe[_split:]
-    y_tr, y_te = _y_pipe[:_split], _y_pipe[_split:]
+        # Train/test split
+        _split = 45
+        X_tr, X_te = _X_pipe[:_split], _X_pipe[_split:]
+        y_tr, y_te = _y_pipe[:_split], _y_pipe[_split:]
 
-    def mse(y, yhat):
-        return np.mean((y - yhat)**2)
+        def mse(y, yhat):
+            return np.mean((y - yhat)**2)
 
-    # OLS
-    w_o = ols_fit(X_tr, y_tr)
-    # Ridge
-    w_r = ridge_fit(X_tr, y_tr, lam=5.0)
-    # Lasso
-    w_l = lasso_fit(X_tr, y_tr, lam=5.0)
+        # OLS
+        w_o = ols_fit(X_tr, y_tr)
+        # Ridge
+        w_r = ridge_fit(X_tr, y_tr, lam=5.0)
+        # Lasso
+        w_l = lasso_fit(X_tr, y_tr, lam=5.0)
 
-    for name, w in [("OLS", w_o), ("Ridge", w_r), ("Lasso", w_l)]:
-        yhat_tr = ols_predict(X_tr, w)
-        yhat_te = ols_predict(X_te, w)
-        print(f"{name:6s} | Train MSE: {mse(y_tr, yhat_tr):.4f} | Test MSE: {mse(y_te, yhat_te):.4f} | "
-              f"||w||_1: {np.sum(np.abs(w)):.2f} | nonzero: {np.sum(np.abs(w) > 0.01)}")
-    return ()
+        for name, w in [("OLS", w_o), ("Ridge", w_r), ("Lasso", w_l)]:
+            yhat_tr = ols_predict(X_tr, w)
+            yhat_te = ols_predict(X_te, w)
+            print(f"{name:6s} | Train MSE: {mse(y_tr, yhat_tr):.4f} | Test MSE: {mse(y_te, yhat_te):.4f} | "
+                  f"||w||_1: {np.sum(np.abs(w)):.2f} | nonzero: {np.sum(np.abs(w) > 0.01)}")
+        return ()
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):

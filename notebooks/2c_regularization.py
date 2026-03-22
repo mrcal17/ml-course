@@ -77,29 +77,32 @@ The result: every parameter decays at the same rate $\eta\lambda$, regardless of
 
 @app.cell
 def _(np):
-    # Weight decay: the "decay" step in code
-    # theta_{t+1} = (1 - lr * lam) * theta_t  -  lr * grad
-    theta = rng.standard_normal(5)          # some weights
-    grad = rng.standard_normal(5)           # gradient of the data loss
-    lr, lam = 0.01, 1e-2
+    def _run():
+        # Weight decay: the "decay" step in code
+        # theta_{t+1} = (1 - lr * lam) * theta_t  -  lr * grad
+        theta = rng.standard_normal(5)          # some weights
+        grad = rng.standard_normal(5)           # gradient of the data loss
+        lr, lam = 0.01, 1e-2
 
-    # Standard L2: add penalty gradient to data gradient, then step
-    theta_l2 = theta - lr * (grad + lam * theta)
+        # Standard L2: add penalty gradient to data gradient, then step
+        theta_l2 = theta - lr * (grad + lam * theta)
 
-    # Weight decay (AdamW-style): decay first, then step with data gradient only
-    theta_wd = (1 - lr * lam) * theta - lr * grad
+        # Weight decay (AdamW-style): decay first, then step with data gradient only
+        theta_wd = (1 - lr * lam) * theta - lr * grad
 
-    # For vanilla SGD these are identical:
-    print("Max difference (SGD):", np.max(np.abs(theta_l2 - theta_wd)))
+        # For vanilla SGD these are identical:
+        print("Max difference (SGD):", np.max(np.abs(theta_l2 - theta_wd)))
 
-    # Hessian conditioning: H + lambda*I lifts every eigenvalue
-    H = np.array([[0.01, 0], [0, 5.0]])  # ill-conditioned
-    H_reg = H + lam * np.eye(2)
-    print(f"Eigenvalues before: {np.linalg.eigvalsh(H)}")
-    print(f"Eigenvalues after:  {np.linalg.eigvalsh(H_reg)}")
-    print(f"Condition number: {np.linalg.cond(H):.0f} -> {np.linalg.cond(H_reg):.0f}")
+        # Hessian conditioning: H + lambda*I lifts every eigenvalue
+        H = np.array([[0.01, 0], [0, 5.0]])  # ill-conditioned
+        H_reg = H + lam * np.eye(2)
+        print(f"Eigenvalues before: {np.linalg.eigvalsh(H)}")
+        print(f"Eigenvalues after:  {np.linalg.eigvalsh(H_reg)}")
+        print(f"Condition number: {np.linalg.cond(H):.0f} -> {np.linalg.cond(H_reg):.0f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -150,48 +153,54 @@ The practical implication: you can use dropout at test time (called **MC Dropout
 
 @app.cell
 def _(np):
-    # Inverted dropout from scratch
-    # During training: mask and scale by 1/(1-p)
-    # During test: use activations unchanged
+    def _run():
+        # Inverted dropout from scratch
+        # During training: mask and scale by 1/(1-p)
+        # During test: use activations unchanged
 
-    p_drop = 0.5                             # dropout rate
-    h = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) # hidden activations
+        p_drop = 0.5                             # dropout rate
+        h = np.array([1.0, 2.0, 3.0, 4.0, 5.0]) # hidden activations
 
-    rng = np.random.default_rng(0)
-    mask = (rng.random(h.shape) > p_drop).astype(float)  # Bernoulli(1-p)
-    h_train = h * mask / (1 - p_drop)        # inverted dropout
+        rng = np.random.default_rng(0)
+        mask = (rng.random(h.shape) > p_drop).astype(float)  # Bernoulli(1-p)
+        h_train = h * mask / (1 - p_drop)        # inverted dropout
 
-    # Key property: E[h_train] == h  (unbiased)
-    n_trials = 100_000
-    samples = np.array([
-        h * (rng.random(h.shape) > p_drop).astype(float) / (1 - p_drop)
-        for _ in range(n_trials)
-    ])
-    print(f"Original h:      {h}")
-    print(f"One masked pass:  {h_train}")
-    print(f"Mean over {n_trials} passes: {samples.mean(axis=0).round(3)}")
+        # Key property: E[h_train] == h  (unbiased)
+        n_trials = 100_000
+        samples = np.array([
+            h * (rng.random(h.shape) > p_drop).astype(float) / (1 - p_drop)
+            for _ in range(n_trials)
+        ])
+        print(f"Original h:      {h}")
+        print(f"One masked pass:  {h_train}")
+        print(f"Mean over {n_trials} passes: {samples.mean(axis=0).round(3)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # MC Dropout: run T forward passes at test time, measure prediction variance
-    # Simulated single-neuron example: y = w^T (h * mask / (1-p))
-    rng_mc = np.random.default_rng(42)
-    w = np.array([0.5, -1.0, 0.8, 0.3, -0.6])
-    h_test = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-    p_mc = 0.5
-    T = 500  # number of MC samples
+    def _run():
+        # MC Dropout: run T forward passes at test time, measure prediction variance
+        # Simulated single-neuron example: y = w^T (h * mask / (1-p))
+        rng_mc = np.random.default_rng(42)
+        w = np.array([0.5, -1.0, 0.8, 0.3, -0.6])
+        h_test = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        p_mc = 0.5
+        T = 500  # number of MC samples
 
-    preds = np.array([
-        w @ (h_test * (rng_mc.random(h_test.shape) > p_mc) / (1 - p_mc))
-        for _ in range(T)
-    ])
-    print(f"MC Dropout mean: {preds.mean():.3f}")
-    print(f"MC Dropout std:  {preds.std():.3f}  (uncertainty estimate)")
-    print(f"Deterministic:   {w @ h_test:.3f}")
+        preds = np.array([
+            w @ (h_test * (rng_mc.random(h_test.shape) > p_mc) / (1 - p_mc))
+            for _ in range(T)
+        ])
+        print(f"MC Dropout mean: {preds.mean():.3f}")
+        print(f"MC Dropout std:  {preds.std():.3f}  (uncertainty estimate)")
+        print(f"Deterministic:   {w @ h_test:.3f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -233,51 +242,57 @@ The correspondence is $\tau \approx \frac{1}{\eta\alpha}$, so smaller learning r
 
 @app.cell
 def _(np):
-    # Early stopping <-> L2 equivalence on a quadratic loss
-    # w_i(tau) = w_i* (1 - (1 - eta*lam_i)^tau)
-    # w_i_ridge = w_i* * lam_i / (lam_i + alpha)
+    def _run():
+        # Early stopping <-> L2 equivalence on a quadratic loss
+        # w_i(tau) = w_i* (1 - (1 - eta*lam_i)^tau)
+        # w_i_ridge = w_i* * lam_i / (lam_i + alpha)
 
-    eta_es = 0.01
-    eigenvalues = np.array([0.01, 0.1, 1.0, 10.0])  # Hessian eigenvalues
-    w_star = np.ones(4)                                # optimal weights
+        eta_es = 0.01
+        eigenvalues = np.array([0.01, 0.1, 1.0, 10.0])  # Hessian eigenvalues
+        w_star = np.ones(4)                                # optimal weights
 
-    # GD after tau steps
-    tau = 50
-    w_gd = w_star * (1 - (1 - eta_es * eigenvalues) ** tau)
+        # GD after tau steps
+        tau = 50
+        w_gd = w_star * (1 - (1 - eta_es * eigenvalues) ** tau)
 
-    # L2 regularization with equivalent alpha ~ 1/(eta*tau)
-    alpha = 1.0 / (eta_es * tau)
-    w_ridge = w_star * eigenvalues / (eigenvalues + alpha)
+        # L2 regularization with equivalent alpha ~ 1/(eta*tau)
+        alpha = 1.0 / (eta_es * tau)
+        w_ridge = w_star * eigenvalues / (eigenvalues + alpha)
 
-    print("Eigenvalue | w(GD)  | w(Ridge) | Shrinkage match?")
-    for i in range(4):
-        print(f"  {eigenvalues[i]:6.2f}   | {w_gd[i]:.4f} | {w_ridge[i]:.4f}  | "
-              f"{'close' if abs(w_gd[i]-w_ridge[i])<0.1 else 'diverges'}")
-    # Small eigenvalues (uncertain directions) are shrunk most by both methods
+        print("Eigenvalue | w(GD)  | w(Ridge) | Shrinkage match?")
+        for i in range(4):
+            print(f"  {eigenvalues[i]:6.2f}   | {w_gd[i]:.4f} | {w_ridge[i]:.4f}  | "
+                  f"{'close' if abs(w_gd[i]-w_ridge[i])<0.1 else 'diverges'}")
+        # Small eigenvalues (uncertain directions) are shrunk most by both methods
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Early stopping logic (pseudo-training loop)
-    # Simulated val losses that first decrease then increase
-    rng_es = np.random.default_rng(7)
-    val_losses = 1.0 - 0.5 * np.exp(-np.arange(50) / 10) + 0.005 * np.arange(50)
-    val_losses += rng_es.normal(0, 0.01, 50)
+    def _run():
+        # Early stopping logic (pseudo-training loop)
+        # Simulated val losses that first decrease then increase
+        rng_es = np.random.default_rng(7)
+        val_losses = 1.0 - 0.5 * np.exp(-np.arange(50) / 10) + 0.005 * np.arange(50)
+        val_losses += rng_es.normal(0, 0.01, 50)
 
-    best_loss, best_epoch, patience, wait = np.inf, 0, 5, 0
-    for epoch, vl in enumerate(val_losses):
-        if vl < best_loss:
-            best_loss, best_epoch, wait = vl, epoch, 0
-            # checkpoint = model.state_dict()  # save best
-        else:
-            wait += 1
-            if wait >= patience:
-                print(f"Early stopping at epoch {epoch}, "
-                      f"best was epoch {best_epoch} (loss={best_loss:.4f})")
-                break
+        best_loss, best_epoch, patience, wait = np.inf, 0, 5, 0
+        for epoch, vl in enumerate(val_losses):
+            if vl < best_loss:
+                best_loss, best_epoch, wait = vl, epoch, 0
+                # checkpoint = model.state_dict()  # save best
+            else:
+                wait += 1
+                if wait >= patience:
+                    print(f"Early stopping at epoch {epoch}, "
+                          f"best was epoch {best_epoch} (loss={best_loss:.4f})")
+                    break
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -324,61 +339,67 @@ Data augmentation is so effective because it *multiplies the effective dataset s
 
 @app.cell
 def _(np):
-    # Mixup augmentation: blend two examples and their labels
-    # x_mix = alpha * x_i + (1 - alpha) * x_j
-    # y_mix = alpha * y_i + (1 - alpha) * y_j
+    def _run():
+        # Mixup augmentation: blend two examples and their labels
+        # x_mix = alpha * x_i + (1 - alpha) * x_j
+        # y_mix = alpha * y_i + (1 - alpha) * y_j
 
-    rng_mix = np.random.default_rng(42)
+        rng_mix = np.random.default_rng(42)
 
-    # Two "images" (flattened 2x2 for demo) and one-hot labels (3 classes)
-    x_i = np.array([0.8, 0.2, 0.1, 0.9])  # image i
-    y_i = np.array([1.0, 0.0, 0.0])        # class 0
-    x_j = np.array([0.1, 0.7, 0.6, 0.3])  # image j
-    y_j = np.array([0.0, 0.0, 1.0])        # class 2
+        # Two "images" (flattened 2x2 for demo) and one-hot labels (3 classes)
+        x_i = np.array([0.8, 0.2, 0.1, 0.9])  # image i
+        y_i = np.array([1.0, 0.0, 0.0])        # class 0
+        x_j = np.array([0.1, 0.7, 0.6, 0.3])  # image j
+        y_j = np.array([0.0, 0.0, 1.0])        # class 2
 
-    alpha_mix = rng_mix.beta(0.2, 0.2)     # Beta(0.2,0.2) -> bimodal near 0 or 1
-    x_mix = alpha_mix * x_i + (1 - alpha_mix) * x_j
-    y_mix = alpha_mix * y_i + (1 - alpha_mix) * y_j
+        alpha_mix = rng_mix.beta(0.2, 0.2)     # Beta(0.2,0.2) -> bimodal near 0 or 1
+        x_mix = alpha_mix * x_i + (1 - alpha_mix) * x_j
+        y_mix = alpha_mix * y_i + (1 - alpha_mix) * y_j
 
-    print(f"alpha = {alpha_mix:.3f}")
-    print(f"Mixed input:  {x_mix.round(3)}")
-    print(f"Mixed label:  {y_mix.round(3)}  (soft target across classes)")
+        print(f"alpha = {alpha_mix:.3f}")
+        print(f"Mixed input:  {x_mix.round(3)}")
+        print(f"Mixed label:  {y_mix.round(3)}  (soft target across classes)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    import matplotlib.pyplot as _plt
+    def _run():
+        import matplotlib.pyplot as _plt
 
-    # Visualize simple augmentations on a tiny "image"
-    rng_aug = np.random.default_rng(0)
-    img = rng_aug.random((8, 8))  # grayscale 8x8
+        # Visualize simple augmentations on a tiny "image"
+        rng_aug = np.random.default_rng(0)
+        img = rng_aug.random((8, 8))  # grayscale 8x8
 
-    fig_aug, axes_aug = _plt.subplots(1, 4, figsize=(10, 2.5))
+        fig_aug, axes_aug = _plt.subplots(1, 4, figsize=(10, 2.5))
 
-    axes_aug[0].imshow(img, cmap="gray", vmin=0, vmax=1)
-    axes_aug[0].set_title("Original")
+        axes_aug[0].imshow(img, cmap="gray", vmin=0, vmax=1)
+        axes_aug[0].set_title("Original")
 
-    axes_aug[1].imshow(img[:, ::-1], cmap="gray", vmin=0, vmax=1)
-    axes_aug[1].set_title("H-Flip")
+        axes_aug[1].imshow(img[:, ::-1], cmap="gray", vmin=0, vmax=1)
+        axes_aug[1].set_title("H-Flip")
 
-    # Random crop (6x6 from 8x8)
-    r, c = rng_aug.integers(0, 3, size=2)
-    axes_aug[2].imshow(img[r:r+6, c:c+6], cmap="gray", vmin=0, vmax=1)
-    axes_aug[2].set_title(f"Crop [{r}:{r+6},{c}:{c+6}]")
+        # Random crop (6x6 from 8x8)
+        r, c = rng_aug.integers(0, 3, size=2)
+        axes_aug[2].imshow(img[r:r+6, c:c+6], cmap="gray", vmin=0, vmax=1)
+        axes_aug[2].set_title(f"Crop [{r}:{r+6},{c}:{c+6}]")
 
-    # Brightness jitter
-    jitter = np.clip(img + rng_aug.uniform(-0.3, 0.3), 0, 1)
-    axes_aug[3].imshow(jitter, cmap="gray", vmin=0, vmax=1)
-    axes_aug[3].set_title("Brightness jitter")
+        # Brightness jitter
+        jitter = np.clip(img + rng_aug.uniform(-0.3, 0.3), 0, 1)
+        axes_aug[3].imshow(jitter, cmap="gray", vmin=0, vmax=1)
+        axes_aug[3].set_title("Brightness jitter")
 
-    for ax in axes_aug:
-        ax.axis("off")
-    fig_aug.suptitle("Common image augmentations", y=1.02)
-    fig_aug.tight_layout()
-    fig_aug
+        for ax in axes_aug:
+            ax.axis("off")
+        fig_aug.suptitle("Common image augmentations", y=1.02)
+        fig_aug.tight_layout()
+        fig_aug
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -409,24 +430,27 @@ At test time, BN uses running statistics (population estimates accumulated durin
 
 @app.cell
 def _(np):
-    # Batch normalization: noise depends on batch size
-    # Smaller batch -> noisier mean/var estimates -> more regularization
+    def _run():
+        # Batch normalization: noise depends on batch size
+        # Smaller batch -> noisier mean/var estimates -> more regularization
 
-    rng_bn = np.random.default_rng(0)
-    population = rng_bn.normal(loc=3.0, scale=2.0, size=10000)
-    pop_mean, pop_std = population.mean(), population.std()
+        rng_bn = np.random.default_rng(0)
+        population = rng_bn.normal(loc=3.0, scale=2.0, size=10000)
+        pop_mean, pop_std = population.mean(), population.std()
 
-    for batch_size in [4, 16, 64, 256]:
-        # Simulate many mini-batch BN normalizations
-        errors = []
-        for _ in range(1000):
-            batch = rng_bn.choice(population, size=batch_size, replace=False)
-            bn_mean, bn_std = batch.mean(), batch.std()
-            errors.append(abs(bn_mean - pop_mean))
-        print(f"Batch {batch_size:>3d}: mean estimation error = "
-              f"{np.mean(errors):.4f}  (noise = regularization)")
+        for batch_size in [4, 16, 64, 256]:
+            # Simulate many mini-batch BN normalizations
+            errors = []
+            for _ in range(1000):
+                batch = rng_bn.choice(population, size=batch_size, replace=False)
+                bn_mean, bn_std = batch.mean(), batch.std()
+                errors.append(abs(bn_mean - pop_mean))
+            print(f"Batch {batch_size:>3d}: mean estimation error = "
+                  f"{np.mean(errors):.4f}  (noise = regularization)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -551,44 +575,47 @@ This connects directly to implicit regularization (Section 9): the optimizer's i
 
 @app.cell
 def _(np):
-    import matplotlib.pyplot as _plt2
+    def _run():
+        import matplotlib.pyplot as _plt2
 
-    # Double descent illustration with polynomial regression
-    # Vary polynomial degree from 1 to > n_samples
-    rng_dd = np.random.default_rng(42)
-    n_dd = 15
-    x_dd = rng_dd.uniform(-1, 1, n_dd)
-    y_dd = np.sin(3 * x_dd) + rng_dd.normal(0, 0.3, n_dd)
-    x_test = np.linspace(-1, 1, 200)
-    y_test_true = np.sin(3 * x_test)
+        # Double descent illustration with polynomial regression
+        # Vary polynomial degree from 1 to > n_samples
+        rng_dd = np.random.default_rng(42)
+        n_dd = 15
+        x_dd = rng_dd.uniform(-1, 1, n_dd)
+        y_dd = np.sin(3 * x_dd) + rng_dd.normal(0, 0.3, n_dd)
+        x_test = np.linspace(-1, 1, 200)
+        y_test_true = np.sin(3 * x_test)
 
-    degrees = list(range(1, 25))
-    train_err, test_err = [], []
+        degrees = list(range(1, 25))
+        train_err, test_err = [], []
 
-    for d in degrees:
-        # Fit polynomial of degree d (with small ridge for numerical stability)
-        V_train = np.vander(x_dd, d + 1, increasing=True)
-        V_test  = np.vander(x_test, d + 1, increasing=True)
-        # Minimum norm solution via pseudoinverse
-        w_dd = np.linalg.lstsq(V_train, y_dd, rcond=None)[0]
-        train_pred = V_train @ w_dd
-        test_pred  = V_test @ w_dd
-        train_err.append(np.mean((train_pred - y_dd) ** 2))
-        test_err.append(np.mean((test_pred - y_test_true) ** 2))
+        for d in degrees:
+            # Fit polynomial of degree d (with small ridge for numerical stability)
+            V_train = np.vander(x_dd, d + 1, increasing=True)
+            V_test  = np.vander(x_test, d + 1, increasing=True)
+            # Minimum norm solution via pseudoinverse
+            w_dd = np.linalg.lstsq(V_train, y_dd, rcond=None)[0]
+            train_pred = V_train @ w_dd
+            test_pred  = V_test @ w_dd
+            train_err.append(np.mean((train_pred - y_dd) ** 2))
+            test_err.append(np.mean((test_pred - y_test_true) ** 2))
 
-    fig_dd, ax_dd = _plt2.subplots(figsize=(8, 4))
-    ax_dd.semilogy(degrees, train_err, "o-", label="Train MSE")
-    ax_dd.semilogy(degrees, test_err, "s-", label="Test MSE")
-    ax_dd.axvline(n_dd, color="gray", ls="--", label=f"n_samples={n_dd} (interpolation threshold)")
-    ax_dd.set_xlabel("Polynomial degree (model complexity)")
-    ax_dd.set_ylabel("MSE (log scale)")
-    ax_dd.set_title("Double Descent in Polynomial Regression")
-    ax_dd.legend()
-    ax_dd.set_ylim(1e-4, 1e3)
-    fig_dd.tight_layout()
-    fig_dd
+        fig_dd, ax_dd = _plt2.subplots(figsize=(8, 4))
+        ax_dd.semilogy(degrees, train_err, "o-", label="Train MSE")
+        ax_dd.semilogy(degrees, test_err, "s-", label="Test MSE")
+        ax_dd.axvline(n_dd, color="gray", ls="--", label=f"n_samples={n_dd} (interpolation threshold)")
+        ax_dd.set_xlabel("Polynomial degree (model complexity)")
+        ax_dd.set_ylabel("MSE (log scale)")
+        ax_dd.set_title("Double Descent in Polynomial Regression")
+        ax_dd.legend()
+        ax_dd.set_ylim(1e-4, 1e3)
+        fig_dd.tight_layout()
+        fig_dd
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -632,32 +659,35 @@ This connects to double descent: the overparameterized regime works not because 
 
 @app.cell
 def _(np):
-    # SGD gradient noise: smaller batch -> noisier gradient -> more regularization
-    # Effective noise ~ eta / B
+    def _run():
+        # SGD gradient noise: smaller batch -> noisier gradient -> more regularization
+        # Effective noise ~ eta / B
 
-    rng_sgd = np.random.default_rng(0)
-    n_data = 1000
-    X_sgd = rng_sgd.normal(0, 1, (n_data, 5))
-    w_true = np.array([1.0, -0.5, 0.3, 0.0, 0.0])
-    y_sgd = X_sgd @ w_true + rng_sgd.normal(0, 0.1, n_data)
+        rng_sgd = np.random.default_rng(0)
+        n_data = 1000
+        X_sgd = rng_sgd.normal(0, 1, (n_data, 5))
+        w_true = np.array([1.0, -0.5, 0.3, 0.0, 0.0])
+        y_sgd = X_sgd @ w_true + rng_sgd.normal(0, 0.1, n_data)
 
-    def gradient_full(X, y, w):
-        return -2 / len(X) * X.T @ (y - X @ w)
+        def gradient_full(X, y, w):
+            return -2 / len(X) * X.T @ (y - X @ w)
 
-    def gradient_sgd(X, y, w, batch_size, rng):
-        idx = rng.choice(len(X), batch_size, replace=False)
-        return -2 / batch_size * X[idx].T @ (y[idx] - X[idx] @ w)
+        def gradient_sgd(X, y, w, batch_size, rng):
+            idx = rng.choice(len(X), batch_size, replace=False)
+            return -2 / batch_size * X[idx].T @ (y[idx] - X[idx] @ w)
 
-    w_test_pt = np.zeros(5)
-    g_full = gradient_full(X_sgd, y_sgd, w_test_pt)
+        w_test_pt = np.zeros(5)
+        g_full = gradient_full(X_sgd, y_sgd, w_test_pt)
 
-    for B in [8, 32, 128, 512]:
-        noises = [np.linalg.norm(gradient_sgd(X_sgd, y_sgd, w_test_pt, B, rng_sgd) - g_full)
-                  for _ in range(200)]
-        print(f"Batch {B:>3d}: gradient noise ||g_sgd - g_full|| = {np.mean(noises):.4f}")
-    print("Smaller batch = more noise = stronger implicit regularization")
+        for B in [8, 32, 128, 512]:
+            noises = [np.linalg.norm(gradient_sgd(X_sgd, y_sgd, w_test_pt, B, rng_sgd) - g_full)
+                      for _ in range(200)]
+            print(f"Batch {B:>3d}: gradient noise ||g_sgd - g_full|| = {np.mean(noises):.4f}")
+        print("Smaller batch = more noise = stronger implicit regularization")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -706,69 +736,70 @@ def _(mo):
 
 @app.cell
 def _(dropout_slider):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from sklearn.datasets import make_moons
-    import torch
-    import torch.nn as nn
-    import torch.optim as optim
+    def _run():
+        from sklearn.datasets import make_moons
+        import torch
+        import torch.nn as nn
+        import torch.optim as optim
 
-    dropout_rate = dropout_slider.value
+        dropout_rate = dropout_slider.value
 
-    # Generate data
-    rng = np.random.default_rng(42)
-    X_data, y_data = make_moons(n_samples=200, noise=0.2, random_state=42)
-    X_tensor = torch.tensor(X_data, dtype=torch.float32)
-    y_tensor = torch.tensor(y_data, dtype=torch.float32).unsqueeze(1)
+        # Generate data
+        rng = np.random.default_rng(42)
+        X_data, y_data = make_moons(n_samples=200, noise=0.2, random_state=42)
+        X_tensor = torch.tensor(X_data, dtype=torch.float32)
+        y_tensor = torch.tensor(y_data, dtype=torch.float32).unsqueeze(1)
 
-    # Build network with dropout
-    _model = nn.Sequential(
-        nn.Linear(2, 32),
-        nn.ReLU(),
-        nn.Dropout(p=dropout_rate),
-        nn.Linear(32, 32),
-        nn.ReLU(),
-        nn.Dropout(p=dropout_rate),
-        nn.Linear(32, 1),
-        nn.Sigmoid()
-    )
-    _criterion = nn.BCELoss()
-    _optimizer = optim.Adam(_model.parameters(), lr=0.01)
+        # Build network with dropout
+        _model = nn.Sequential(
+            nn.Linear(2, 32),
+            nn.ReLU(),
+            nn.Dropout(p=dropout_rate),
+            nn.Linear(32, 32),
+            nn.ReLU(),
+            nn.Dropout(p=dropout_rate),
+            nn.Linear(32, 1),
+            nn.Sigmoid()
+        )
+        _criterion = nn.BCELoss()
+        _optimizer = optim.Adam(_model.parameters(), lr=0.01)
 
-    # Train
-    _model.train()
-    for _epoch in range(800):
-        _pred = _model(X_tensor)
-        _loss = _criterion(_pred, y_tensor)
-        _optimizer.zero_grad()
-        _loss.backward()
-        _optimizer.step()
+        # Train
+        _model.train()
+        for _epoch in range(800):
+            _pred = _model(X_tensor)
+            _loss = _criterion(_pred, y_tensor)
+            _optimizer.zero_grad()
+            _loss.backward()
+            _optimizer.step()
 
-    # Evaluate decision boundary
-    _model.eval()
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-    xx, yy = np.meshgrid(
-        np.linspace(X_data[:, 0].min() - 0.5, X_data[:, 0].max() + 0.5, 200),
-        np.linspace(X_data[:, 1].min() - 0.5, X_data[:, 1].max() + 0.5, 200)
-    )
-    grid = torch.tensor(np.c_[xx.ravel(), yy.ravel()], dtype=torch.float32)
-    with torch.no_grad():
-        zz = _model(grid).numpy().reshape(xx.shape)
+        # Evaluate decision boundary
+        _model.eval()
+        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+        xx, yy = np.meshgrid(
+            np.linspace(X_data[:, 0].min() - 0.5, X_data[:, 0].max() + 0.5, 200),
+            np.linspace(X_data[:, 1].min() - 0.5, X_data[:, 1].max() + 0.5, 200)
+        )
+        grid = torch.tensor(np.c_[xx.ravel(), yy.ravel()], dtype=torch.float32)
+        with torch.no_grad():
+            zz = _model(grid).numpy().reshape(xx.shape)
 
-    ax.contourf(xx, yy, zz, levels=50, cmap="RdBu", alpha=0.7)
-    ax.contour(xx, yy, zz, levels=[0.5], colors="k", linewidths=2)
-    ax.scatter(X_data[y_data == 0, 0], X_data[y_data == 0, 1],
-               c="blue", edgecolors="k", s=30, label="Class 0")
-    ax.scatter(X_data[y_data == 1, 0], X_data[y_data == 1, 1],
-               c="red", edgecolors="k", s=30, label="Class 1")
-    ax.set_title(f"Decision Boundary with Dropout Rate = {dropout_rate:.1f} (final loss: {_loss.item():.4f})")
-    ax.legend()
-    ax.set_xlabel("$x_1$")
-    ax.set_ylabel("$x_2$")
-    plt.tight_layout()
-    fig
+        ax.contourf(xx, yy, zz, levels=50, cmap="RdBu", alpha=0.7)
+        ax.contour(xx, yy, zz, levels=[0.5], colors="k", linewidths=2)
+        ax.scatter(X_data[y_data == 0, 0], X_data[y_data == 0, 1],
+                   c="blue", edgecolors="k", s=30, label="Class 0")
+        ax.scatter(X_data[y_data == 1, 0], X_data[y_data == 1, 1],
+                   c="red", edgecolors="k", s=30, label="Class 1")
+        ax.set_title(f"Decision Boundary with Dropout Rate = {dropout_rate:.1f} (final loss: {_loss.item():.4f})")
+        ax.legend()
+        ax.set_xlabel("$x_1$")
+        ax.set_ylabel("$x_2$")
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -818,35 +849,38 @@ Implement a single SGD step with decoupled weight decay (the AdamW approach). Gi
 
 @app.cell
 def _(np):
-    def weight_decay_step(w, g, lr, lam):
-        """One step of SGD with decoupled weight decay.
+    def _run():
+        def weight_decay_step(w, g, lr, lam):
+            """One step of SGD with decoupled weight decay.
 
-        Args:
-            w: parameter vector (numpy array)
-            g: gradient of the data loss w.r.t. w
-            lr: learning rate
-            lam: weight decay coefficient
+            Args:
+                w: parameter vector (numpy array)
+                g: gradient of the data loss w.r.t. w
+                lr: learning rate
+                lam: weight decay coefficient
 
-        Returns:
-            Updated w after one step.
-        """
-        # TODO: apply decoupled weight decay (2 lines)
-        # Step 1: decay the weights by factor (1 - lr * lam)
-        # Step 2: subtract lr * gradient
-        w_new = None  # TODO: replace this
-        return w_new
+            Returns:
+                Updated w after one step.
+            """
+            # TODO: apply decoupled weight decay (2 lines)
+            # Step 1: decay the weights by factor (1 - lr * lam)
+            # Step 2: subtract lr * gradient
+            w_new = None  # TODO: replace this
+            return w_new
 
-    # -- Test your implementation --
-    _w = np.array([1.0, -2.0, 3.0])
-    _g = np.array([0.1, -0.1, 0.2])
-    _result = weight_decay_step(_w, _g, lr=0.01, lam=0.1)
-    # Expected: (1 - 0.001)*[1,-2,3] - 0.01*[0.1,-0.1,0.2]
-    # = [0.999, -1.998, 2.997] - [0.001, -0.001, 0.002]
-    # = [0.998, -1.997, 2.995]
-    print(f"Result: {_result}")
-    print(f"Expected: [0.998, -1.997, 2.995]")
+        # -- Test your implementation --
+        _w = np.array([1.0, -2.0, 3.0])
+        _g = np.array([0.1, -0.1, 0.2])
+        _result = weight_decay_step(_w, _g, lr=0.01, lam=0.1)
+        # Expected: (1 - 0.001)*[1,-2,3] - 0.01*[0.1,-0.1,0.2]
+        # = [0.999, -1.998, 2.997] - [0.001, -0.001, 0.002]
+        # = [0.998, -1.997, 2.995]
+        print(f"Result: {_result}")
+        print(f"Expected: [0.998, -1.997, 2.995]")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -860,37 +894,40 @@ Implement inverted dropout for a hidden layer activation. During training, zero 
 
 @app.cell
 def _(np):
-    def inverted_dropout(h, p, training=True, rng=None):
-        """Apply inverted dropout to hidden activations.
+    def _run():
+        def inverted_dropout(h, p, training=True, rng=None):
+            """Apply inverted dropout to hidden activations.
 
-        Args:
-            h: activation vector (numpy array)
-            p: dropout probability (fraction to DROP)
-            training: if False, return h unchanged
-            rng: numpy random Generator
+            Args:
+                h: activation vector (numpy array)
+                p: dropout probability (fraction to DROP)
+                training: if False, return h unchanged
+                rng: numpy random Generator
 
-        Returns:
-            Dropped-out activations (same shape as h).
-        """
-        if not training or p == 0:
-            return h
-        if rng is None:
-            rng = np.random.default_rng()
+            Returns:
+                Dropped-out activations (same shape as h).
+            """
+            if not training or p == 0:
+                return h
+            if rng is None:
+                rng = np.random.default_rng()
 
-        # TODO: create binary mask where each entry is 1 with prob (1-p)
-        mask = None  # TODO
-        # TODO: apply mask and scale by 1/(1-p)
-        h_dropped = None  # TODO
-        return h_dropped
+            # TODO: create binary mask where each entry is 1 with prob (1-p)
+            mask = None  # TODO
+            # TODO: apply mask and scale by 1/(1-p)
+            h_dropped = None  # TODO
+            return h_dropped
 
-    # -- Test --
-    _rng = np.random.default_rng(42)
-    _h = np.ones(10000)
-    _out = inverted_dropout(_h, p=0.5, training=True, rng=_rng)
-    print(f"Fraction kept: {(_out > 0).mean():.3f}  (expect ~0.5)")
-    print(f"Mean output:   {_out.mean():.3f}  (expect ~1.0, proving unbiased)")
+        # -- Test --
+        _rng = np.random.default_rng(42)
+        _h = np.ones(10000)
+        _out = inverted_dropout(_h, p=0.5, training=True, rng=_rng)
+        print(f"Fraction kept: {(_out > 0).mean():.3f}  (expect ~0.5)")
+        print(f"Mean output:   {_out.mean():.3f}  (expect ~1.0, proving unbiased)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -904,36 +941,39 @@ Implement an `EarlyStoppingTracker` class that tracks validation loss, keeps the
 
 @app.cell
 def _():
-    class EarlyStoppingTracker:
-        def __init__(self, patience=5):
-            self.patience = patience
-            self.best_loss = float("inf")
-            self.best_epoch = 0
-            self.wait = 0
+    def _run():
+        class EarlyStoppingTracker:
+            def __init__(self, patience=5):
+                self.patience = patience
+                self.best_loss = float("inf")
+                self.best_epoch = 0
+                self.wait = 0
 
-        def step(self, epoch, val_loss):
-            """Record a new validation loss.
+            def step(self, epoch, val_loss):
+                """Record a new validation loss.
 
-            Returns:
-                True if training should STOP, False to continue.
-            """
-            # TODO: if val_loss improved, update best_loss, best_epoch, reset wait
-            # TODO: else increment wait
-            # TODO: return True if wait >= patience, else False
-            pass  # TODO: replace with your logic
+                Returns:
+                    True if training should STOP, False to continue.
+                """
+                # TODO: if val_loss improved, update best_loss, best_epoch, reset wait
+                # TODO: else increment wait
+                # TODO: return True if wait >= patience, else False
+                pass  # TODO: replace with your logic
 
-    # -- Test --
-    _tracker = EarlyStoppingTracker(patience=3)
-    _losses = [1.0, 0.8, 0.7, 0.75, 0.76, 0.78, 0.6, 0.65, 0.66, 0.67]
-    for _ep, _vl in enumerate(_losses):
-        _stop = _tracker.step(_ep, _vl)
-        print(f"Epoch {_ep}: val_loss={_vl:.2f}, "
-              f"best={_tracker.best_loss:.2f}@ep{_tracker.best_epoch}, "
-              f"stop={_stop}")
-        if _stop:
-            break
+        # -- Test --
+        _tracker = EarlyStoppingTracker(patience=3)
+        _losses = [1.0, 0.8, 0.7, 0.75, 0.76, 0.78, 0.6, 0.65, 0.66, 0.67]
+        for _ep, _vl in enumerate(_losses):
+            _stop = _tracker.step(_ep, _vl)
+            print(f"Epoch {_ep}: val_loss={_vl:.2f}, "
+                  f"best={_tracker.best_loss:.2f}@ep{_tracker.best_epoch}, "
+                  f"stop={_stop}")
+            if _stop:
+                break
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -947,39 +987,42 @@ Implement cross-entropy loss with label smoothing. Given a hard class index, num
 
 @app.cell
 def _(np):
-    def label_smoothing_ce(logits, true_class, K, eps=0.1):
-        """Cross-entropy loss with label smoothing.
+    def _run():
+        def label_smoothing_ce(logits, true_class, K, eps=0.1):
+            """Cross-entropy loss with label smoothing.
 
-        Args:
-            logits: raw scores, shape (K,)
-            true_class: integer class label
-            K: number of classes
-            eps: smoothing parameter
+            Args:
+                logits: raw scores, shape (K,)
+                true_class: integer class label
+                K: number of classes
+                eps: smoothing parameter
 
-        Returns:
-            Scalar loss value.
-        """
-        # TODO: build smoothed target vector y_smooth of shape (K,)
-        # true class gets (1 - eps) + eps/K, others get eps/K
-        y_smooth = None  # TODO
+            Returns:
+                Scalar loss value.
+            """
+            # TODO: build smoothed target vector y_smooth of shape (K,)
+            # true class gets (1 - eps) + eps/K, others get eps/K
+            y_smooth = None  # TODO
 
-        # TODO: compute softmax probabilities from logits
-        # (subtract max for numerical stability)
-        probs = None  # TODO
+            # TODO: compute softmax probabilities from logits
+            # (subtract max for numerical stability)
+            probs = None  # TODO
 
-        # TODO: compute cross-entropy = -sum(y_smooth * log(probs))
-        loss = None  # TODO
-        return loss
+            # TODO: compute cross-entropy = -sum(y_smooth * log(probs))
+            loss = None  # TODO
+            return loss
 
-    # -- Test --
-    _logits = np.array([2.0, 1.0, 0.1, -1.0, 0.5])
-    _loss_smooth = label_smoothing_ce(_logits, true_class=0, K=5, eps=0.1)
-    _loss_hard   = label_smoothing_ce(_logits, true_class=0, K=5, eps=0.0)
-    print(f"Loss (hard targets):   {_loss_hard}")
-    print(f"Loss (smooth, eps=0.1): {_loss_smooth}")
-    print("Smooth loss should be slightly higher (penalizes overconfidence)")
+        # -- Test --
+        _logits = np.array([2.0, 1.0, 0.1, -1.0, 0.5])
+        _loss_smooth = label_smoothing_ce(_logits, true_class=0, K=5, eps=0.1)
+        _loss_hard   = label_smoothing_ce(_logits, true_class=0, K=5, eps=0.0)
+        print(f"Loss (hard targets):   {_loss_hard}")
+        print(f"Loss (smooth, eps=0.1): {_loss_smooth}")
+        print("Smooth loss should be slightly higher (penalizes overconfidence)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -993,41 +1036,44 @@ Implement the Mixup augmentation scheme. Given two batches of data `(x1, y1)` an
 
 @app.cell
 def _(np):
-    def mixup(x1, y1, x2, y2, beta_param=0.2, rng=None):
-        """Mixup augmentation for one pair of examples.
+    def _run():
+        def mixup(x1, y1, x2, y2, beta_param=0.2, rng=None):
+            """Mixup augmentation for one pair of examples.
 
-        Args:
-            x1, x2: input vectors (numpy arrays, same shape)
-            y1, y2: one-hot label vectors (numpy arrays, same shape)
-            beta_param: parameter for Beta(a, a) distribution
-            rng: numpy random Generator
+            Args:
+                x1, x2: input vectors (numpy arrays, same shape)
+                y1, y2: one-hot label vectors (numpy arrays, same shape)
+                beta_param: parameter for Beta(a, a) distribution
+                rng: numpy random Generator
 
-        Returns:
-            (x_mix, y_mix) tuple of mixed input and label.
-        """
-        if rng is None:
-            rng = np.random.default_rng()
+            Returns:
+                (x_mix, y_mix) tuple of mixed input and label.
+            """
+            if rng is None:
+                rng = np.random.default_rng()
 
-        # TODO: sample alpha from Beta(beta_param, beta_param)
-        alpha = None  # TODO
+            # TODO: sample alpha from Beta(beta_param, beta_param)
+            alpha = None  # TODO
 
-        # TODO: compute mixed input and label
-        x_mix = None  # TODO
-        y_mix = None  # TODO
-        return x_mix, y_mix
+            # TODO: compute mixed input and label
+            x_mix = None  # TODO
+            y_mix = None  # TODO
+            return x_mix, y_mix
 
-    # -- Test --
-    _rng_mx = np.random.default_rng(0)
-    _x1 = np.array([1.0, 0.0, 0.0])
-    _y1 = np.array([1.0, 0.0])       # class 0
-    _x2 = np.array([0.0, 0.0, 1.0])
-    _y2 = np.array([0.0, 1.0])       # class 1
+        # -- Test --
+        _rng_mx = np.random.default_rng(0)
+        _x1 = np.array([1.0, 0.0, 0.0])
+        _y1 = np.array([1.0, 0.0])       # class 0
+        _x2 = np.array([0.0, 0.0, 1.0])
+        _y2 = np.array([0.0, 1.0])       # class 1
 
-    _xm, _ym = mixup(_x1, _y1, _x2, _y2, beta_param=0.2, rng=_rng_mx)
-    print(f"Mixed input: {_xm}")
-    print(f"Mixed label: {_ym}  (should be a soft distribution)")
+        _xm, _ym = mixup(_x1, _y1, _x2, _y2, beta_param=0.2, rng=_rng_mx)
+        print(f"Mixed input: {_xm}")
+        print(f"Mixed label: {_ym}  (should be a soft distribution)")
+
+
+    if __name__ == "__main__":
+        app.run()
+
+    _run()
     return
-
-
-if __name__ == "__main__":
-    app.run()

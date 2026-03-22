@@ -225,23 +225,26 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Demonstrating why MSE produces blurry outputs
-    # When multiple outputs are plausible, MSE averages them
+    def _run():
+        # Demonstrating why MSE produces blurry outputs
+        # When multiple outputs are plausible, MSE averages them
 
-    # Suppose two equally likely "sharp" images for a given z
-    sharp_img_1 = np.array([1.0, 0.0, 0.0, 1.0])  # e.g., shifted left
-    sharp_img_2 = np.array([0.0, 1.0, 1.0, 0.0])  # e.g., shifted right
+        # Suppose two equally likely "sharp" images for a given z
+        sharp_img_1 = np.array([1.0, 0.0, 0.0, 1.0])  # e.g., shifted left
+        sharp_img_2 = np.array([0.0, 1.0, 1.0, 0.0])  # e.g., shifted right
 
-    # MSE-optimal prediction = mean of plausible outputs = blurry
-    mse_optimal = 0.5 * sharp_img_1 + 0.5 * sharp_img_2
-    print(f"Sharp image 1:      {sharp_img_1}")
-    print(f"Sharp image 2:      {sharp_img_2}")
-    print(f"MSE-optimal output: {mse_optimal}  <-- blurry average!")
-    print(f"\nMSE to img 1: {np.mean((mse_optimal - sharp_img_1)**2):.3f}")
-    print(f"MSE to img 2: {np.mean((mse_optimal - sharp_img_2)**2):.3f}")
-    print(f"MSE of img1 to img2: {np.mean((sharp_img_1 - sharp_img_2)**2):.3f}")
+        # MSE-optimal prediction = mean of plausible outputs = blurry
+        mse_optimal = 0.5 * sharp_img_1 + 0.5 * sharp_img_2
+        print(f"Sharp image 1:      {sharp_img_1}")
+        print(f"Sharp image 2:      {sharp_img_2}")
+        print(f"MSE-optimal output: {mse_optimal}  <-- blurry average!")
+        print(f"\nMSE to img 1: {np.mean((mse_optimal - sharp_img_1)**2):.3f}")
+        print(f"MSE to img 2: {np.mean((mse_optimal - sharp_img_2)**2):.3f}")
+        print(f"MSE of img1 to img2: {np.mean((sharp_img_1 - sharp_img_2)**2):.3f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -457,31 +460,34 @@ def _(mo):
 
 @app.cell
 def _(alpha_bar, np):
-    # DDPM training step: one forward pass of the loss function
-    # L = E[||eps - eps_theta(x_t, t)||^2]
+    def _run():
+        # DDPM training step: one forward pass of the loss function
+        # L = E[||eps - eps_theta(x_t, t)||^2]
 
-    d_data = 8  # data dimension
-    x0_train = rng.standard_normal(d_data) * 0.5 + 2.0  # one training sample
+        d_data = 8  # data dimension
+        x0_train = rng.standard_normal(d_data) * 0.5 + 2.0  # one training sample
 
-    # 1. Sample random timestep
-    t_step = rng.integers(0, len(alpha_bar))
-    ab_t = alpha_bar[t_step]
+        # 1. Sample random timestep
+        t_step = rng.integers(0, len(alpha_bar))
+        ab_t = alpha_bar[t_step]
 
-    # 2. Sample noise
-    eps_true = rng.standard_normal(d_data)
+        # 2. Sample noise
+        eps_true = rng.standard_normal(d_data)
 
-    # 3. Create noisy version (closed-form)
-    x_t_noisy = np.sqrt(ab_t) * x0_train + np.sqrt(1 - ab_t) * eps_true
+        # 3. Create noisy version (closed-form)
+        x_t_noisy = np.sqrt(ab_t) * x0_train + np.sqrt(1 - ab_t) * eps_true
 
-    # 4. "Network prediction" (placeholder -- in practice a U-Net)
-    eps_pred = eps_true + 0.1 * rng.standard_normal(d_data)  # imperfect prediction
+        # 4. "Network prediction" (placeholder -- in practice a U-Net)
+        eps_pred = eps_true + 0.1 * rng.standard_normal(d_data)  # imperfect prediction
 
-    # 5. Loss = MSE between true and predicted noise
-    loss = np.mean((eps_true - eps_pred) ** 2)
-    print(f"Timestep t={t_step}, alpha_bar_t={ab_t:.4f}")
-    print(f"Diffusion loss (noise prediction MSE): {loss:.6f}")
+        # 5. Loss = MSE between true and predicted noise
+        loss = np.mean((eps_true - eps_pred) ** 2)
+        print(f"Timestep t={t_step}, alpha_bar_t={ab_t:.4f}")
+        print(f"Diffusion loss (noise prediction MSE): {loss:.6f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -502,34 +508,37 @@ def _(mo):
 
 @app.cell
 def _(alpha_bar, betas, np):
-    # Simplified DDPM sampling loop (1D toy example)
-    # Assume a perfect denoiser that knows the true x0
+    def _run():
+        # Simplified DDPM sampling loop (1D toy example)
+        # Assume a perfect denoiser that knows the true x0
 
-    T_samp = len(betas)
-    true_x0 = 3.0  # ground truth we want to recover
+        T_samp = len(betas)
+        true_x0 = 3.0  # ground truth we want to recover
 
-    # Start from pure noise
-    x_t_samp = rng.standard_normal()
+        # Start from pure noise
+        x_t_samp = rng.standard_normal()
 
-    for t in reversed(range(T_samp)):
-        # In reality, a network predicts the noise. Here we simulate a
-        # "perfect" noise predictor by computing what the noise would be.
-        ab_t = alpha_bar[t]
-        pred_noise = (x_t_samp - np.sqrt(ab_t) * true_x0) / np.sqrt(1 - ab_t + 1e-8)
+        for t in reversed(range(T_samp)):
+            # In reality, a network predicts the noise. Here we simulate a
+            # "perfect" noise predictor by computing what the noise would be.
+            ab_t = alpha_bar[t]
+            pred_noise = (x_t_samp - np.sqrt(ab_t) * true_x0) / np.sqrt(1 - ab_t + 1e-8)
 
-        # DDPM reverse step: compute mu_t, then sample x_{t-1}
-        beta_t = betas[t]
-        mu_t = (1 / np.sqrt(1 - beta_t)) * (x_t_samp - beta_t / np.sqrt(1 - ab_t + 1e-8) * pred_noise)
+            # DDPM reverse step: compute mu_t, then sample x_{t-1}
+            beta_t = betas[t]
+            mu_t = (1 / np.sqrt(1 - beta_t)) * (x_t_samp - beta_t / np.sqrt(1 - ab_t + 1e-8) * pred_noise)
 
-        if t > 0:
-            x_t_samp = mu_t + np.sqrt(beta_t) * rng.standard_normal()
-        else:
-            x_t_samp = mu_t  # final step: no noise
+            if t > 0:
+                x_t_samp = mu_t + np.sqrt(beta_t) * rng.standard_normal()
+            else:
+                x_t_samp = mu_t  # final step: no noise
 
-    print(f"True x_0: {true_x0}")
-    print(f"Recovered x_0 after {T_samp} reverse steps: {x_t_samp:.4f}")
+        print(f"True x_0: {true_x0}")
+        print(f"Recovered x_0 after {T_samp} reverse steps: {x_t_samp:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -553,31 +562,34 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Score function and Langevin dynamics for a 1D Gaussian mixture
-    # Score = d/dx log p(x) -- points toward higher density
+    def _run():
+        # Score function and Langevin dynamics for a 1D Gaussian mixture
+        # Score = d/dx log p(x) -- points toward higher density
 
-    def gmm_score(x, means, stds, weights):
-        """Score function for a Gaussian mixture (1D)."""
-        # p(x) = sum_k w_k * N(x; mu_k, sigma_k^2)
-        components = np.array([w * np.exp(-0.5*((x - m)/s)**2) / s
-                               for m, s, w in zip(means, stds, weights)])
-        p_x = components.sum(axis=0) + 1e-10
-        # d/dx log p(x) = (1/p(x)) * sum_k w_k * N(x;mu_k,sig_k) * (-(x-mu_k)/sig_k^2)
-        grad_components = np.array([w * np.exp(-0.5*((x - m)/s)**2) / s * (-(x - m)/s**2)
-                                    for m, s, w in zip(means, stds, weights)])
-        return grad_components.sum(axis=0) / p_x
+        def gmm_score(x, means, stds, weights):
+            """Score function for a Gaussian mixture (1D)."""
+            # p(x) = sum_k w_k * N(x; mu_k, sigma_k^2)
+            components = np.array([w * np.exp(-0.5*((x - m)/s)**2) / s
+                                   for m, s, w in zip(means, stds, weights)])
+            p_x = components.sum(axis=0) + 1e-10
+            # d/dx log p(x) = (1/p(x)) * sum_k w_k * N(x;mu_k,sig_k) * (-(x-mu_k)/sig_k^2)
+            grad_components = np.array([w * np.exp(-0.5*((x - m)/s)**2) / s * (-(x - m)/s**2)
+                                        for m, s, w in zip(means, stds, weights)])
+            return grad_components.sum(axis=0) / p_x
 
-    # Langevin dynamics: sample from mixture of two Gaussians
-    means_ld, stds_ld, weights_ld = [-2, 2], [0.7, 0.7], [0.5, 0.5]
-    eta = 0.05  # step size
-    x_lang = rng.standard_normal() * 3  # start from noise
-    for _ in range(200):
-        x_lang = x_lang + (eta / 2) * gmm_score(x_lang, means_ld, stds_ld, weights_ld) + np.sqrt(eta) * rng.standard_normal()
+        # Langevin dynamics: sample from mixture of two Gaussians
+        means_ld, stds_ld, weights_ld = [-2, 2], [0.7, 0.7], [0.5, 0.5]
+        eta = 0.05  # step size
+        x_lang = rng.standard_normal() * 3  # start from noise
+        for _ in range(200):
+            x_lang = x_lang + (eta / 2) * gmm_score(x_lang, means_ld, stds_ld, weights_ld) + np.sqrt(eta) * rng.standard_normal()
 
-    print(f"Langevin sample after 200 steps: {x_lang:.3f}")
-    print(f"(Target modes at x=-2 and x=2)")
+        print(f"Langevin sample after 200 steps: {x_lang:.3f}")
+        print(f"(Target modes at x=-2 and x=2)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -636,36 +648,39 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Normalizing flow: 1D change of variables
-    # z ~ N(0,1), apply invertible f(z) = z + a*tanh(b*z), compute exact p(x)
+    def _run():
+        # Normalizing flow: 1D change of variables
+        # z ~ N(0,1), apply invertible f(z) = z + a*tanh(b*z), compute exact p(x)
 
-    a_flow, b_flow = 1.5, 0.8
+        a_flow, b_flow = 1.5, 0.8
 
-    def flow_forward(z_in):
-        """Invertible transformation: x = z + a*tanh(b*z)."""
-        return z_in + a_flow * np.tanh(b_flow * z_in)
+        def flow_forward(z_in):
+            """Invertible transformation: x = z + a*tanh(b*z)."""
+            return z_in + a_flow * np.tanh(b_flow * z_in)
 
-    def flow_log_det_jacobian(z_in):
-        """log |dx/dz| = log |1 + a*b*(1 - tanh^2(b*z))|."""
-        return np.log(np.abs(1 + a_flow * b_flow * (1 - np.tanh(b_flow * z_in)**2)))
+        def flow_log_det_jacobian(z_in):
+            """log |dx/dz| = log |1 + a*b*(1 - tanh^2(b*z))|."""
+            return np.log(np.abs(1 + a_flow * b_flow * (1 - np.tanh(b_flow * z_in)**2)))
 
-    # Sample from base distribution and transform
-    z_flow = rng.standard_normal(5000)
-    x_flow = flow_forward(z_flow)
+        # Sample from base distribution and transform
+        z_flow = rng.standard_normal(5000)
+        x_flow = flow_forward(z_flow)
 
-    # Exact log-likelihood for a specific point (using numerical inverse)
-    x_test = 1.5
-    from scipy.optimize import brentq
-    z_test = brentq(lambda z: flow_forward(z) - x_test, -10, 10)
-    log_pz = -0.5 * z_test**2 - 0.5 * np.log(2 * np.pi)  # log N(0,1)
-    log_px = log_pz - flow_log_det_jacobian(z_test)         # change of variables
+        # Exact log-likelihood for a specific point (using numerical inverse)
+        x_test = 1.5
+        from scipy.optimize import brentq
+        z_test = brentq(lambda z: flow_forward(z) - x_test, -10, 10)
+        log_pz = -0.5 * z_test**2 - 0.5 * np.log(2 * np.pi)  # log N(0,1)
+        log_px = log_pz - flow_log_det_jacobian(z_test)         # change of variables
 
-    print(f"x = {x_test}, inverse z = {z_test:.4f}")
-    print(f"log p(z) = {log_pz:.4f}")
-    print(f"log |det J| = {flow_log_det_jacobian(z_test):.4f}")
-    print(f"log p(x) = {log_px:.4f}  (exact -- no bounds!)")
+        print(f"x = {x_test}, inverse z = {z_test:.4f}")
+        print(f"log p(z) = {log_pz:.4f}")
+        print(f"log |det J| = {flow_log_det_jacobian(z_test):.4f}")
+        print(f"log p(x) = {log_px:.4f}  (exact -- no bounds!)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

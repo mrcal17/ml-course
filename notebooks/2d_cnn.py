@@ -56,20 +56,23 @@ The convolutional neural network is what you get when you bake these two priors 
 
 @app.cell
 def _(np):
-    # FC vs Conv parameter count comparison
-    H, W, C = 256, 256, 3          # image dimensions
-    fc_neurons = 1000
-    fc_params = H * W * C * fc_neurons  # ~200M weights (no bias counted)
+    def _run():
+        # FC vs Conv parameter count comparison
+        H, W, C = 256, 256, 3          # image dimensions
+        fc_neurons = 1000
+        fc_params = H * W * C * fc_neurons  # ~200M weights (no bias counted)
 
-    num_filters = 32
-    kernel_size = 3
-    conv_params = num_filters * (kernel_size * kernel_size * C + 1)  # weights + bias
+        num_filters = 32
+        kernel_size = 3
+        conv_params = num_filters * (kernel_size * kernel_size * C + 1)  # weights + bias
 
-    print(f"FC layer params:   {fc_params:>12,}")
-    print(f"Conv layer params: {conv_params:>12,}")
-    print(f"Ratio:             {fc_params / conv_params:>12,.0f}x fewer with conv")
+        print(f"FC layer params:   {fc_params:>12,}")
+        print(f"Conv layer params: {conv_params:>12,}")
+        print(f"Ratio:             {fc_params / conv_params:>12,.0f}x fewer with conv")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -191,21 +194,24 @@ is a horizontal edge detector — it responds strongly wherever the image transi
 
 @app.cell
 def _(conv2d, np):
-    # Compare different 3x3 filters on the same image
-    img_demo = np.zeros((8, 8))
-    img_demo[2:6, 2:6] = 1.0  # bright square
+    def _run():
+        # Compare different 3x3 filters on the same image
+        img_demo = np.zeros((8, 8))
+        img_demo[2:6, 2:6] = 1.0  # bright square
 
-    filters = {
-        "Horizontal edge": np.array([[-1,-1,-1],[ 0, 0, 0],[ 1, 1, 1]], dtype=float),
-        "Vertical edge":   np.array([[-1, 0, 1],[-1, 0, 1],[-1, 0, 1]], dtype=float),
-        "Sharpen":         np.array([[ 0,-1, 0],[-1, 5,-1],[ 0,-1, 0]], dtype=float),
-        "Blur (box)":      np.ones((3,3)) / 9.0,
-    }
-    for name, filt in filters.items():
-        out = conv2d(img_demo, filt)
-        print(f"{name:>18s}  ->  output range [{out.min():.1f}, {out.max():.1f}]")
+        filters = {
+            "Horizontal edge": np.array([[-1,-1,-1],[ 0, 0, 0],[ 1, 1, 1]], dtype=float),
+            "Vertical edge":   np.array([[-1, 0, 1],[-1, 0, 1],[-1, 0, 1]], dtype=float),
+            "Sharpen":         np.array([[ 0,-1, 0],[-1, 5,-1],[ 0,-1, 0]], dtype=float),
+            "Blur (box)":      np.ones((3,3)) / 9.0,
+        }
+        for name, filt in filters.items():
+            out = conv2d(img_demo, filt)
+            print(f"{name:>18s}  ->  output range [{out.min():.1f}, {out.max():.1f}]")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -245,42 +251,45 @@ Each neuron in a convolutional layer only "sees" a small patch of the input — 
 
 @app.cell
 def _(np):
-    # Multi-channel convolution: F filters on a C-channel input
-    # Input: (C_in, H, W), each filter: (C_in, kH, kW), output: (F, H', W')
-    def conv2d_multichannel(x, filters, bias, stride=1, pad=0):
-        """x: (C_in, H, W), filters: (F, C_in, kH, kW), bias: (F,)"""
-        C_in, H, W = x.shape
-        F, _, kH, kW = filters.shape
-        # zero-pad
-        if pad > 0:
-            x = np.pad(x, ((0,0),(pad,pad),(pad,pad)))
-        _, Hp, Wp = x.shape
-        oH = (Hp - kH) // stride + 1
-        oW = (Wp - kW) // stride + 1
-        out = np.zeros((F, oH, oW))
-        for f in range(F):
-            for i in range(oH):
-                for j in range(oW):
-                    region = x[:, i*stride:i*stride+kH, j*stride:j*stride+kW]
-                    out[f, i, j] = np.sum(region * filters[f]) + bias[f]
-        return out
+    def _run():
+        # Multi-channel convolution: F filters on a C-channel input
+        # Input: (C_in, H, W), each filter: (C_in, kH, kW), output: (F, H', W')
+        def conv2d_multichannel(x, filters, bias, stride=1, pad=0):
+            """x: (C_in, H, W), filters: (F, C_in, kH, kW), bias: (F,)"""
+            C_in, H, W = x.shape
+            F, _, kH, kW = filters.shape
+            # zero-pad
+            if pad > 0:
+                x = np.pad(x, ((0,0),(pad,pad),(pad,pad)))
+            _, Hp, Wp = x.shape
+            oH = (Hp - kH) // stride + 1
+            oW = (Wp - kW) // stride + 1
+            out = np.zeros((F, oH, oW))
+            for f in range(F):
+                for i in range(oH):
+                    for j in range(oW):
+                        region = x[:, i*stride:i*stride+kH, j*stride:j*stride+kW]
+                        out[f, i, j] = np.sum(region * filters[f]) + bias[f]
+            return out
 
-    # Demo: 3-channel 6x6 input, 2 filters of size 3x3, same padding
-    rng = np.random.default_rng(0)
-    x_in = rng.standard_normal((3, 6, 6))
-    W_filters = rng.standard_normal((2, 3, 3, 3)) * 0.1  # (F=2, C_in=3, 3, 3)
-    b = np.zeros(2)
+        # Demo: 3-channel 6x6 input, 2 filters of size 3x3, same padding
+        rng = np.random.default_rng(0)
+        x_in = rng.standard_normal((3, 6, 6))
+        W_filters = rng.standard_normal((2, 3, 3, 3)) * 0.1  # (F=2, C_in=3, 3, 3)
+        b = np.zeros(2)
 
-    out_valid = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=0)  # valid
-    out_same  = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=1)  # same
-    out_s2    = conv2d_multichannel(x_in, W_filters, b, stride=2, pad=1)  # stride 2
+        out_valid = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=0)  # valid
+        out_same  = conv2d_multichannel(x_in, W_filters, b, stride=1, pad=1)  # same
+        out_s2    = conv2d_multichannel(x_in, W_filters, b, stride=2, pad=1)  # stride 2
 
-    print(f"Input shape:            (3, 6, 6)")
-    print(f"Valid padding output:   {out_valid.shape}  <- shrinks")
-    print(f"Same padding output:    {out_same.shape}  <- preserves spatial size")
-    print(f"Stride=2 + same pad:    {out_s2.shape}  <- halves spatial dims")
+        print(f"Input shape:            (3, 6, 6)")
+        print(f"Valid padding output:   {out_valid.shape}  <- shrinks")
+        print(f"Same padding output:    {out_same.shape}  <- preserves spatial size")
+        print(f"Stride=2 + same pad:    {out_s2.shape}  <- halves spatial dims")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
@@ -303,20 +312,23 @@ def _():
 
 @app.cell
 def _():
-    # Receptive field growth: stacking L layers of 3x3 kernels (stride 1)
-    # RF = 1 + L * (K - 1)   for stride-1 layers
-    def receptive_field(num_layers, kernel_size=3, stride=1):
-        rf = 1
-        for _ in range(num_layers):
-            rf = rf + (kernel_size - 1) * stride
-        return rf
+    def _run():
+        # Receptive field growth: stacking L layers of 3x3 kernels (stride 1)
+        # RF = 1 + L * (K - 1)   for stride-1 layers
+        def receptive_field(num_layers, kernel_size=3, stride=1):
+            rf = 1
+            for _ in range(num_layers):
+                rf = rf + (kernel_size - 1) * stride
+            return rf
 
-    print("Receptive field with stacked 3x3 conv layers (stride 1):")
-    for L in range(1, 7):
-        print(f"  {L} layers  ->  {receptive_field(L)}x{receptive_field(L)} pixels")
-    print("\nTwo 3x3 layers = same RF as one 5x5, but fewer params and more ReLUs")
+        print("Receptive field with stacked 3x3 conv layers (stride 1):")
+        for L in range(1, 7):
+            print(f"  {L} layers  ->  {receptive_field(L)}x{receptive_field(L)} pixels")
+        print("\nTwo 3x3 layers = same RF as one 5x5, but fewer params and more ReLUs")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -350,54 +362,60 @@ Why pool at all?
 
 @app.cell
 def _(np):
-    # Max pooling and average pooling in numpy
-    def max_pool2d(x, pool_size=2):
-        """x: (H, W) -> (H//pool_size, W//pool_size)"""
-        H, W = x.shape
-        oH, oW = H // pool_size, W // pool_size
-        out = np.zeros((oH, oW))
-        for i in range(oH):
-            for j in range(oW):
-                patch = x[i*pool_size:(i+1)*pool_size, j*pool_size:(j+1)*pool_size]
-                out[i, j] = np.max(patch)
-        return out
+    def _run():
+        # Max pooling and average pooling in numpy
+        def max_pool2d(x, pool_size=2):
+            """x: (H, W) -> (H//pool_size, W//pool_size)"""
+            H, W = x.shape
+            oH, oW = H // pool_size, W // pool_size
+            out = np.zeros((oH, oW))
+            for i in range(oH):
+                for j in range(oW):
+                    patch = x[i*pool_size:(i+1)*pool_size, j*pool_size:(j+1)*pool_size]
+                    out[i, j] = np.max(patch)
+            return out
 
-    def avg_pool2d(x, pool_size=2):
-        """Same structure but takes mean instead of max."""
-        H, W = x.shape
-        oH, oW = H // pool_size, W // pool_size
-        out = np.zeros((oH, oW))
-        for i in range(oH):
-            for j in range(oW):
-                patch = x[i*pool_size:(i+1)*pool_size, j*pool_size:(j+1)*pool_size]
-                out[i, j] = np.mean(patch)
-        return out
+        def avg_pool2d(x, pool_size=2):
+            """Same structure but takes mean instead of max."""
+            H, W = x.shape
+            oH, oW = H // pool_size, W // pool_size
+            out = np.zeros((oH, oW))
+            for i in range(oH):
+                for j in range(oW):
+                    patch = x[i*pool_size:(i+1)*pool_size, j*pool_size:(j+1)*pool_size]
+                    out[i, j] = np.mean(patch)
+            return out
 
-    feature_map_demo = np.array([
-        [1, 3, 2, 0],
-        [4, 6, 5, 1],
-        [0, 2, 8, 3],
-        [1, 0, 7, 4]
-    ], dtype=float)
+        feature_map_demo = np.array([
+            [1, 3, 2, 0],
+            [4, 6, 5, 1],
+            [0, 2, 8, 3],
+            [1, 0, 7, 4]
+        ], dtype=float)
 
-    print("Feature map (4x4):\n", feature_map_demo)
-    print("\nMax pool 2x2 (2x2):\n", max_pool2d(feature_map_demo))
-    print("\nAvg pool 2x2 (2x2):\n", avg_pool2d(feature_map_demo))
+        print("Feature map (4x4):\n", feature_map_demo)
+        print("\nMax pool 2x2 (2x2):\n", max_pool2d(feature_map_demo))
+        print("\nAvg pool 2x2 (2x2):\n", avg_pool2d(feature_map_demo))
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Global Average Pooling: collapse spatial dims entirely
-    # Input: (C, H, W) -> Output: (C,)
-    feature_maps_gap = rng.standard_normal((3, 4, 4))  # 3 channels, 4x4 spatial
-    gap_output = feature_maps_gap.mean(axis=(1, 2))  # average over H, W
+    def _run():
+        # Global Average Pooling: collapse spatial dims entirely
+        # Input: (C, H, W) -> Output: (C,)
+        feature_maps_gap = rng.standard_normal((3, 4, 4))  # 3 channels, 4x4 spatial
+        gap_output = feature_maps_gap.mean(axis=(1, 2))  # average over H, W
 
-    print("Input shape:  (3, 4, 4)  =", feature_maps_gap.size, "values")
-    print("After GAP:    (3,)       =", gap_output.size, "values")
-    print("GAP output:  ", gap_output.round(3))
+        print("Input shape:  (3, 4, 4)  =", feature_maps_gap.size, "values")
+        print("After GAP:    (3,)       =", gap_output.size, "values")
+        print("GAP output:  ", gap_output.round(3))
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -430,74 +448,80 @@ Here's a minimal CNN in PyTorch to make this concrete:
 
 @app.cell
 def _():
-    import torch
-    import torch.nn as nn
+    def _run():
+        import torch
+        import torch.nn as nn
 
-    class SimpleCNN(nn.Module):
-        def __init__(self, num_classes=10):
-            super().__init__()
-            self.features = nn.Sequential(
-                # Block 1: 3 channels -> 32 feature maps
-                nn.Conv2d(3, 32, kernel_size=3, padding=1),  # 32x32 -> 32x32
-                nn.ReLU(),
-                nn.MaxPool2d(2),                              # 32x32 -> 16x16
+        class SimpleCNN(nn.Module):
+            def __init__(self, num_classes=10):
+                super().__init__()
+                self.features = nn.Sequential(
+                    # Block 1: 3 channels -> 32 feature maps
+                    nn.Conv2d(3, 32, kernel_size=3, padding=1),  # 32x32 -> 32x32
+                    nn.ReLU(),
+                    nn.MaxPool2d(2),                              # 32x32 -> 16x16
 
-                # Block 2: 32 -> 64 feature maps
-                nn.Conv2d(32, 64, kernel_size=3, padding=1),  # 16x16 -> 16x16
-                nn.ReLU(),
-                nn.MaxPool2d(2),                              # 16x16 -> 8x8
+                    # Block 2: 32 -> 64 feature maps
+                    nn.Conv2d(32, 64, kernel_size=3, padding=1),  # 16x16 -> 16x16
+                    nn.ReLU(),
+                    nn.MaxPool2d(2),                              # 16x16 -> 8x8
 
-                # Block 3: 64 -> 128 feature maps
-                nn.Conv2d(64, 128, kernel_size=3, padding=1), # 8x8 -> 8x8
-                nn.ReLU(),
-                nn.AdaptiveAvgPool2d(1),                      # 8x8 -> 1x1 (GAP)
-            )
-            self.classifier = nn.Linear(128, num_classes)
+                    # Block 3: 64 -> 128 feature maps
+                    nn.Conv2d(64, 128, kernel_size=3, padding=1), # 8x8 -> 8x8
+                    nn.ReLU(),
+                    nn.AdaptiveAvgPool2d(1),                      # 8x8 -> 1x1 (GAP)
+                )
+                self.classifier = nn.Linear(128, num_classes)
 
-        def forward(self, x):
-            x = self.features(x)      # [B, 128, 1, 1]
-            x = x.view(x.size(0), -1) # [B, 128]
-            x = self.classifier(x)    # [B, num_classes]
-            return x
+            def forward(self, x):
+                x = self.features(x)      # [B, 128, 1, 1]
+                x = x.view(x.size(0), -1) # [B, 128]
+                x = self.classifier(x)    # [B, num_classes]
+                return x
 
-    model = SimpleCNN(num_classes=10)
-    # Count parameters:
-    total = sum(p.numel() for p in model.parameters())
-    print(f"Total parameters: {total:,}")  # ~111K — compare to 200M for FC!
+        model = SimpleCNN(num_classes=10)
+        # Count parameters:
+        total = sum(p.numel() for p in model.parameters())
+        print(f"Total parameters: {total:,}")  # ~111K — compare to 200M for FC!
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Full forward pass of a tiny CNN in pure numpy:
-    # Conv(3x3, 1->2 filters) -> ReLU -> MaxPool(2x2) -> GAP -> Linear -> softmax
-    rng = np.random.default_rng(42)
-    img_tiny = rng.standard_normal((1, 8, 8))  # 1 channel, 8x8
+    def _run():
+        # Full forward pass of a tiny CNN in pure numpy:
+        # Conv(3x3, 1->2 filters) -> ReLU -> MaxPool(2x2) -> GAP -> Linear -> softmax
+        rng = np.random.default_rng(42)
+        img_tiny = rng.standard_normal((1, 8, 8))  # 1 channel, 8x8
 
-    # Conv: 2 filters, 3x3
-    W1 = rng.standard_normal((2, 1, 3, 3)) * 0.5
-    b1 = np.zeros(2)
-    # manual conv (valid)
-    conv_out = np.zeros((2, 6, 6))
-    for f in range(2):
-        for i in range(6):
-            for j in range(6):
-                conv_out[f,i,j] = np.sum(img_tiny[:, i:i+3, j:j+3] * W1[f]) + b1[f]
+        # Conv: 2 filters, 3x3
+        W1 = rng.standard_normal((2, 1, 3, 3)) * 0.5
+        b1 = np.zeros(2)
+        # manual conv (valid)
+        conv_out = np.zeros((2, 6, 6))
+        for f in range(2):
+            for i in range(6):
+                for j in range(6):
+                    conv_out[f,i,j] = np.sum(img_tiny[:, i:i+3, j:j+3] * W1[f]) + b1[f]
 
-    relu_out = np.maximum(0, conv_out)                 # ReLU
-    pool_out = relu_out.reshape(2, 3, 2, 3, 2).max(axis=(2, 4))  # MaxPool 2x2
-    gap_out  = pool_out.mean(axis=(1, 2))              # GAP -> (2,)
-    logits   = gap_out @ rng.standard_normal((2, 3))         # Linear -> 3 classes
-    probs    = np.exp(logits) / np.exp(logits).sum()   # softmax
+        relu_out = np.maximum(0, conv_out)                 # ReLU
+        pool_out = relu_out.reshape(2, 3, 2, 3, 2).max(axis=(2, 4))  # MaxPool 2x2
+        gap_out  = pool_out.mean(axis=(1, 2))              # GAP -> (2,)
+        logits   = gap_out @ rng.standard_normal((2, 3))         # Linear -> 3 classes
+        probs    = np.exp(logits) / np.exp(logits).sum()   # softmax
 
-    print(f"Input:     {img_tiny.shape}")
-    print(f"After conv:{conv_out.shape}")
-    print(f"After ReLU:{relu_out.shape}  (neg values clipped)")
-    print(f"After pool:{pool_out.shape}")
-    print(f"After GAP: {gap_out.shape}")
-    print(f"Logits:    {logits.shape}  ->  probs: {probs.round(3)}")
+        print(f"Input:     {img_tiny.shape}")
+        print(f"After conv:{conv_out.shape}")
+        print(f"After ReLU:{relu_out.shape}  (neg values clipped)")
+        print(f"After pool:{pool_out.shape}")
+        print(f"After GAP: {gap_out.shape}")
+        print(f"Logits:    {logits.shape}  ->  probs: {probs.round(3)}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -566,54 +590,60 @@ The residual connection has become a universal design principle. Transformers us
 
 @app.cell
 def _():
-    import torch as _torch
-    import torch.nn as _nn
+    def _run():
+        import torch as _torch
+        import torch.nn as _nn
 
-    class ResidualBlock(_nn.Module):
-        """A basic residual block with two conv layers."""
-        def __init__(self, channels):
-            super().__init__()
-            self.conv1 = _nn.Conv2d(channels, channels, 3, padding=1)
-            self.bn1 = _nn.BatchNorm2d(channels)
-            self.conv2 = _nn.Conv2d(channels, channels, 3, padding=1)
-            self.bn2 = _nn.BatchNorm2d(channels)
+        class ResidualBlock(_nn.Module):
+            """A basic residual block with two conv layers."""
+            def __init__(self, channels):
+                super().__init__()
+                self.conv1 = _nn.Conv2d(channels, channels, 3, padding=1)
+                self.bn1 = _nn.BatchNorm2d(channels)
+                self.conv2 = _nn.Conv2d(channels, channels, 3, padding=1)
+                self.bn2 = _nn.BatchNorm2d(channels)
 
-        def forward(self, x):
-            residual = x                        # save the input
-            out = _torch.relu(self.bn1(self.conv1(x)))
-            out = self.bn2(self.conv2(out))
-            out = out + residual                 # skip connection
-            out = _torch.relu(out)
-            return out
+            def forward(self, x):
+                residual = x                        # save the input
+                out = _torch.relu(self.bn1(self.conv1(x)))
+                out = self.bn2(self.conv2(out))
+                out = out + residual                 # skip connection
+                out = _torch.relu(out)
+                return out
 
-    block = ResidualBlock(64)
-    print(f"ResidualBlock parameters: {sum(p.numel() for p in block.parameters()):,}")
+        block = ResidualBlock(64)
+        print(f"ResidualBlock parameters: {sum(p.numel() for p in block.parameters()):,}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Residual block in numpy: output = relu(f(x) + x)
-    # f(x) is two "conv" layers (simulated as matrix ops on a vector)
-    rng = np.random.default_rng(7)
-    x_res = rng.standard_normal(4)            # feature vector
+    def _run():
+        # Residual block in numpy: output = relu(f(x) + x)
+        # f(x) is two "conv" layers (simulated as matrix ops on a vector)
+        rng = np.random.default_rng(7)
+        x_res = rng.standard_normal(4)            # feature vector
 
-    # Two "layers" (simplified as weight matrices)
-    W1_res = rng.standard_normal((4, 4)) * 0.01   # small weights -> f(x) near 0
-    W2_res = rng.standard_normal((4, 4)) * 0.01
+        # Two "layers" (simplified as weight matrices)
+        W1_res = rng.standard_normal((4, 4)) * 0.01   # small weights -> f(x) near 0
+        W2_res = rng.standard_normal((4, 4)) * 0.01
 
-    f_x = np.maximum(0, W1_res @ x_res)       # layer 1 + ReLU
-    f_x = W2_res @ f_x                         # layer 2
+        f_x = np.maximum(0, W1_res @ x_res)       # layer 1 + ReLU
+        f_x = W2_res @ f_x                         # layer 2
 
-    plain_out = np.maximum(0, f_x)             # plain block: just f(x)
-    resid_out = np.maximum(0, f_x + x_res)     # residual block: f(x) + x
+        plain_out = np.maximum(0, f_x)             # plain block: just f(x)
+        resid_out = np.maximum(0, f_x + x_res)     # residual block: f(x) + x
 
-    print("Input x:          ", x_res.round(3))
-    print("f(x) [learned]:   ", f_x.round(3), " <- near zero (small weights)")
-    print("Plain output:     ", plain_out.round(3))
-    print("Residual output:  ", resid_out.round(3), " <- close to x (identity default)")
+        print("Input x:          ", x_res.round(3))
+        print("f(x) [learned]:   ", f_x.round(3), " <- near zero (small weights)")
+        print("Plain output:     ", plain_out.round(3))
+        print("Residual output:  ", resid_out.round(3), " <- close to x (identity default)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -649,25 +679,28 @@ The idea is simple: take a CNN that has been trained on a large dataset (typical
 
 @app.cell
 def _():
-    import torch.nn as _nn2
-    import torchvision.models as models
+    def _run():
+        import torch.nn as _nn2
+        import torchvision.models as models
 
-    # Load pretrained ResNet-18
-    model_pretrained = models.resnet18(weights='IMAGENET1K_V1')
+        # Load pretrained ResNet-18
+        model_pretrained = models.resnet18(weights='IMAGENET1K_V1')
 
-    # Freeze all layers
-    for param in model_pretrained.parameters():
-        param.requires_grad = False
+        # Freeze all layers
+        for param in model_pretrained.parameters():
+            param.requires_grad = False
 
-    # Replace the final FC layer (originally 512 -> 1000)
-    num_your_classes = 10
-    model_pretrained.fc = _nn2.Linear(512, num_your_classes)
-    # Only model.fc will be trained
+        # Replace the final FC layer (originally 512 -> 1000)
+        num_your_classes = 10
+        model_pretrained.fc = _nn2.Linear(512, num_your_classes)
+        # Only model.fc will be trained
 
-    print("Trainable parameters:", sum(p.numel() for p in model_pretrained.parameters() if p.requires_grad))
-    print("Total parameters:", sum(p.numel() for p in model_pretrained.parameters()))
+        print("Trainable parameters:", sum(p.numel() for p in model_pretrained.parameters() if p.requires_grad))
+        print("Total parameters:", sum(p.numel() for p in model_pretrained.parameters()))
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -722,44 +755,50 @@ A more refined technique: compute the gradient of the class score with respect t
 
 @app.cell
 def _():
-    # Conceptual Grad-CAM sketch (not production-ready)
-    # 1. Forward pass, recording final conv layer activations
-    # 2. Backward pass for target class
-    # 3. Global average pool the gradients over spatial dims
-    # 4. Weight the feature maps by these pooled gradients
-    # 5. ReLU the result (we only want positive contributions)
-    # 6. Upsample to input resolution and overlay on image
-    print("Grad-CAM steps:")
-    print("1. Forward pass -> record final conv layer activations")
-    print("2. Backward pass for target class")
-    print("3. Global average pool the gradients over spatial dims")
-    print("4. Weight feature maps by pooled gradients")
-    print("5. ReLU (keep only positive contributions)")
-    print("6. Upsample to input resolution and overlay")
-    return
+    def _run():
+        # Conceptual Grad-CAM sketch (not production-ready)
+        # 1. Forward pass, recording final conv layer activations
+        # 2. Backward pass for target class
+        # 3. Global average pool the gradients over spatial dims
+        # 4. Weight the feature maps by these pooled gradients
+        # 5. ReLU the result (we only want positive contributions)
+        # 6. Upsample to input resolution and overlay on image
+        print("Grad-CAM steps:")
+        print("1. Forward pass -> record final conv layer activations")
+        print("2. Backward pass for target class")
+        print("3. Global average pool the gradients over spatial dims")
+        print("4. Weight feature maps by pooled gradients")
+        print("5. ReLU (keep only positive contributions)")
+        print("6. Upsample to input resolution and overlay")
 
+
+    _run()
+    return
 
 @app.cell
 def _(np):
-    # Simplified Grad-CAM math in numpy
-    # Given: feature_maps (C, H, W) and gradients (C, H, W)
-    rng = np.random.default_rng(99)
-    fmaps = rng.standard_normal((4, 3, 3))         # 4 channels, 3x3 spatial
-    grads = rng.standard_normal((4, 3, 3))         # gradients of class score w.r.t. fmaps
+    def _run():
+        # Simplified Grad-CAM math in numpy
+        # Given: feature_maps (C, H, W) and gradients (C, H, W)
+        rng = np.random.default_rng(99)
+        fmaps = rng.standard_normal((4, 3, 3))         # 4 channels, 3x3 spatial
+        grads = rng.standard_normal((4, 3, 3))         # gradients of class score w.r.t. fmaps
 
-    # Step 1: global average pool gradients -> per-channel importance weights
-    alpha = grads.mean(axis=(1, 2))           # shape (4,)
+        # Step 1: global average pool gradients -> per-channel importance weights
+        alpha = grads.mean(axis=(1, 2))           # shape (4,)
 
-    # Step 2: weighted combination of feature maps
-    cam = np.sum(alpha[:, None, None] * fmaps, axis=0)  # (3, 3)
+        # Step 2: weighted combination of feature maps
+        cam = np.sum(alpha[:, None, None] * fmaps, axis=0)  # (3, 3)
 
-    # Step 3: ReLU — only positive contributions
-    cam = np.maximum(0, cam)
+        # Step 3: ReLU — only positive contributions
+        cam = np.maximum(0, cam)
 
-    print("Channel importance weights (alpha):", alpha.round(3))
-    print("Grad-CAM heatmap (3x3):\n", cam.round(3))
+        print("Channel importance weights (alpha):", alpha.round(3))
+        print("Grad-CAM heatmap (3x3):\n", cam.round(3))
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -815,57 +854,60 @@ Here's a complete, runnable example that trains a CNN on CIFAR-10 using transfer
 
 @app.cell
 def _():
-    import torch as _t
-    import torch.nn as _n
-    import torch.optim as _o
-    from torchvision import datasets, transforms, models as _models
+    def _run():
+        import torch as _t
+        import torch.nn as _n
+        import torch.optim as _o
+        from torchvision import datasets, transforms, models as _models
 
-    # ---- Data pipeline ----
-    transform_train = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.Resize(224),           # ResNet expects 224x224
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406),   # ImageNet stats
-                             (0.229, 0.224, 0.225)),
-    ])
-    transform_test = transforms.Compose([
-        transforms.Resize(224),
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406),
-                             (0.229, 0.224, 0.225)),
-    ])
+        # ---- Data pipeline ----
+        transform_train = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, padding=4),
+            transforms.Resize(224),           # ResNet expects 224x224
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),   # ImageNet stats
+                                 (0.229, 0.224, 0.225)),
+        ])
+        transform_test = transforms.Compose([
+            transforms.Resize(224),
+            transforms.ToTensor(),
+            transforms.Normalize((0.485, 0.456, 0.406),
+                                 (0.229, 0.224, 0.225)),
+        ])
 
-    # Note: In practice you would create DataLoaders and run the training loop:
-    # train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
-    # test_set  = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
-    # train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
-    # test_loader  = DataLoader(test_set, batch_size=64, shuffle=False)
+        # Note: In practice you would create DataLoaders and run the training loop:
+        # train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+        # test_set  = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+        # train_loader = DataLoader(train_set, batch_size=64, shuffle=True)
+        # test_loader  = DataLoader(test_set, batch_size=64, shuffle=False)
 
-    # ---- Model: fine-tune a pretrained ResNet-18 ----
-    _model_ft = _models.resnet18(weights='IMAGENET1K_V1')
-    _model_ft.fc = _n.Linear(_model_ft.fc.in_features, 10)  # 10 CIFAR classes
+        # ---- Model: fine-tune a pretrained ResNet-18 ----
+        _model_ft = _models.resnet18(weights='IMAGENET1K_V1')
+        _model_ft.fc = _n.Linear(_model_ft.fc.in_features, 10)  # 10 CIFAR classes
 
-    print("Model ready for fine-tuning on CIFAR-10")
-    print(f"Total parameters: {sum(p.numel() for p in _model_ft.parameters()):,}")
-    print(f"Trainable parameters: {sum(p.numel() for p in _model_ft.parameters() if p.requires_grad):,}")
+        print("Model ready for fine-tuning on CIFAR-10")
+        print(f"Total parameters: {sum(p.numel() for p in _model_ft.parameters()):,}")
+        print(f"Trainable parameters: {sum(p.numel() for p in _model_ft.parameters() if p.requires_grad):,}")
 
-    # Training loop would be:
-    # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # model = model.to(device)
-    # criterion = nn.CrossEntropyLoss()
-    # optimizer = optim.Adam(model.parameters(), lr=1e-4)
-    # for epoch in range(5):
-    #     model.train()
-    #     for images, labels in train_loader:
-    #         images, labels = images.to(device), labels.to(device)
-    #         optimizer.zero_grad()
-    #         outputs = model(images)
-    #         loss = criterion(outputs, labels)
-    #         loss.backward()
-    #         optimizer.step()
+        # Training loop would be:
+        # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        # model = model.to(device)
+        # criterion = nn.CrossEntropyLoss()
+        # optimizer = optim.Adam(model.parameters(), lr=1e-4)
+        # for epoch in range(5):
+        #     model.train()
+        #     for images, labels in train_loader:
+        #         images, labels = images.to(device), labels.to(device)
+        #         optimizer.zero_grad()
+        #         outputs = model(images)
+        #         loss = criterion(outputs, labels)
+        #         loss.backward()
+        #         optimizer.step()
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1062,47 +1104,50 @@ Chain together your `conv_layer` and `my_maxpool` functions to build a two-layer
 
 @app.cell
 def _(np):
-    def tiny_cnn_forward(x, params):
-        """
-        Forward pass: Conv1 -> ReLU -> MaxPool -> Conv2 -> ReLU -> GAP -> Linear
-        x: (C_in, H, W) single image
-        params: dict with keys 'W1','b1','W2','b2','W_fc','b_fc'
-        Returns: class logits (num_classes,)
-        """
-        # TODO: Layer 1 — conv + ReLU (use your conv_layer function)
-        # h1 = conv_layer(x, params['W1'], params['b1'])
+    def _run():
+        def tiny_cnn_forward(x, params):
+            """
+            Forward pass: Conv1 -> ReLU -> MaxPool -> Conv2 -> ReLU -> GAP -> Linear
+            x: (C_in, H, W) single image
+            params: dict with keys 'W1','b1','W2','b2','W_fc','b_fc'
+            Returns: class logits (num_classes,)
+            """
+            # TODO: Layer 1 — conv + ReLU (use your conv_layer function)
+            # h1 = conv_layer(x, params['W1'], params['b1'])
 
-        # TODO: Max pool (apply to each channel separately)
-        # h1_pooled = ... for each channel in h1
+            # TODO: Max pool (apply to each channel separately)
+            # h1_pooled = ... for each channel in h1
 
-        # TODO: Layer 2 — conv + ReLU
-        # h2 = conv_layer(h1_pooled, params['W2'], params['b2'])
+            # TODO: Layer 2 — conv + ReLU
+            # h2 = conv_layer(h1_pooled, params['W2'], params['b2'])
 
-        # TODO: Global average pooling — mean over spatial dims
-        # gap = h2.mean(axis=(1, 2))
+            # TODO: Global average pooling — mean over spatial dims
+            # gap = h2.mean(axis=(1, 2))
 
-        # TODO: Linear classifier
-        # logits = gap @ params['W_fc'] + params['b_fc']
+            # TODO: Linear classifier
+            # logits = gap @ params['W_fc'] + params['b_fc']
 
-        # return logits
-        pass
+            # return logits
+            pass
 
-    # Setup: 1-channel 8x8 input -> conv(1->4, 3x3) -> pool(2) -> conv(4->8, 3x3) -> GAP -> linear(8->3)
-    rng = np.random.default_rng(0)
-    _params = {
-        'W1': rng.standard_normal((4, 1, 3, 3)) * 0.5,   # 4 filters on 1-channel input
-        'b1': np.zeros(4),
-        'W2': rng.standard_normal((8, 4, 3, 3)) * 0.5,   # 8 filters on 4-channel input
-        'b2': np.zeros(8),
-        'W_fc': rng.standard_normal((8, 3)) * 0.5,        # 8 features -> 3 classes
-        'b_fc': np.zeros(3),
-    }
-    # _x_input = rng.standard_normal((1, 8, 8))
-    # _logits = tiny_cnn_forward(_x_input, _params)
-    # print(f"Input: (1, 8, 8) -> Logits: {_logits.shape}")
-    # print(f"Logits: {_logits.round(3)}")
+        # Setup: 1-channel 8x8 input -> conv(1->4, 3x3) -> pool(2) -> conv(4->8, 3x3) -> GAP -> linear(8->3)
+        rng = np.random.default_rng(0)
+        _params = {
+            'W1': rng.standard_normal((4, 1, 3, 3)) * 0.5,   # 4 filters on 1-channel input
+            'b1': np.zeros(4),
+            'W2': rng.standard_normal((8, 4, 3, 3)) * 0.5,   # 8 filters on 4-channel input
+            'b2': np.zeros(8),
+            'W_fc': rng.standard_normal((8, 3)) * 0.5,        # 8 features -> 3 classes
+            'b_fc': np.zeros(3),
+        }
+        # _x_input = rng.standard_normal((1, 8, 8))
+        # _logits = tiny_cnn_forward(_x_input, _params)
+        # print(f"Input: (1, 8, 8) -> Logits: {_logits.shape}")
+        # print(f"Logits: {_logits.round(3)}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1116,42 +1161,45 @@ Implement the residual connection: `output = ReLU(f(x) + x)`, where `f` is two c
 
 @app.cell
 def _(np):
-    def residual_block_np(x, W1_r, b1_r, W2_r, b2_r):
-        """
-        Residual block: output = ReLU(conv2(ReLU(conv1(x))) + x)
-        x: (C, H, W) — input with same padding so spatial dims are preserved
-        W1_r, W2_r: (C, C, 3, 3) filters — same in/out channels
-        b1_r, b2_r: (C,) biases
-        Returns: (C, H, W)
-        """
-        C, H, W = x.shape
+    def _run():
+        def residual_block_np(x, W1_r, b1_r, W2_r, b2_r):
+            """
+            Residual block: output = ReLU(conv2(ReLU(conv1(x))) + x)
+            x: (C, H, W) — input with same padding so spatial dims are preserved
+            W1_r, W2_r: (C, C, 3, 3) filters — same in/out channels
+            b1_r, b2_r: (C,) biases
+            Returns: (C, H, W)
+            """
+            C, H, W = x.shape
 
-        # TODO: conv1 with same padding (pad=1 for 3x3 kernel)
-        # Hint: pad x with zeros, then convolve
-        # h = ReLU(conv1(x))
+            # TODO: conv1 with same padding (pad=1 for 3x3 kernel)
+            # Hint: pad x with zeros, then convolve
+            # h = ReLU(conv1(x))
 
-        # TODO: conv2 with same padding
-        # f_x = conv2(h)
+            # TODO: conv2 with same padding
+            # f_x = conv2(h)
 
-        # TODO: skip connection + ReLU
-        # out = np.maximum(0, f_x + x)
+            # TODO: skip connection + ReLU
+            # out = np.maximum(0, f_x + x)
 
-        # return out
-        pass
+            # return out
+            pass
 
-    # Test: with near-zero weights, output should approximate ReLU(x)
-    # rng = np.random.default_rng(42)
-    # _C = 2
-    # _x_rb = rng.standard_normal((_C, 6, 6))
-    # _W1_rb = rng.standard_normal((_C, _C, 3, 3)) * 0.001  # near zero
-    # _W2_rb = rng.standard_normal((_C, _C, 3, 3)) * 0.001
-    # _b1_rb, _b2_rb = np.zeros(_C), np.zeros(_C)
-    # _out_rb = residual_block_np(_x_rb, _W1_rb, _b1_rb, _W2_rb, _b2_rb)
-    # _relu_x = np.maximum(0, _x_rb)
-    # print(f"Max difference from ReLU(x): {np.abs(_out_rb - _relu_x).max():.6f}")
-    # print("(Should be very small — residual block defaults to identity)")
+        # Test: with near-zero weights, output should approximate ReLU(x)
+        # rng = np.random.default_rng(42)
+        # _C = 2
+        # _x_rb = rng.standard_normal((_C, 6, 6))
+        # _W1_rb = rng.standard_normal((_C, _C, 3, 3)) * 0.001  # near zero
+        # _W2_rb = rng.standard_normal((_C, _C, 3, 3)) * 0.001
+        # _b1_rb, _b2_rb = np.zeros(_C), np.zeros(_C)
+        # _out_rb = residual_block_np(_x_rb, _W1_rb, _b1_rb, _W2_rb, _b2_rb)
+        # _relu_x = np.maximum(0, _x_rb)
+        # print(f"Max difference from ReLU(x): {np.abs(_out_rb - _relu_x).max():.6f}")
+        # print("(Should be very small — residual block defaults to identity)")
+
+
+    if __name__ == "__main__":
+        app.run()
+
+    _run()
     return
-
-
-if __name__ == "__main__":
-    app.run()

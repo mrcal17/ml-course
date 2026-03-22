@@ -91,27 +91,30 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
+        import numpy as np
 
-    # Sample space: fair die
-    omega = np.array([1, 2, 3, 4, 5, 6])
-    probs = np.ones(6) / 6  # uniform PMF
+        # Sample space: fair die
+        omega = np.array([1, 2, 3, 4, 5, 6])
+        probs = np.ones(6) / 6  # uniform PMF
 
-    # Axiom 1: all probs >= 0
-    assert np.all(probs >= 0), "Non-negativity violated"
+        # Axiom 1: all probs >= 0
+        assert np.all(probs >= 0), "Non-negativity violated"
 
-    # Axiom 2: total probability = 1
-    assert np.isclose(probs.sum(), 1.0), "Normalization violated"
+        # Axiom 2: total probability = 1
+        assert np.isclose(probs.sum(), 1.0), "Normalization violated"
 
-    # Axiom 3: P(even OR odd<=3) for mutually exclusive events {2,4,6} and {1,3}
-    A = np.isin(omega, [2, 4, 6])  # even
-    B = np.isin(omega, [1, 3])      # odd and <= 3
-    P_A = probs[A].sum()             # 3/6
-    P_B = probs[B].sum()             # 2/6
-    P_union = probs[A | B].sum()     # 5/6 — should equal P_A + P_B
-    print(f"P(A)={P_A:.3f}, P(B)={P_B:.3f}, P(A∪B)={P_union:.3f}, P(A)+P(B)={P_A+P_B:.3f}")
+        # Axiom 3: P(even OR odd<=3) for mutually exclusive events {2,4,6} and {1,3}
+        A = np.isin(omega, [2, 4, 6])  # even
+        B = np.isin(omega, [1, 3])      # odd and <= 3
+        P_A = probs[A].sum()             # 3/6
+        P_B = probs[B].sum()             # 2/6
+        P_union = probs[A | B].sum()     # 5/6 — should equal P_A + P_B
+        print(f"P(A)={P_A:.3f}, P(B)={P_B:.3f}, P(A∪B)={P_union:.3f}, P(A)+P(B)={P_A+P_B:.3f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -173,53 +176,57 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Conditional probability: P(King | Face card)
-    deck = 52
-    kings = 4
-    face_cards = 12  # J, Q, K of each suit
+        # Conditional probability: P(King | Face card)
+        deck = 52
+        kings = 4
+        face_cards = 12  # J, Q, K of each suit
 
-    # P(King ∩ Face) = P(King), since all kings are face cards
-    P_king_and_face = kings / deck
-    P_face = face_cards / deck
-    P_king_given_face = P_king_and_face / P_face  # Bayes definition
+        # P(King ∩ Face) = P(King), since all kings are face cards
+        P_king_and_face = kings / deck
+        P_face = face_cards / deck
+        P_king_given_face = P_king_and_face / P_face  # Bayes definition
 
-    print(f"P(King | Face) = {P_king_and_face:.4f} / {P_face:.4f} = {P_king_given_face:.4f}")
-    print(f"That's 1/{int(1/P_king_given_face)} — exactly 4 kings among 12 face cards")
+        print(f"P(King | Face) = {P_king_and_face:.4f} / {P_face:.4f} = {P_king_given_face:.4f}")
+        print(f"That's 1/{int(1/P_king_given_face)} — exactly 4 kings among 12 face cards")
 
-    # Verify with simulation
-    cards = np.arange(deck)
-    n_sims = 500_000
-    draws = rng.choice(cards, size=n_sims)
-    is_face = draws < 12          # first 12 cards are face cards
-    is_king = draws < 4           # first 4 are kings
-    simulated = is_king[is_face].mean()
-    print(f"Simulated P(King | Face) ≈ {simulated:.4f}")
+        # Verify with simulation
+        cards = np.arange(deck)
+        n_sims = 500_000
+        draws = rng.choice(cards, size=n_sims)
+        is_face = draws < 12          # first 12 cards are face cards
+        is_king = draws < 4           # first 4 are kings
+        simulated = is_king[is_face].mean()
+        print(f"Simulated P(King | Face) ≈ {simulated:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Independence test: are two dice rolls independent?
-    n = 200_000
-    die1 = rng.integers(1, 7, n)
-    die2 = rng.integers(1, 7, n)
+        # Independence test: are two dice rolls independent?
+        n = 200_000
+        die1 = rng.integers(1, 7, n)
+        die2 = rng.integers(1, 7, n)
 
-    # P(die1=6) vs P(die1=6 | die2=6) — should be equal if independent
-    P_d1_6 = (die1 == 6).mean()
-    P_d1_6_given_d2_6 = (die1[die2 == 6] == 6).mean()
-    print(f"P(die1=6) = {P_d1_6:.4f}")
-    print(f"P(die1=6 | die2=6) = {P_d1_6_given_d2_6:.4f}")
-    print(f"Nearly equal → dice are independent")
+        # P(die1=6) vs P(die1=6 | die2=6) — should be equal if independent
+        P_d1_6 = (die1 == 6).mean()
+        P_d1_6_given_d2_6 = (die1[die2 == 6] == 6).mean()
+        print(f"P(die1=6) = {P_d1_6:.4f}")
+        print(f"P(die1=6 | die2=6) = {P_d1_6_given_d2_6:.4f}")
+        print(f"Nearly equal → dice are independent")
 
-    # Also verify: P(A∩B) = P(A)*P(B) for independent events
-    P_both_6 = ((die1 == 6) & (die2 == 6)).mean()
-    print(f"P(both 6) = {P_both_6:.4f}, P(6)*P(6) = {P_d1_6**2:.4f}")
+        # Also verify: P(A∩B) = P(A)*P(B) for independent events
+        P_both_6 = ((die1 == 6) & (die2 == 6)).mean()
+        print(f"P(both 6) = {P_both_6:.4f}, P(6)*P(6) = {P_d1_6**2:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -335,34 +342,36 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Verify Bayes' theorem: Medical test example
-    P_disease = 0.01
-    P_pos_given_disease = 0.99      # sensitivity
-    P_pos_given_healthy = 0.01      # 1 - specificity
+        # Verify Bayes' theorem: Medical test example
+        P_disease = 0.01
+        P_pos_given_disease = 0.99      # sensitivity
+        P_pos_given_healthy = 0.01      # 1 - specificity
 
-    # Total probability of positive test (law of total probability)
-    P_positive = P_pos_given_disease * P_disease + P_pos_given_healthy * (1 - P_disease)
+        # Total probability of positive test (law of total probability)
+        P_positive = P_pos_given_disease * P_disease + P_pos_given_healthy * (1 - P_disease)
 
-    # Bayes' theorem
-    P_disease_given_pos = (P_pos_given_disease * P_disease) / P_positive
+        # Bayes' theorem
+        P_disease_given_pos = (P_pos_given_disease * P_disease) / P_positive
 
-    print("=== Medical Test (Bayes' Theorem) ===")
-    print(f"P(+)             = {P_positive:.4f}")
-    print(f"P(disease | +)   = {P_disease_given_pos:.4f}  ← only 50%!")
+        print("=== Medical Test (Bayes' Theorem) ===")
+        print(f"P(+)             = {P_positive:.4f}")
+        print(f"P(disease | +)   = {P_disease_given_pos:.4f}  ← only 50%!")
 
-    # Spam example
-    P_spam = 0.3
-    P_lottery_given_spam = 0.15
-    P_lottery_given_ham = 0.005
-    P_lottery = P_lottery_given_spam * P_spam + P_lottery_given_ham * (1 - P_spam)
-    P_spam_given_lottery = (P_lottery_given_spam * P_spam) / P_lottery
+        # Spam example
+        P_spam = 0.3
+        P_lottery_given_spam = 0.15
+        P_lottery_given_ham = 0.005
+        P_lottery = P_lottery_given_spam * P_spam + P_lottery_given_ham * (1 - P_spam)
+        P_spam_given_lottery = (P_lottery_given_spam * P_spam) / P_lottery
 
-    print(f"\n=== Spam Filter (Bayes' Theorem) ===")
-    print(f"P(spam | 'lottery') = {P_spam_given_lottery:.3f}  ← prior 0.30 → posterior 0.93")
+        print(f"\n=== Spam Filter (Bayes' Theorem) ===")
+        print(f"P(spam | 'lottery') = {P_spam_given_lottery:.3f}  ← prior 0.30 → posterior 0.93")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -465,30 +474,32 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Discrete RV: fair die PMF
-    outcomes = np.arange(1, 7)
-    pmf = np.ones(6) / 6
+        # Discrete RV: fair die PMF
+        outcomes = np.arange(1, 7)
+        pmf = np.ones(6) / 6
 
-    # Verify PMF requirements: non-negative, sums to 1
-    print("=== Discrete: Fair Die PMF ===")
-    for x, p in zip(outcomes, pmf):
-        print(f"  P(X={x}) = {p:.4f}")
-    print(f"  Sum = {pmf.sum():.1f} ✓")
+        # Verify PMF requirements: non-negative, sums to 1
+        print("=== Discrete: Fair Die PMF ===")
+        for x, p in zip(outcomes, pmf):
+            print(f"  P(X={x}) = {p:.4f}")
+        print(f"  Sum = {pmf.sum():.1f} ✓")
 
-    # Continuous RV: approximate PDF→probability via sampling
-    # P(0.5 < Z < 1.5) for Z ~ N(0,1)
-    z_samples = rng.standard_normal(1_000_000)
-    P_interval = ((z_samples > 0.5) & (z_samples < 1.5)).mean()
-    print(f"\n=== Continuous: Standard Normal ===")
-    print(f"  P(0.5 < Z < 1.5) ≈ {P_interval:.4f}")
+        # Continuous RV: approximate PDF→probability via sampling
+        # P(0.5 < Z < 1.5) for Z ~ N(0,1)
+        z_samples = rng.standard_normal(1_000_000)
+        P_interval = ((z_samples > 0.5) & (z_samples < 1.5)).mean()
+        print(f"\n=== Continuous: Standard Normal ===")
+        print(f"  P(0.5 < Z < 1.5) ≈ {P_interval:.4f}")
 
-    # CDF: P(Z <= 1.96) should be ~0.975
-    P_cdf = (z_samples <= 1.96).mean()
-    print(f"  P(Z ≤ 1.96) ≈ {P_cdf:.4f}  (exact: 0.975)")
+        # CDF: P(Z <= 1.96) should be ~0.975
+        P_cdf = (z_samples <= 1.96).mean()
+        print(f"  P(Z ≤ 1.96) ≈ {P_cdf:.4f}  (exact: 0.975)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -580,24 +591,26 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    from scipy import stats
+    def _run():
+        from scipy import stats
 
-    # Sample from each distribution, compare empirical vs theoretical moments
-    n = 100_000
-    dists = {
-        "Bernoulli(0.3)":    (rng.binomial(1, 0.3, n),    0.3, 0.3*0.7),
-        "Binomial(20,0.4)":  (rng.binomial(20, 0.4, n),   8.0, 20*0.4*0.6),
-        "Poisson(5)":        (rng.poisson(5, n),           5.0, 5.0),
-        "Normal(2,3²)":      (rng.normal(2, 3, n),         2.0, 9.0),
-        "Exponential(λ=2)":  (rng.exponential(0.5, n),     0.5, 0.25),
-    }
-    print(f"{'Distribution':<20} {'E[X] theory':>11} {'E[X] sample':>11} {'Var theory':>11} {'Var sample':>11}")
-    print("-" * 68)
-    for name, (samples, mu, var) in dists.items():
-        print(f"{name:<20} {mu:>11.3f} {samples.mean():>11.3f} {var:>11.3f} {samples.var():>11.3f}")
+        # Sample from each distribution, compare empirical vs theoretical moments
+        n = 100_000
+        dists = {
+            "Bernoulli(0.3)":    (rng.binomial(1, 0.3, n),    0.3, 0.3*0.7),
+            "Binomial(20,0.4)":  (rng.binomial(20, 0.4, n),   8.0, 20*0.4*0.6),
+            "Poisson(5)":        (rng.poisson(5, n),           5.0, 5.0),
+            "Normal(2,3²)":      (rng.normal(2, 3, n),         2.0, 9.0),
+            "Exponential(λ=2)":  (rng.exponential(0.5, n),     0.5, 0.25),
+        }
+        print(f"{'Distribution':<20} {'E[X] theory':>11} {'E[X] sample':>11} {'Var theory':>11} {'Var sample':>11}")
+        print("-" * 68)
+        for name, (samples, mu, var) in dists.items():
+            print(f"{name:<20} {mu:>11.3f} {samples.mean():>11.3f} {var:>11.3f} {samples.var():>11.3f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -647,68 +660,70 @@ def _(dist_type, dist_mu, dist_sigma, dist_n, dist_p, dist_lam, dist_a, dist_b, 
 
 @app.cell
 def _(dist_type, dist_mu, dist_sigma, dist_n, dist_p, dist_lam, dist_a, dist_b):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from scipy import stats
+    def _run():
+        import matplotlib.pyplot as plt
+        from scipy import stats
 
-    fig_dist, ax_dist = plt.subplots(figsize=(8, 4))
-    _d = dist_type.value
+        fig_dist, ax_dist = plt.subplots(figsize=(8, 4))
+        _d = dist_type.value
 
-    if _d == "Normal":
-        _mu = dist_mu.value
-        _sig = dist_sigma.value
-        _x = np.linspace(_mu - 4 * _sig, _mu + 4 * _sig, 300)
-        _y = stats.norm.pdf(_x, _mu, _sig)
-        ax_dist.plot(_x, _y, 'b-', lw=2)
-        ax_dist.fill_between(_x, _y, alpha=0.3)
-        ax_dist.set_title(f"Normal(mu={_mu:.1f}, sigma={_sig:.1f})")
-        ax_dist.set_ylabel("Density")
+        if _d == "Normal":
+            _mu = dist_mu.value
+            _sig = dist_sigma.value
+            _x = np.linspace(_mu - 4 * _sig, _mu + 4 * _sig, 300)
+            _y = stats.norm.pdf(_x, _mu, _sig)
+            ax_dist.plot(_x, _y, 'b-', lw=2)
+            ax_dist.fill_between(_x, _y, alpha=0.3)
+            ax_dist.set_title(f"Normal(mu={_mu:.1f}, sigma={_sig:.1f})")
+            ax_dist.set_ylabel("Density")
 
-    elif _d == "Binomial":
-        _ni = int(dist_n.value)
-        _pi = dist_p.value
-        _k = np.arange(0, _ni + 1)
-        _pmf = stats.binom.pmf(_k, _ni, _pi)
-        ax_dist.bar(_k, _pmf, color='steelblue', alpha=0.7)
-        ax_dist.set_title(f"Binomial(n={_ni}, p={_pi:.2f})")
-        ax_dist.set_ylabel("P(X = k)")
-        ax_dist.set_xlabel("k")
+        elif _d == "Binomial":
+            _ni = int(dist_n.value)
+            _pi = dist_p.value
+            _k = np.arange(0, _ni + 1)
+            _pmf = stats.binom.pmf(_k, _ni, _pi)
+            ax_dist.bar(_k, _pmf, color='steelblue', alpha=0.7)
+            ax_dist.set_title(f"Binomial(n={_ni}, p={_pi:.2f})")
+            ax_dist.set_ylabel("P(X = k)")
+            ax_dist.set_xlabel("k")
 
-    elif _d == "Poisson":
-        _la = dist_lam.value
-        _k = np.arange(0, int(_la * 3) + 10)
-        _pmf = stats.poisson.pmf(_k, _la)
-        ax_dist.bar(_k, _pmf, color='steelblue', alpha=0.7)
-        ax_dist.set_title(f"Poisson(lambda={_la:.1f})")
-        ax_dist.set_ylabel("P(X = k)")
-        ax_dist.set_xlabel("k")
+        elif _d == "Poisson":
+            _la = dist_lam.value
+            _k = np.arange(0, int(_la * 3) + 10)
+            _pmf = stats.poisson.pmf(_k, _la)
+            ax_dist.bar(_k, _pmf, color='steelblue', alpha=0.7)
+            ax_dist.set_title(f"Poisson(lambda={_la:.1f})")
+            ax_dist.set_ylabel("P(X = k)")
+            ax_dist.set_xlabel("k")
 
-    elif _d == "Exponential":
-        _la = dist_lam.value
-        _x = np.linspace(0, 5 / _la, 300)
-        _y = stats.expon.pdf(_x, scale=1 / _la)
-        ax_dist.plot(_x, _y, 'b-', lw=2)
-        ax_dist.fill_between(_x, _y, alpha=0.3)
-        ax_dist.set_title(f"Exponential(lambda={_la:.1f})")
-        ax_dist.set_ylabel("Density")
+        elif _d == "Exponential":
+            _la = dist_lam.value
+            _x = np.linspace(0, 5 / _la, 300)
+            _y = stats.expon.pdf(_x, scale=1 / _la)
+            ax_dist.plot(_x, _y, 'b-', lw=2)
+            ax_dist.fill_between(_x, _y, alpha=0.3)
+            ax_dist.set_title(f"Exponential(lambda={_la:.1f})")
+            ax_dist.set_ylabel("Density")
 
-    else:  # Uniform
-        _ai = dist_a.value
-        _bi = max(dist_b.value, _ai + 0.1)
-        _margin = (_bi - _ai) * 0.3
-        _x = np.linspace(_ai - _margin, _bi + _margin, 300)
-        _y = stats.uniform.pdf(_x, loc=_ai, scale=_bi - _ai)
-        ax_dist.plot(_x, _y, 'b-', lw=2)
-        ax_dist.fill_between(_x, _y, alpha=0.3)
-        ax_dist.set_title(f"Uniform(a={_ai:.1f}, b={_bi:.1f})")
-        ax_dist.set_ylabel("Density")
+        else:  # Uniform
+            _ai = dist_a.value
+            _bi = max(dist_b.value, _ai + 0.1)
+            _margin = (_bi - _ai) * 0.3
+            _x = np.linspace(_ai - _margin, _bi + _margin, 300)
+            _y = stats.uniform.pdf(_x, loc=_ai, scale=_bi - _ai)
+            ax_dist.plot(_x, _y, 'b-', lw=2)
+            ax_dist.fill_between(_x, _y, alpha=0.3)
+            ax_dist.set_title(f"Uniform(a={_ai:.1f}, b={_bi:.1f})")
+            ax_dist.set_ylabel("Density")
 
-    ax_dist.set_xlabel("x")
-    ax_dist.grid(True, alpha=0.3)
-    plt.tight_layout()
-    fig_dist
+        ax_dist.set_xlabel("x")
+        ax_dist.grid(True, alpha=0.3)
+        plt.tight_layout()
+        fig_dist
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -790,54 +805,58 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Expected value: E[X] for a loaded die
-    outcomes = np.arange(1, 7)
-    pmf = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # loaded toward 6
-    E_X = (outcomes * pmf).sum()                        # weighted average
-    E_X2 = (outcomes**2 * pmf).sum()
+        # Expected value: E[X] for a loaded die
+        outcomes = np.arange(1, 7)
+        pmf = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # loaded toward 6
+        E_X = (outcomes * pmf).sum()                        # weighted average
+        E_X2 = (outcomes**2 * pmf).sum()
 
-    # Variance two ways
-    Var_direct = ((outcomes - E_X)**2 * pmf).sum()      # E[(X-μ)²]
-    Var_shortcut = E_X2 - E_X**2                        # E[X²] - (E[X])²
-    print(f"E[X]  = {E_X:.3f}")
-    print(f"Var(X) via definition = {Var_direct:.3f}")
-    print(f"Var(X) via shortcut   = {Var_shortcut:.3f}")
+        # Variance two ways
+        Var_direct = ((outcomes - E_X)**2 * pmf).sum()      # E[(X-μ)²]
+        Var_shortcut = E_X2 - E_X**2                        # E[X²] - (E[X])²
+        print(f"E[X]  = {E_X:.3f}")
+        print(f"Var(X) via definition = {Var_direct:.3f}")
+        print(f"Var(X) via shortcut   = {Var_shortcut:.3f}")
 
-    # Linearity: E[3X+5] = 3*E[X]+5
-    print(f"\nE[3X+5] = {3*E_X+5:.3f}")
+        # Linearity: E[3X+5] = 3*E[X]+5
+        print(f"\nE[3X+5] = {3*E_X+5:.3f}")
 
-    # Var(3X+5) = 9*Var(X) — the +5 doesn't affect spread
-    print(f"Var(3X+5) = {9*Var_direct:.3f}")
+        # Var(3X+5) = 9*Var(X) — the +5 doesn't affect spread
+        print(f"Var(3X+5) = {9*Var_direct:.3f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Covariance and correlation from data
-    rng = np.random.default_rng(0)
-    n = 50_000
+        # Covariance and correlation from data
+        rng = np.random.default_rng(0)
+        n = 50_000
 
-    # Correlated pair: X ~ N(0,1), Y = 2X + noise
-    X = rng.standard_normal(n)
-    Y = 2 * X + rng.standard_normal(n) * 0.5
+        # Correlated pair: X ~ N(0,1), Y = 2X + noise
+        X = rng.standard_normal(n)
+        Y = 2 * X + rng.standard_normal(n) * 0.5
 
-    cov_XY = np.cov(X, Y)[0, 1]           # off-diagonal of covariance matrix
-    corr_XY = np.corrcoef(X, Y)[0, 1]     # normalized to [-1, 1]
-    print(f"Cov(X,Y)  = {cov_XY:.3f}  (positive — they move together)")
-    print(f"Corr(X,Y) = {corr_XY:.3f}  (strong positive linear relationship)")
+        cov_XY = np.cov(X, Y)[0, 1]           # off-diagonal of covariance matrix
+        corr_XY = np.corrcoef(X, Y)[0, 1]     # normalized to [-1, 1]
+        print(f"Cov(X,Y)  = {cov_XY:.3f}  (positive — they move together)")
+        print(f"Corr(X,Y) = {corr_XY:.3f}  (strong positive linear relationship)")
 
-    # Full covariance matrix for 3 variables
-    Z = -X + rng.standard_normal(n) * 0.3
-    data = np.stack([X, Y, Z])
-    cov_matrix = np.cov(data)
-    print(f"\nCovariance matrix (3×3):\n{np.round(cov_matrix, 2)}")
-    print("Diagonal = variances, off-diagonal = covariances")
+        # Full covariance matrix for 3 variables
+        Z = -X + rng.standard_normal(n) * 0.3
+        data = np.stack([X, Y, Z])
+        cov_matrix = np.cov(data)
+        print(f"\nCovariance matrix (3×3):\n{np.round(cov_matrix, 2)}")
+        print("Diagonal = variances, off-diagonal = covariances")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -911,27 +930,29 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Joint distribution table from Exercise P4
-    joint = np.array([[0.2, 0.1],   # X=0: Y=0, Y=1
-                      [0.3, 0.4]])  # X=1: Y=0, Y=1
+        # Joint distribution table from Exercise P4
+        joint = np.array([[0.2, 0.1],   # X=0: Y=0, Y=1
+                          [0.3, 0.4]])  # X=1: Y=0, Y=1
 
-    # Marginals: sum over the other variable
-    P_X = joint.sum(axis=1)   # sum over Y
-    P_Y = joint.sum(axis=0)   # sum over X
-    print(f"Marginal P(X): {P_X}  (sums to {P_X.sum():.1f})")
-    print(f"Marginal P(Y): {P_Y}  (sums to {P_Y.sum():.1f})")
+        # Marginals: sum over the other variable
+        P_X = joint.sum(axis=1)   # sum over Y
+        P_Y = joint.sum(axis=0)   # sum over X
+        print(f"Marginal P(X): {P_X}  (sums to {P_X.sum():.1f})")
+        print(f"Marginal P(Y): {P_Y}  (sums to {P_Y.sum():.1f})")
 
-    # Conditional: P(Y=1 | X=1) = P(X=1,Y=1) / P(X=1)
-    P_Y1_given_X1 = joint[1, 1] / P_X[1]
-    print(f"\nP(Y=1 | X=1) = {joint[1,1]} / {P_X[1]} = {P_Y1_given_X1:.3f}")
+        # Conditional: P(Y=1 | X=1) = P(X=1,Y=1) / P(X=1)
+        P_Y1_given_X1 = joint[1, 1] / P_X[1]
+        print(f"\nP(Y=1 | X=1) = {joint[1,1]} / {P_X[1]} = {P_Y1_given_X1:.3f}")
 
-    # Independence check: P(X,Y) == P(X)*P(Y) for all entries?
-    independent = np.allclose(joint, np.outer(P_X, P_Y))
-    print(f"Independent? {independent}  (product table: {np.round(np.outer(P_X, P_Y), 2)})")
+        # Independence check: P(X,Y) == P(X)*P(Y) for all entries?
+        independent = np.allclose(joint, np.outer(P_X, P_Y))
+        print(f"Independent? {independent}  (product table: {np.round(np.outer(P_X, P_Y), 2)})")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -977,27 +998,28 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    # Law of Large Numbers: running average converges to true mean
-    rng = np.random.default_rng(7)
-    true_mean = 3.5  # E[fair die]
-    rolls = rng.integers(1, 7, size=5000)
-    running_avg = np.cumsum(rolls) / np.arange(1, len(rolls) + 1)
+        # Law of Large Numbers: running average converges to true mean
+        rng = np.random.default_rng(7)
+        true_mean = 3.5  # E[fair die]
+        rolls = rng.integers(1, 7, size=5000)
+        running_avg = np.cumsum(rolls) / np.arange(1, len(rolls) + 1)
 
-    fig_lln, ax_lln = plt.subplots(figsize=(8, 3))
-    ax_lln.plot(running_avg, lw=1)
-    ax_lln.axhline(true_mean, color='r', linestyle='--', label=f'True mean = {true_mean}')
-    ax_lln.set_xlabel('Number of rolls')
-    ax_lln.set_ylabel('Running average')
-    ax_lln.set_title('Law of Large Numbers: sample mean → population mean')
-    ax_lln.legend()
-    ax_lln.grid(True, alpha=0.3)
-    plt.tight_layout()
-    fig_lln
+        fig_lln, ax_lln = plt.subplots(figsize=(8, 3))
+        ax_lln.plot(running_avg, lw=1)
+        ax_lln.axhline(true_mean, color='r', linestyle='--', label=f'True mean = {true_mean}')
+        ax_lln.set_xlabel('Number of rolls')
+        ax_lln.set_ylabel('Running average')
+        ax_lln.set_title('Law of Large Numbers: sample mean → population mean')
+        ax_lln.legend()
+        ax_lln.grid(True, alpha=0.3)
+        plt.tight_layout()
+        fig_lln
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1069,55 +1091,59 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    def entropy(p):
-        """H(p) in nats (using ln)."""
-        p = np.asarray(p, dtype=float)
-        p = p[p > 0]
-        return -np.sum(p * np.log(p))
+        def entropy(p):
+            """H(p) in nats (using ln)."""
+            p = np.asarray(p, dtype=float)
+            p = p[p > 0]
+            return -np.sum(p * np.log(p))
 
-    def kl_divergence(p, q):
-        """D_KL(p || q) in nats."""
-        p, q = np.asarray(p, float), np.asarray(q, float)
-        mask = p > 0
-        return np.sum(p[mask] * np.log(p[mask] / q[mask]))
+        def kl_divergence(p, q):
+            """D_KL(p || q) in nats."""
+            p, q = np.asarray(p, float), np.asarray(q, float)
+            mask = p > 0
+            return np.sum(p[mask] * np.log(p[mask] / q[mask]))
 
-    def cross_entropy(p, q):
-        """H(p, q) in nats."""
-        p, q = np.asarray(p, float), np.asarray(q, float)
-        mask = p > 0
-        return -np.sum(p[mask] * np.log(q[mask]))
+        def cross_entropy(p, q):
+            """H(p, q) in nats."""
+            p, q = np.asarray(p, float), np.asarray(q, float)
+            mask = p > 0
+            return -np.sum(p[mask] * np.log(q[mask]))
 
-    # Compare: fair die vs loaded die
-    p_fair = np.ones(6) / 6
-    p_loaded = np.array([0.4, 0.2, 0.15, 0.1, 0.1, 0.05])
+        # Compare: fair die vs loaded die
+        p_fair = np.ones(6) / 6
+        p_loaded = np.array([0.4, 0.2, 0.15, 0.1, 0.1, 0.05])
 
-    print(f"Entropy(fair)   = {entropy(p_fair):.4f} nats  (maximum uncertainty)")
-    print(f"Entropy(loaded) = {entropy(p_loaded):.4f} nats  (less uncertain)")
-    print(f"KL(fair || loaded) = {kl_divergence(p_fair, p_loaded):.4f}  (asymmetric!)")
-    print(f"KL(loaded || fair) = {kl_divergence(p_loaded, p_fair):.4f}")
-    print(f"Cross-entropy H(fair, loaded) = {cross_entropy(p_fair, p_loaded):.4f}")
-    print(f"Verify: H(p) + KL(p||q) = {entropy(p_fair) + kl_divergence(p_fair, p_loaded):.4f} = H(p,q)")
+        print(f"Entropy(fair)   = {entropy(p_fair):.4f} nats  (maximum uncertainty)")
+        print(f"Entropy(loaded) = {entropy(p_loaded):.4f} nats  (less uncertain)")
+        print(f"KL(fair || loaded) = {kl_divergence(p_fair, p_loaded):.4f}  (asymmetric!)")
+        print(f"KL(loaded || fair) = {kl_divergence(p_loaded, p_fair):.4f}")
+        print(f"Cross-entropy H(fair, loaded) = {cross_entropy(p_fair, p_loaded):.4f}")
+        print(f"Verify: H(p) + KL(p||q) = {entropy(p_fair) + kl_divergence(p_fair, p_loaded):.4f} = H(p,q)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Binary cross-entropy loss — the classification workhorse
-    # True label y=1, model predicts p_hat
-    y_true = 1
-    p_hats = [0.01, 0.1, 0.5, 0.9, 0.99]
+        # Binary cross-entropy loss — the classification workhorse
+        # True label y=1, model predicts p_hat
+        y_true = 1
+        p_hats = [0.01, 0.1, 0.5, 0.9, 0.99]
 
-    print("Binary cross-entropy loss for y=1:")
-    for p_hat in p_hats:
-        bce = -(y_true * np.log(p_hat) + (1 - y_true) * np.log(1 - p_hat))
-        print(f"  p_hat={p_hat:.2f} → loss={bce:.4f}")
-    print("Lower p_hat → higher loss (model is wrong and gets punished)")
+        print("Binary cross-entropy loss for y=1:")
+        for p_hat in p_hats:
+            bce = -(y_true * np.log(p_hat) + (1 - y_true) * np.log(1 - p_hat))
+            print(f"  p_hat={p_hat:.2f} → loss={bce:.4f}")
+        print("Lower p_hat → higher loss (model is wrong and gets punished)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1183,31 +1209,33 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Simulate 1,000,000 people
-    n_people = 1_000_000
-    prevalence = 0.01
-    sensitivity = 0.99
-    specificity = 0.99
+        # Simulate 1,000,000 people
+        n_people = 1_000_000
+        prevalence = 0.01
+        sensitivity = 0.99
+        specificity = 0.99
 
-    # Generate disease status
-    has_disease = rng.random(n_people) < prevalence
+        # Generate disease status
+        has_disease = rng.random(n_people) < prevalence
 
-    # Generate test results
-    test_positive = np.where(
-        has_disease,
-        rng.random(n_people) < sensitivity,   # true positive
-        rng.random(n_people) < (1 - specificity)  # false positive
-    )
+        # Generate test results
+        test_positive = np.where(
+            has_disease,
+            rng.random(n_people) < sensitivity,   # true positive
+            rng.random(n_people) < (1 - specificity)  # false positive
+        )
 
-    # Among those who tested positive, what fraction actually has the disease?
-    positive_mask = test_positive
-    p_disease_given_positive = has_disease[positive_mask].mean()
-    print(f"P(disease | positive test) = {p_disease_given_positive:.3f}")
-    # Should be approximately 0.50
+        # Among those who tested positive, what fraction actually has the disease?
+        positive_mask = test_positive
+        p_disease_given_positive = has_disease[positive_mask].mean()
+        print(f"P(disease | positive test) = {p_disease_given_positive:.3f}")
+        # Should be approximately 0.50
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1219,24 +1247,25 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    # Take means of increasing numbers of Uniform(0,1) samples
-    sample_sizes = [1, 2, 5, 30]
-    fig_clt, axes_clt = plt.subplots(1, 4, figsize=(16, 3))
+        # Take means of increasing numbers of Uniform(0,1) samples
+        sample_sizes = [1, 2, 5, 30]
+        fig_clt, axes_clt = plt.subplots(1, 4, figsize=(16, 3))
 
-    for ax, n in zip(axes_clt, sample_sizes):
-        means = [rng.uniform(0, 1, n).mean() for _ in range(10000)]
-        ax.hist(means, bins=50, density=True, alpha=0.7)
-        ax.set_title(f'Mean of {n} uniform samples')
-        ax.set_xlim(0, 1)
+        for ax, n in zip(axes_clt, sample_sizes):
+            means = [rng.uniform(0, 1, n).mean() for _ in range(10000)]
+            ax.hist(means, bins=50, density=True, alpha=0.7)
+            ax.set_title(f'Mean of {n} uniform samples')
+            ax.set_xlim(0, 1)
 
-    plt.tight_layout()
-    fig_clt
-    # Watch the distribution go from flat (n=1) to Gaussian (n=30)
+        plt.tight_layout()
+        fig_clt
+        # Watch the distribution go from flat (n=1) to Gaussian (n=30)
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1248,30 +1277,31 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    def entropy(probs):
-        """Compute entropy in bits."""
-        probs = np.array(probs)
-        probs = probs[probs > 0]  # avoid log(0)
-        return -np.sum(probs * np.log2(probs))
+        def entropy(probs):
+            """Compute entropy in bits."""
+            probs = np.array(probs)
+            probs = probs[probs > 0]  # avoid log(0)
+            return -np.sum(probs * np.log2(probs))
 
-    # Vary bias of a coin from 0 to 1
-    ps = np.linspace(0.001, 0.999, 100)
-    entropies = [entropy([p, 1 - p]) for p in ps]
+        # Vary bias of a coin from 0 to 1
+        ps = np.linspace(0.001, 0.999, 100)
+        entropies = [entropy([p, 1 - p]) for p in ps]
 
-    fig_entropy, ax_entropy = plt.subplots(figsize=(6, 4))
-    ax_entropy.plot(ps, entropies)
-    ax_entropy.set_xlabel('P(heads)')
-    ax_entropy.set_ylabel('Entropy (bits)')
-    ax_entropy.set_title('Entropy of a Bernoulli distribution')
-    ax_entropy.grid(True, alpha=0.3)
-    plt.tight_layout()
-    fig_entropy
-    # Maximum entropy at p=0.5 (maximum uncertainty)
+        fig_entropy, ax_entropy = plt.subplots(figsize=(6, 4))
+        ax_entropy.plot(ps, entropies)
+        ax_entropy.set_xlabel('P(heads)')
+        ax_entropy.set_ylabel('Entropy (bits)')
+        ax_entropy.set_title('Entropy of a Bernoulli distribution')
+        ax_entropy.grid(True, alpha=0.3)
+        plt.tight_layout()
+        fig_entropy
+        # Maximum entropy at p=0.5 (maximum uncertainty)
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1283,38 +1313,39 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from scipy.stats import beta
+    def _run():
+        from scipy.stats import beta
 
-    # You have a coin with unknown bias. You flip it and observe outcomes.
-    # Prior: Beta(1,1) = Uniform (we know nothing)
-    # After each flip, posterior updates.
+        # You have a coin with unknown bias. You flip it and observe outcomes.
+        # Prior: Beta(1,1) = Uniform (we know nothing)
+        # After each flip, posterior updates.
 
-    rng = np.random.default_rng(42)
-    true_p = 0.7
-    flips = rng.random(100) < true_p  # 100 flips of a biased coin
+        rng = np.random.default_rng(42)
+        true_p = 0.7
+        flips = rng.random(100) < true_p  # 100 flips of a biased coin
 
-    x_beta = np.linspace(0, 1, 200)
-    a_prior, b_prior = 1, 1  # Beta prior parameters
+        x_beta = np.linspace(0, 1, 200)
+        a_prior, b_prior = 1, 1  # Beta prior parameters
 
-    fig_bayes, axes_bayes = plt.subplots(2, 3, figsize=(14, 8))
-    checkpoints = [0, 1, 3, 10, 30, 100]
+        fig_bayes, axes_bayes = plt.subplots(2, 3, figsize=(14, 8))
+        checkpoints = [0, 1, 3, 10, 30, 100]
 
-    for ax, n_obs in zip(axes_bayes.flatten(), checkpoints):
-        a_post = a_prior + flips[:n_obs].sum()
-        b_post = b_prior + n_obs - flips[:n_obs].sum()
-        ax.plot(x_beta, beta.pdf(x_beta, a_post, b_post), 'b-', lw=2)
-        ax.axvline(true_p, color='r', linestyle='--', label=f'True p={true_p}')
-        ax.set_title(f'After {n_obs} flips (a={a_post:.0f}, b={b_post:.0f})')
-        ax.set_xlim(0, 1)
-        ax.legend()
+        for ax, n_obs in zip(axes_bayes.flatten(), checkpoints):
+            a_post = a_prior + flips[:n_obs].sum()
+            b_post = b_prior + n_obs - flips[:n_obs].sum()
+            ax.plot(x_beta, beta.pdf(x_beta, a_post, b_post), 'b-', lw=2)
+            ax.axvline(true_p, color='r', linestyle='--', label=f'True p={true_p}')
+            ax.set_title(f'After {n_obs} flips (a={a_post:.0f}, b={b_post:.0f})')
+            ax.set_xlim(0, 1)
+            ax.legend()
 
-    plt.tight_layout()
-    fig_bayes
-    # Watch the posterior concentrate around the true value as data accumulates
+        plt.tight_layout()
+        fig_bayes
+        # Watch the posterior concentrate around the true value as data accumulates
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1368,22 +1399,25 @@ def _(mo):
 
 @app.cell
 def _():
-    # Exercise 1: Bayes' theorem — factory defect problem
-    P_A = 0.6            # prior: item from Machine A
-    P_B = 0.4            # prior: item from Machine B
-    P_def_A = 0.02       # P(defective | Machine A)
-    P_def_B = 0.05       # P(defective | Machine B)
+    def _run():
+        # Exercise 1: Bayes' theorem — factory defect problem
+        P_A = 0.6            # prior: item from Machine A
+        P_B = 0.4            # prior: item from Machine B
+        P_def_A = 0.02       # P(defective | Machine A)
+        P_def_B = 0.05       # P(defective | Machine B)
 
-    # TODO: compute total probability of defect (law of total probability)
-    P_defective = ...
+        # TODO: compute total probability of defect (law of total probability)
+        P_defective = ...
 
-    # TODO: apply Bayes' theorem
-    P_A_given_defective = ...
+        # TODO: apply Bayes' theorem
+        P_A_given_defective = ...
 
-    # print(f"P(Machine A | defective) = {P_A_given_defective:.4f}")
-    # Expected answer: ~0.375
+        # print(f"P(Machine A | defective) = {P_A_given_defective:.4f}")
+        # Expected answer: ~0.375
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1399,35 +1433,36 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    # Exercise 2: LLN with a biased die
-    pmf = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # P(1)..P(6)
-    outcomes = np.arange(1, 7)
+        # Exercise 2: LLN with a biased die
+        pmf = np.array([0.1, 0.1, 0.1, 0.1, 0.1, 0.5])  # P(1)..P(6)
+        outcomes = np.arange(1, 7)
 
-    # TODO: compute the true expected value from the PMF
-    true_mean = ...
+        # TODO: compute the true expected value from the PMF
+        true_mean = ...
 
-    # TODO: sample 10,000 rolls using np.random.choice with the pmf as weights
-    rolls = ...
+        # TODO: sample 10,000 rolls using np.random.choice with the pmf as weights
+        rolls = ...
 
-    # TODO: compute running average (cumulative sum / index)
-    running_avg = ...
+        # TODO: compute running average (cumulative sum / index)
+        running_avg = ...
 
-    # Uncomment to plot:
-    # fig, ax = plt.subplots(figsize=(8, 3))
-    # ax.plot(running_avg, lw=1)
-    # ax.axhline(true_mean, color='r', linestyle='--', label=f'E[X] = {true_mean:.2f}')
-    # ax.set_xlabel('Number of rolls')
-    # ax.set_ylabel('Running average')
-    # ax.set_title('LLN: biased die')
-    # ax.legend()
-    # ax.grid(True, alpha=0.3)
-    # plt.tight_layout()
-    # fig
+        # Uncomment to plot:
+        # fig, ax = plt.subplots(figsize=(8, 3))
+        # ax.plot(running_avg, lw=1)
+        # ax.axhline(true_mean, color='r', linestyle='--', label=f'E[X] = {true_mean:.2f}')
+        # ax.set_xlabel('Number of rolls')
+        # ax.set_ylabel('Running average')
+        # ax.set_title('LLN: biased die')
+        # ax.legend()
+        # ax.grid(True, alpha=0.3)
+        # plt.tight_layout()
+        # fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1445,28 +1480,30 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Exercise 3: Compute variance two ways
-    outcomes = np.array([1, 2, 3, 4, 5])
-    pmf = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
+        # Exercise 3: Compute variance two ways
+        outcomes = np.array([1, 2, 3, 4, 5])
+        pmf = np.array([0.1, 0.2, 0.4, 0.2, 0.1])
 
-    # TODO: compute E[X]
-    E_X = ...
+        # TODO: compute E[X]
+        E_X = ...
 
-    # TODO: compute Var(X) via definition E[(X - mu)^2]
-    var_definition = ...
+        # TODO: compute Var(X) via definition E[(X - mu)^2]
+        var_definition = ...
 
-    # TODO: compute Var(X) via shortcut E[X^2] - (E[X])^2
-    E_X2 = ...
-    var_shortcut = ...
+        # TODO: compute Var(X) via shortcut E[X^2] - (E[X])^2
+        E_X2 = ...
+        var_shortcut = ...
 
-    # print(f"E[X] = {E_X:.3f}")
-    # print(f"Var (definition) = {var_definition:.3f}")
-    # print(f"Var (shortcut)   = {var_shortcut:.3f}")
-    # print(f"Match: {np.isclose(var_definition, var_shortcut)}")
+        # print(f"E[X] = {E_X:.3f}")
+        # print(f"Var (definition) = {var_definition:.3f}")
+        # print(f"Var (shortcut)   = {var_shortcut:.3f}")
+        # print(f"Match: {np.isclose(var_definition, var_shortcut)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1484,23 +1521,25 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Exercise 4: Cross-entropy loss for classification
-    p_true = np.array([1, 0, 0])  # one-hot label: class 0
+        # Exercise 4: Cross-entropy loss for classification
+        p_true = np.array([1, 0, 0])  # one-hot label: class 0
 
-    q_good = np.array([0.7, 0.2, 0.1])  # confident and correct
-    q_bad = np.array([0.3, 0.4, 0.3])   # uncertain and wrong
+        q_good = np.array([0.7, 0.2, 0.1])  # confident and correct
+        q_bad = np.array([0.3, 0.4, 0.3])   # uncertain and wrong
 
-    # TODO: compute cross-entropy H(p, q) = -sum(p * log(q))
-    loss_good = ...
-    loss_bad = ...
+        # TODO: compute cross-entropy H(p, q) = -sum(p * log(q))
+        loss_good = ...
+        loss_bad = ...
 
-    # print(f"Loss (good prediction): {loss_good:.4f}")
-    # print(f"Loss (bad prediction):  {loss_bad:.4f}")
-    # print(f"Better model has lower loss: {'good' if loss_good < loss_bad else 'bad'}")
+        # print(f"Loss (good prediction): {loss_good:.4f}")
+        # print(f"Loss (bad prediction):  {loss_bad:.4f}")
+        # print(f"Better model has lower loss: {'good' if loss_good < loss_bad else 'bad'}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1516,30 +1555,31 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    # Exercise 5: CLT with exponential distribution
-    lam = 2.0
-    n_samples = 10_000
-    k_values = [1, 5, 30, 100]
+        # Exercise 5: CLT with exponential distribution
+        lam = 2.0
+        n_samples = 10_000
+        k_values = [1, 5, 30, 100]
 
-    fig, axes = plt.subplots(1, 4, figsize=(16, 3))
+        fig, axes = plt.subplots(1, 4, figsize=(16, 3))
 
-    for ax, k in zip(axes, k_values):
-        # TODO: generate (n_samples, k) exponential draws and take row means
-        # Hint: rng.exponential(scale=1/lam, size=(n_samples, k)).mean(axis=1)
-        means = ...
+        for ax, k in zip(axes, k_values):
+            # TODO: generate (n_samples, k) exponential draws and take row means
+            # Hint: rng.exponential(scale=1/lam, size=(n_samples, k)).mean(axis=1)
+            means = ...
 
-        # Uncomment to plot:
-        # ax.hist(means, bins=50, density=True, alpha=0.7)
-        # ax.set_title(f'Mean of {k} Exp samples')
-        pass
+            # Uncomment to plot:
+            # ax.hist(means, bins=50, density=True, alpha=0.7)
+            # ax.set_title(f'Mean of {k} Exp samples')
+            pass
 
-    # plt.tight_layout()
-    # fig
+        # plt.tight_layout()
+        # fig
+
+
+    if __name__ == "__main__":
+        app.run()
+
+    _run()
     return
-
-
-if __name__ == "__main__":
-    app.run()

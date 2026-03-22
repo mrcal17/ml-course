@@ -187,28 +187,31 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # BERT-style masking: 15% of tokens selected, then 80/10/10 split
-    rng = np.random.default_rng(7)
-    sentence = ["The", "cat", "sat", "on", "the", "mat", "and", "purred", "loudly", "."]
-    MASK_TOKEN, vocab_sz = "[MASK]", 1000
+    def _run():
+        # BERT-style masking: 15% of tokens selected, then 80/10/10 split
+        rng = np.random.default_rng(7)
+        sentence = ["The", "cat", "sat", "on", "the", "mat", "and", "purred", "loudly", "."]
+        MASK_TOKEN, vocab_sz = "[MASK]", 1000
 
-    mask_prob = 0.15
-    selected = rng.random((len(sentence))) < mask_prob  # which tokens to corrupt
+        mask_prob = 0.15
+        selected = rng.random((len(sentence))) < mask_prob  # which tokens to corrupt
 
-    corrupted = list(sentence)
-    for i in np.where(selected)[0]:
-        r = rng.random()
-        if r < 0.8:      # 80% → replace with [MASK]
-            corrupted[i] = MASK_TOKEN
-        elif r < 0.9:     # 10% → replace with random token
-            corrupted[i] = f"<rand_{rng.integers(vocab_sz)}>"
-        # else: 10% → keep original (do nothing)
+        corrupted = list(sentence)
+        for i in np.where(selected)[0]:
+            r = rng.random()
+            if r < 0.8:      # 80% → replace with [MASK]
+                corrupted[i] = MASK_TOKEN
+            elif r < 0.9:     # 10% → replace with random token
+                corrupted[i] = f"<rand_{rng.integers(vocab_sz)}>"
+            # else: 10% → keep original (do nothing)
 
-    print(f"Original:  {' '.join(sentence)}")
-    print(f"Corrupted: {' '.join(corrupted)}")
-    print(f"Targets:   predict original tokens at positions {list(np.where(selected)[0])}")
+        print(f"Original:  {' '.join(sentence)}")
+        print(f"Corrupted: {' '.join(corrupted)}")
+        print(f"Targets:   predict original tokens at positions {list(np.where(selected)[0])}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -326,20 +329,23 @@ def _(mo):
 
 @app.cell
 def _(np, sim_matrix):
-    # Temperature effect: lower τ → sharper distribution, higher τ → flatter
-    taus = [0.1, 0.5, 1.0, 5.0]
-    i_anchor, j_pos = 0, 1
-    mask_k = np.ones(sim_matrix.shape[0], dtype=bool)
-    mask_k[i_anchor] = False
+    def _run():
+        # Temperature effect: lower τ → sharper distribution, higher τ → flatter
+        taus = [0.1, 0.5, 1.0, 5.0]
+        i_anchor, j_pos = 0, 1
+        mask_k = np.ones(sim_matrix.shape[0], dtype=bool)
+        mask_k[i_anchor] = False
 
-    for t in taus:
-        logits = sim_matrix[i_anchor, mask_k] / t
-        probs = np.exp(logits) / np.exp(logits).sum()  # softmax over negatives+positive
-        # j_pos is at index 0 in the masked array (since i=0 was removed)
-        prob_positive = probs[0]
-        print(f"τ={t:<4}  P(positive) = {prob_positive:.4f}  loss = {-np.log(prob_positive):.3f}")
+        for t in taus:
+            logits = sim_matrix[i_anchor, mask_k] / t
+            probs = np.exp(logits) / np.exp(logits).sum()  # softmax over negatives+positive
+            # j_pos is at index 0 in the masked array (since i=0 was removed)
+            prob_positive = probs[0]
+            print(f"τ={t:<4}  P(positive) = {prob_positive:.4f}  loss = {-np.log(prob_positive):.3f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -351,21 +357,24 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # MoCo momentum update: θ_k ← m * θ_k + (1 - m) * θ_q
-    rng = np.random.default_rng(1)
-    d_param = 8
-    theta_q = rng.standard_normal(d_param)   # query encoder (updated by gradient)
-    theta_k = rng.standard_normal(d_param)   # key encoder (updated by momentum)
-    m = 0.999  # momentum coefficient
+    def _run():
+        # MoCo momentum update: θ_k ← m * θ_k + (1 - m) * θ_q
+        rng = np.random.default_rng(1)
+        d_param = 8
+        theta_q = rng.standard_normal(d_param)   # query encoder (updated by gradient)
+        theta_k = rng.standard_normal(d_param)   # key encoder (updated by momentum)
+        m = 0.999  # momentum coefficient
 
-    print(f"Before: ||θ_q - θ_k|| = {np.linalg.norm(theta_q - theta_k):.4f}")
-    for step in range(200):
-        theta_q += rng.standard_normal(d_param) * 0.01  # simulate gradient step
-        theta_k = m * theta_k + (1 - m) * theta_q    # momentum update
-    print(f"After 200 steps: ||θ_q - θ_k|| = {np.linalg.norm(theta_q - theta_k):.4f}")
-    print("Key encoder tracks query encoder slowly — keeps negatives consistent")
+        print(f"Before: ||θ_q - θ_k|| = {np.linalg.norm(theta_q - theta_k):.4f}")
+        for step in range(200):
+            theta_q += rng.standard_normal(d_param) * 0.01  # simulate gradient step
+            theta_k = m * theta_k + (1 - m) * theta_q    # momentum update
+        print(f"After 200 steps: ||θ_q - θ_k|| = {np.linalg.norm(theta_q - theta_k):.4f}")
+        print("Key encoder tracks query encoder slowly — keeps negatives consistent")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -403,28 +412,31 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # SimSiam: asymmetric architecture with stop-gradient
-    rng = np.random.default_rng(2)
-    d_emb = 8
+    def _run():
+        # SimSiam: asymmetric architecture with stop-gradient
+        rng = np.random.default_rng(2)
+        d_emb = 8
 
-    # Simulate two augmented views through encoder
-    z1 = rng.standard_normal(d_emb)
-    z2 = rng.standard_normal(d_emb)
+        # Simulate two augmented views through encoder
+        z1 = rng.standard_normal(d_emb)
+        z2 = rng.standard_normal(d_emb)
 
-    # Predictor MLP (simplified as linear): only on one branch
-    W_pred = rng.standard_normal((d_emb, d_emb)) * 0.1
-    p1 = W_pred @ z1  # online branch: encoder + predictor
+        # Predictor MLP (simplified as linear): only on one branch
+        W_pred = rng.standard_normal((d_emb, d_emb)) * 0.1
+        p1 = W_pred @ z1  # online branch: encoder + predictor
 
-    # Loss: negative cosine similarity with stop-gradient on z2
-    cos_sim = lambda a, b: a @ b / (np.linalg.norm(a) * np.linalg.norm(b))
+        # Loss: negative cosine similarity with stop-gradient on z2
+        cos_sim = lambda a, b: a @ b / (np.linalg.norm(a) * np.linalg.norm(b))
 
-    loss_simsiam = -cos_sim(p1, z2)  # z2 is DETACHED (no grad flows back)
-    print(f"SimSiam loss = {loss_simsiam:.4f}")
-    print(f"Predictor output norm: {np.linalg.norm(p1):.3f}")
-    print(f"Target norm: {np.linalg.norm(z2):.3f}")
-    print("Asymmetry (predictor) + stop-grad prevent collapse")
+        loss_simsiam = -cos_sim(p1, z2)  # z2 is DETACHED (no grad flows back)
+        print(f"SimSiam loss = {loss_simsiam:.4f}")
+        print(f"Predictor output norm: {np.linalg.norm(p1):.3f}")
+        print(f"Target norm: {np.linalg.norm(z2):.3f}")
+        print("Asymmetry (predictor) + stop-grad prevent collapse")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -436,21 +448,24 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Representation collapse: all embeddings → same point
-    # NT-Xent loss becomes log(2N-1) when all similarities are equal
-    N_collapse = 4
-    z_collapsed = np.ones((2 * N_collapse, 8))  # everything identical
-    z_collapsed = z_collapsed / np.linalg.norm(z_collapsed, axis=1, keepdims=True)
+    def _run():
+        # Representation collapse: all embeddings → same point
+        # NT-Xent loss becomes log(2N-1) when all similarities are equal
+        N_collapse = 4
+        z_collapsed = np.ones((2 * N_collapse, 8))  # everything identical
+        z_collapsed = z_collapsed / np.linalg.norm(z_collapsed, axis=1, keepdims=True)
 
-    sim_collapsed = z_collapsed @ z_collapsed.T  # all 1s
-    tau_c = 0.5
-    # Every entry in denominator has same exp(1/τ), so P(positive) = 1/(2N-1)
-    loss_collapsed = -np.log(1.0 / (2 * N_collapse - 1))
-    print(f"Collapsed loss = log(2N-1) = log({2*N_collapse-1}) = {loss_collapsed:.3f}")
-    print("This is a local optimum the model can get stuck in — contrastive loss")
-    print("has no gradient to escape because all similarities are identical.")
+        sim_collapsed = z_collapsed @ z_collapsed.T  # all 1s
+        tau_c = 0.5
+        # Every entry in denominator has same exp(1/τ), so P(positive) = 1/(2N-1)
+        loss_collapsed = -np.log(1.0 / (2 * N_collapse - 1))
+        print(f"Collapsed loss = log(2N-1) = log({2*N_collapse-1}) = {loss_collapsed:.3f}")
+        print("This is a local optimum the model can get stuck in — contrastive loss")
+        print("has no gradient to escape because all similarities are identical.")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -486,31 +501,34 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # MAE: mask 75% of patches, reconstruct from visible 25%
-    rng = np.random.default_rng(3)
-    n_patches = 16  # e.g., 4x4 grid of patches
-    patch_dim = 4   # pixels per patch (flattened)
-    mask_ratio = 0.75
+    def _run():
+        # MAE: mask 75% of patches, reconstruct from visible 25%
+        rng = np.random.default_rng(3)
+        n_patches = 16  # e.g., 4x4 grid of patches
+        patch_dim = 4   # pixels per patch (flattened)
+        mask_ratio = 0.75
 
-    # Simulate an "image" as n_patches vectors
-    patches = rng.standard_normal((n_patches, patch_dim))
+        # Simulate an "image" as n_patches vectors
+        patches = rng.standard_normal((n_patches, patch_dim))
 
-    # Random masking
-    n_mask = int(n_patches * mask_ratio)
-    perm = rng.permutation(n_patches)
-    masked_idx = perm[:n_mask]
-    visible_idx = perm[n_mask:]
+        # Random masking
+        n_mask = int(n_patches * mask_ratio)
+        perm = rng.permutation(n_patches)
+        masked_idx = perm[:n_mask]
+        visible_idx = perm[n_mask:]
 
-    print(f"Total patches: {n_patches}")
-    print(f"Visible: {len(visible_idx)} ({100*(1-mask_ratio):.0f}%)  →  encoder processes only these")
-    print(f"Masked:  {len(masked_idx)} ({100*mask_ratio:.0f}%)  →  decoder reconstructs these")
+        print(f"Total patches: {n_patches}")
+        print(f"Visible: {len(visible_idx)} ({100*(1-mask_ratio):.0f}%)  →  encoder processes only these")
+        print(f"Masked:  {len(masked_idx)} ({100*mask_ratio:.0f}%)  →  decoder reconstructs these")
 
-    # Reconstruction loss (MSE) on masked patches only
-    fake_reconstruction = patches[masked_idx] + rng.standard_normal((n_mask, patch_dim)) * 0.5
-    mse = np.mean((patches[masked_idx] - fake_reconstruction) ** 2)
-    print(f"\nReconstruction MSE on masked patches: {mse:.3f}")
+        # Reconstruction loss (MSE) on masked patches only
+        fake_reconstruction = patches[masked_idx] + rng.standard_normal((n_mask, patch_dim)) * 0.5
+        mse = np.mean((patches[masked_idx] - fake_reconstruction) ** 2)
+        print(f"\nReconstruction MSE on masked patches: {mse:.3f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -595,19 +613,22 @@ def _(mo):
 
 @app.cell
 def _(np, img_emb, txt_emb):
-    # Zero-shot classification: no training on target labels!
-    classes = ["dog", "cat", "car", "tree"]
-    # txt_emb[k] = encoding of "a photo of a {class}" for each class
-    # Classify the first image
-    query_img = img_emb[0]
-    scores = query_img @ txt_emb.T  # cosine similarity (already normalized)
-    predicted = classes[np.argmax(scores)]
-    print("Zero-shot classification scores:")
-    for cls, s in zip(classes, scores):
-        print(f"  '{cls}': {s:.3f}")
-    print(f"Prediction: '{predicted}'  (no labeled training data needed)")
-    return
+    def _run():
+        # Zero-shot classification: no training on target labels!
+        classes = ["dog", "cat", "car", "tree"]
+        # txt_emb[k] = encoding of "a photo of a {class}" for each class
+        # Classify the first image
+        query_img = img_emb[0]
+        scores = query_img @ txt_emb.T  # cosine similarity (already normalized)
+        predicted = classes[np.argmax(scores)]
+        print("Zero-shot classification scores:")
+        for cls, s in zip(classes, scores):
+            print(f"  '{cls}': {s:.3f}")
+        print(f"Prediction: '{predicted}'  (no labeled training data needed)")
 
+
+    _run()
+    return
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -685,34 +706,37 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Linear probing: train only a linear head on frozen features
-    rng = np.random.default_rng(5)
-    n_samples, d_feat, n_classes = 200, 32, 3
+    def _run():
+        # Linear probing: train only a linear head on frozen features
+        rng = np.random.default_rng(5)
+        n_samples, d_feat, n_classes = 200, 32, 3
 
-    # Simulate frozen pretrained features + labels
-    X_feat = rng.standard_normal((n_samples, d_feat))
-    y_true = rng.integers(0, n_classes, n_samples)
+        # Simulate frozen pretrained features + labels
+        X_feat = rng.standard_normal((n_samples, d_feat))
+        y_true = rng.integers(0, n_classes, n_samples)
 
-    # Linear probe: W @ x + b, trained with simple gradient descent
-    W_probe = rng.standard_normal((n_classes, d_feat)) * 0.01
-    b_probe = np.zeros(n_classes)
-    lr = 0.01
+        # Linear probe: W @ x + b, trained with simple gradient descent
+        W_probe = rng.standard_normal((n_classes, d_feat)) * 0.01
+        b_probe = np.zeros(n_classes)
+        lr = 0.01
 
-    for epoch in range(50):
-        logits_lp = X_feat @ W_probe.T + b_probe  # (n, n_classes)
-        probs_lp = np.exp(logits_lp) / np.exp(logits_lp).sum(axis=1, keepdims=True)
-        # Gradient of cross-entropy w.r.t. logits
-        grad = probs_lp.copy()
-        grad[np.arange(n_samples), y_true] -= 1  # (n, n_classes)
-        W_probe -= lr * (grad.T @ X_feat) / n_samples
-        b_probe -= lr * grad.mean(axis=0)
+        for epoch in range(50):
+            logits_lp = X_feat @ W_probe.T + b_probe  # (n, n_classes)
+            probs_lp = np.exp(logits_lp) / np.exp(logits_lp).sum(axis=1, keepdims=True)
+            # Gradient of cross-entropy w.r.t. logits
+            grad = probs_lp.copy()
+            grad[np.arange(n_samples), y_true] -= 1  # (n, n_classes)
+            W_probe -= lr * (grad.T @ X_feat) / n_samples
+            b_probe -= lr * grad.mean(axis=0)
 
-    preds = np.argmax(X_feat @ W_probe.T + b_probe, axis=1)
-    acc = (preds == y_true).mean()
-    print(f"Linear probe accuracy: {acc:.1%}")
-    print(f"Trainable params: {W_probe.size + b_probe.size} (vs {d_feat * 100}+ for full model)")
+        preds = np.argmax(X_feat @ W_probe.T + b_probe, axis=1)
+        acc = (preds == y_true).mean()
+        print(f"Linear probe accuracy: {acc:.1%}")
+        print(f"Trainable params: {W_probe.size + b_probe.size} (vs {d_feat * 100}+ for full model)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -742,32 +766,35 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # LoRA: h = Wx + BAx, where W is frozen, only A and B are trained
-    rng = np.random.default_rng(6)
-    d_model = 256
-    r_lora = 8  # low rank
+    def _run():
+        # LoRA: h = Wx + BAx, where W is frozen, only A and B are trained
+        rng = np.random.default_rng(6)
+        d_model = 256
+        r_lora = 8  # low rank
 
-    W_frozen = rng.standard_normal((d_model, d_model)) * 0.01  # pretrained weight (FROZEN)
-    A_lora = rng.standard_normal((r_lora, d_model)) * 0.01      # trainable
-    B_lora = np.zeros((d_model, r_lora))                   # init B to zero → ΔW starts at 0
+        W_frozen = rng.standard_normal((d_model, d_model)) * 0.01  # pretrained weight (FROZEN)
+        A_lora = rng.standard_normal((r_lora, d_model)) * 0.01      # trainable
+        B_lora = np.zeros((d_model, r_lora))                   # init B to zero → ΔW starts at 0
 
-    x_input = rng.standard_normal(d_model)
+        x_input = rng.standard_normal(d_model)
 
-    # Forward pass: h = Wx + BAx
-    h = W_frozen @ x_input + B_lora @ (A_lora @ x_input)
+        # Forward pass: h = Wx + BAx
+        h = W_frozen @ x_input + B_lora @ (A_lora @ x_input)
 
-    full_params = d_model * d_model
-    lora_params = (d_model * r_lora) * 2  # A + B
-    print(f"Full fine-tuning params: {full_params:,}")
-    print(f"LoRA params (rank={r_lora}):    {lora_params:,}")
-    print(f"Reduction: {full_params / lora_params:.0f}x")
+        full_params = d_model * d_model
+        lora_params = (d_model * r_lora) * 2  # A + B
+        print(f"Full fine-tuning params: {full_params:,}")
+        print(f"LoRA params (rank={r_lora}):    {lora_params:,}")
+        print(f"Reduction: {full_params / lora_params:.0f}x")
 
-    # At inference: merge W_merged = W + BA (no extra cost)
-    W_merged = W_frozen + B_lora @ A_lora
-    h_merged = W_merged @ x_input
-    print(f"\nMerged output matches: {np.allclose(h, h_merged)}")
+        # At inference: merge W_merged = W + BA (no extra cost)
+        W_merged = W_frozen + B_lora @ A_lora
+        h_merged = W_merged @ x_input
+        print(f"\nMerged output matches: {np.allclose(h, h_merged)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -850,28 +877,31 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # CKA: Centered Kernel Alignment — measures representation similarity
-    rng = np.random.default_rng(7)
-    n_cka = 50  # number of data points
+    def _run():
+        # CKA: Centered Kernel Alignment — measures representation similarity
+        rng = np.random.default_rng(7)
+        n_cka = 50  # number of data points
 
-    # Two "representation matrices" from different models
-    X_rep = rng.standard_normal((n_cka, 16))  # model A representations
-    Y_rep = X_rep @ rng.standard_normal((16, 16)) * 0.5 + rng.standard_normal((n_cka, 16)) * 0.1  # similar
+        # Two "representation matrices" from different models
+        X_rep = rng.standard_normal((n_cka, 16))  # model A representations
+        Y_rep = X_rep @ rng.standard_normal((16, 16)) * 0.5 + rng.standard_normal((n_cka, 16)) * 0.1  # similar
 
-    # Linear CKA: HSIC(K, L) / sqrt(HSIC(K,K) * HSIC(L,L))
-    def center(K):
-        H = np.eye(len(K)) - 1.0 / len(K)
-        return H @ K @ H
+        # Linear CKA: HSIC(K, L) / sqrt(HSIC(K,K) * HSIC(L,L))
+        def center(K):
+            H = np.eye(len(K)) - 1.0 / len(K)
+            return H @ K @ H
 
-    K = center(X_rep @ X_rep.T)
-    L = center(Y_rep @ Y_rep.T)
-    hsic_kl = np.trace(K @ L) / (n_cka - 1) ** 2
-    hsic_kk = np.trace(K @ K) / (n_cka - 1) ** 2
-    hsic_ll = np.trace(L @ L) / (n_cka - 1) ** 2
-    cka = hsic_kl / np.sqrt(hsic_kk * hsic_ll)
-    print(f"CKA similarity: {cka:.3f}  (1.0 = identical geometry, 0.0 = unrelated)")
+        K = center(X_rep @ X_rep.T)
+        L = center(Y_rep @ Y_rep.T)
+        hsic_kl = np.trace(K @ L) / (n_cka - 1) ** 2
+        hsic_kk = np.trace(K @ K) / (n_cka - 1) ** 2
+        hsic_ll = np.trace(L @ L) / (n_cka - 1) ** 2
+        cka = hsic_kl / np.sqrt(hsic_kk * hsic_ll)
+        print(f"CKA similarity: {cka:.3f}  (1.0 = identical geometry, 0.0 = unrelated)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

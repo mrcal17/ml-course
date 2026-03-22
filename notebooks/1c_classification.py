@@ -119,26 +119,29 @@ def _(np, plt):
 
 @app.cell
 def _(np, sigmoid):
-    # Decision boundary demo: w^T x = 0 is where P(y=1) = 0.5
-    w_demo = np.array([2.0, -1.0])  # weight vector
-    b_demo = 0.5                     # bias
+    def _run():
+        # Decision boundary demo: w^T x = 0 is where P(y=1) = 0.5
+        w_demo = np.array([2.0, -1.0])  # weight vector
+        b_demo = 0.5                     # bias
 
-    # Points on either side of the boundary
-    x_pos = np.array([1.0, 0.0])     # w^T x + b = 2.5 > 0
-    x_neg = np.array([-1.0, 1.0])    # w^T x + b = -2.5 < 0
+        # Points on either side of the boundary
+        x_pos = np.array([1.0, 0.0])     # w^T x + b = 2.5 > 0
+        x_neg = np.array([-1.0, 1.0])    # w^T x + b = -2.5 < 0
 
-    # Probabilities: further from boundary -> more confident
-    p_pos = sigmoid(w_demo @ x_pos + b_demo)
-    p_neg = sigmoid(w_demo @ x_neg + b_demo)
-    print(f"P(y=1 | x_pos) = {p_pos:.4f}  (confident positive)")
-    print(f"P(y=1 | x_neg) = {p_neg:.4f}  (confident negative)")
+        # Probabilities: further from boundary -> more confident
+        p_pos = sigmoid(w_demo @ x_pos + b_demo)
+        p_neg = sigmoid(w_demo @ x_neg + b_demo)
+        print(f"P(y=1 | x_pos) = {p_pos:.4f}  (confident positive)")
+        print(f"P(y=1 | x_neg) = {p_neg:.4f}  (confident negative)")
 
-    # A point near the boundary
-    x_boundary = np.array([0.0, 0.5])  # w^T x + b = 0
-    p_boundary = sigmoid(w_demo @ x_boundary + b_demo)
-    print(f"P(y=1 | x_boundary) = {p_boundary:.4f}  (uncertain)")
+        # A point near the boundary
+        x_boundary = np.array([0.0, 0.5])  # w^T x + b = 0
+        p_boundary = sigmoid(w_demo @ x_boundary + b_demo)
+        print(f"P(y=1 | x_boundary) = {p_boundary:.4f}  (uncertain)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -229,33 +232,36 @@ def _(np, sigmoid):
 
 @app.cell
 def _(np, plt, sigmoid, cross_entropy_loss):
-    # Logistic regression from scratch via gradient descent
-    rng = np.random.default_rng(0)
-    # Simple 1D dataset with bias term
-    X_gd = np.column_stack([np.ones(80), rng.standard_normal(80)])
-    w_true_gd = np.array([0.5, 2.0])
-    y_gd = (rng.random(80) < sigmoid(X_gd @ w_true_gd)).astype(float)
+    def _run():
+        # Logistic regression from scratch via gradient descent
+        rng = np.random.default_rng(0)
+        # Simple 1D dataset with bias term
+        X_gd = np.column_stack([np.ones(80), rng.standard_normal(80)])
+        w_true_gd = np.array([0.5, 2.0])
+        y_gd = (rng.random(80) < sigmoid(X_gd @ w_true_gd)).astype(float)
 
-    # Gradient descent: w <- w - lr * X^T (sigma(Xw) - y) / n
-    w_gd = np.zeros(2)
-    lr = 0.5
-    loss_history = []
-    for epoch in range(100):
-        p_hat_gd = sigmoid(X_gd @ w_gd)
-        loss_history.append(cross_entropy_loss(y_gd, p_hat_gd))
-        gradient = X_gd.T @ (p_hat_gd - y_gd) / len(y_gd)
-        w_gd -= lr * gradient
+        # Gradient descent: w <- w - lr * X^T (sigma(Xw) - y) / n
+        w_gd = np.zeros(2)
+        lr = 0.5
+        loss_history = []
+        for epoch in range(100):
+            p_hat_gd = sigmoid(X_gd @ w_gd)
+            loss_history.append(cross_entropy_loss(y_gd, p_hat_gd))
+            gradient = X_gd.T @ (p_hat_gd - y_gd) / len(y_gd)
+            w_gd -= lr * gradient
 
-    fig_loss, ax_loss = plt.subplots(figsize=(6, 3))
-    ax_loss.plot(loss_history, linewidth=2)
-    ax_loss.set_xlabel("Epoch")
-    ax_loss.set_ylabel("Cross-entropy loss")
-    ax_loss.set_title("Logistic regression gradient descent convergence")
-    plt.tight_layout()
-    print(f"Learned weights: {w_gd}  (true: {w_true_gd})")
-    fig_loss
+        fig_loss, ax_loss = plt.subplots(figsize=(6, 3))
+        ax_loss.plot(loss_history, linewidth=2)
+        ax_loss.set_xlabel("Epoch")
+        ax_loss.set_ylabel("Cross-entropy loss")
+        ax_loss.set_title("Logistic regression gradient descent convergence")
+        plt.tight_layout()
+        print(f"Learned weights: {w_gd}  (true: {w_true_gd})")
+        fig_loss
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -356,20 +362,23 @@ def _(mo):
 
 @app.cell
 def _(np, LogisticRegression):
-    from sklearn.datasets import make_classification as _make_classification
-    # Generate a multiclass dataset
-    X_mc, y_mc = _make_classification(n_samples=300, n_features=5, n_informative=3,
-                                       n_classes=3, n_clusters_per_class=1, random_state=42)
+    def _run():
+        from sklearn.datasets import make_classification as _make_classification
+        # Generate a multiclass dataset
+        X_mc, y_mc = _make_classification(n_samples=300, n_features=5, n_informative=3,
+                                           n_classes=3, n_clusters_per_class=1, random_state=42)
 
-    model_mc = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
-    model_mc.fit(X_mc, y_mc)
+        model_mc = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+        model_mc.fit(X_mc, y_mc)
 
-    # Per-class probabilities
-    probs_mc = model_mc.predict_proba(X_mc)  # shape: (n_samples, K)
-    print(f"Multiclass accuracy: {model_mc.score(X_mc, y_mc):.3f}")
-    print(f"Probability matrix shape: {probs_mc.shape}")
+        # Per-class probabilities
+        probs_mc = model_mc.predict_proba(X_mc)  # shape: (n_samples, K)
+        print(f"Multiclass accuracy: {model_mc.score(X_mc, y_mc):.3f}")
+        print(f"Probability matrix shape: {probs_mc.shape}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -453,30 +462,33 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # LDA from scratch: compute discriminant function delta_k(x)
-    # Generate two Gaussian classes sharing one covariance
-    rng = np.random.default_rng(42)
-    mu0 = np.array([0.0, 0.0])
-    mu1 = np.array([2.0, 1.0])
-    Sigma_shared = np.array([[1.0, 0.3], [0.3, 0.8]])
+    def _run():
+        # LDA from scratch: compute discriminant function delta_k(x)
+        # Generate two Gaussian classes sharing one covariance
+        rng = np.random.default_rng(42)
+        mu0 = np.array([0.0, 0.0])
+        mu1 = np.array([2.0, 1.0])
+        Sigma_shared = np.array([[1.0, 0.3], [0.3, 0.8]])
 
-    X0_lda = rng.multivariate_normal(mu0, Sigma_shared, 50)
-    X1_lda = rng.multivariate_normal(mu1, Sigma_shared, 50)
+        X0_lda = rng.multivariate_normal(mu0, Sigma_shared, 50)
+        X1_lda = rng.multivariate_normal(mu1, Sigma_shared, 50)
 
-    # Estimate parameters from data
-    mu0_hat = X0_lda.mean(axis=0)
-    mu1_hat = X1_lda.mean(axis=0)
-    Sigma_hat = 0.5 * (np.cov(X0_lda.T) + np.cov(X1_lda.T))
-    Sigma_inv = np.linalg.inv(Sigma_hat)
+        # Estimate parameters from data
+        mu0_hat = X0_lda.mean(axis=0)
+        mu1_hat = X1_lda.mean(axis=0)
+        Sigma_hat = 0.5 * (np.cov(X0_lda.T) + np.cov(X1_lda.T))
+        Sigma_inv = np.linalg.inv(Sigma_hat)
 
-    # Discriminant: delta_k(x) = x^T Sigma^{-1} mu_k - 0.5 mu_k^T Sigma^{-1} mu_k + log(pi_k)
-    # For equal priors, log(pi_k) cancels
-    # Fisher direction: w = Sigma^{-1} (mu1 - mu0)
-    w_fisher = Sigma_inv @ (mu1_hat - mu0_hat)
-    print(f"Fisher discriminant direction: {w_fisher}")
-    print(f"Classify by sign of w^T x + threshold")
+        # Discriminant: delta_k(x) = x^T Sigma^{-1} mu_k - 0.5 mu_k^T Sigma^{-1} mu_k + log(pi_k)
+        # For equal priors, log(pi_k) cancels
+        # Fisher direction: w = Sigma^{-1} (mu1 - mu0)
+        w_fisher = Sigma_inv @ (mu1_hat - mu0_hat)
+        print(f"Fisher discriminant direction: {w_fisher}")
+        print(f"Classify by sign of w^T x + threshold")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -486,16 +498,19 @@ def _(mo):
 
 @app.cell
 def _(X_lr, y_lr, LinearDiscriminantAnalysis):
-    lda = LinearDiscriminantAnalysis()
-    lda.fit(X_lr, y_lr)
+    def _run():
+        lda = LinearDiscriminantAnalysis()
+        lda.fit(X_lr, y_lr)
 
-    # LDA can also do dimensionality reduction
-    X_projected = lda.transform(X_lr)  # project onto discriminant directions
+        # LDA can also do dimensionality reduction
+        X_projected = lda.transform(X_lr)  # project onto discriminant directions
 
-    print(f"Accuracy: {lda.score(X_lr, y_lr):.3f}")
-    print(f"Class means:\n{lda.means_}")
+        print(f"Accuracy: {lda.score(X_lr, y_lr):.3f}")
+        print(f"Class means:\n{lda.means_}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -528,30 +543,33 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Naive Bayes from scratch (Gaussian) for 2 features, 2 classes
-    # P(y=k|x) proportional to pi_k * prod_j N(x_j; mu_kj, sigma_kj^2)
-    rng = np.random.default_rng(7)
-    # Class 0: feature means [0, 0], Class 1: feature means [1.5, 1]
-    X0_nb = rng.standard_normal((40, 2)) + np.array([0, 0])
-    X1_nb = rng.standard_normal((40, 2)) + np.array([1.5, 1])
+    def _run():
+        # Naive Bayes from scratch (Gaussian) for 2 features, 2 classes
+        # P(y=k|x) proportional to pi_k * prod_j N(x_j; mu_kj, sigma_kj^2)
+        rng = np.random.default_rng(7)
+        # Class 0: feature means [0, 0], Class 1: feature means [1.5, 1]
+        X0_nb = rng.standard_normal((40, 2)) + np.array([0, 0])
+        X1_nb = rng.standard_normal((40, 2)) + np.array([1.5, 1])
 
-    # Estimate per-class, per-feature mean and variance (the "naive" part)
-    mu_nb = np.array([X0_nb.mean(axis=0), X1_nb.mean(axis=0)])
-    var_nb = np.array([X0_nb.var(axis=0), X1_nb.var(axis=0)])
-    prior_nb = np.array([0.5, 0.5])
+        # Estimate per-class, per-feature mean and variance (the "naive" part)
+        mu_nb = np.array([X0_nb.mean(axis=0), X1_nb.mean(axis=0)])
+        var_nb = np.array([X0_nb.var(axis=0), X1_nb.var(axis=0)])
+        prior_nb = np.array([0.5, 0.5])
 
-    # Predict: log P(y=k|x) = log pi_k + sum_j log N(x_j; mu_kj, var_kj)
-    x_new = np.array([0.8, 0.5])
-    log_posts = []
-    for k in range(2):
-        log_lik = -0.5 * np.sum((x_new - mu_nb[k])**2 / var_nb[k] + np.log(var_nb[k]))
-        log_posts.append(np.log(prior_nb[k]) + log_lik)
-    log_posts = np.array(log_posts)
-    pred_class = np.argmax(log_posts)
-    print(f"Log-posteriors: {log_posts}")
-    print(f"Predicted class: {pred_class}")
+        # Predict: log P(y=k|x) = log pi_k + sum_j log N(x_j; mu_kj, var_kj)
+        x_new = np.array([0.8, 0.5])
+        log_posts = []
+        for k in range(2):
+            log_lik = -0.5 * np.sum((x_new - mu_nb[k])**2 / var_nb[k] + np.log(var_nb[k]))
+            log_posts.append(np.log(prior_nb[k]) + log_lik)
+        log_posts = np.array(log_posts)
+        pred_class = np.argmax(log_posts)
+        print(f"Log-posteriors: {log_posts}")
+        print(f"Predicted class: {pred_class}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -561,12 +579,15 @@ def _(mo):
 
 @app.cell
 def _(X_lr, y_lr, GaussianNB):
-    # For continuous features
-    gnb = GaussianNB()
-    gnb.fit(X_lr, y_lr)
-    print(f"Gaussian NB accuracy: {gnb.score(X_lr, y_lr):.3f}")
-    return
+    def _run():
+        # For continuous features
+        gnb = GaussianNB()
+        gnb.fit(X_lr, y_lr)
+        print(f"Gaussian NB accuracy: {gnb.score(X_lr, y_lr):.3f}")
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -618,44 +639,50 @@ def _(mo):
 
 @app.cell
 def _(np, plt):
-    # Hinge loss vs logistic loss: visual comparison
-    # Hinge: max(0, 1 - y*f(x)),  Logistic: log(1 + exp(-y*f(x)))
-    margins = np.linspace(-3, 3, 200)  # y * f(x) = functional margin
-    hinge = np.maximum(0, 1 - margins)
-    logistic_loss = np.log(1 + np.exp(-margins))
-    zero_one = (margins < 0).astype(float)  # ideal 0-1 loss
+    def _run():
+        # Hinge loss vs logistic loss: visual comparison
+        # Hinge: max(0, 1 - y*f(x)),  Logistic: log(1 + exp(-y*f(x)))
+        margins = np.linspace(-3, 3, 200)  # y * f(x) = functional margin
+        hinge = np.maximum(0, 1 - margins)
+        logistic_loss = np.log(1 + np.exp(-margins))
+        zero_one = (margins < 0).astype(float)  # ideal 0-1 loss
 
-    fig_hl, ax_hl = plt.subplots(figsize=(7, 4))
-    ax_hl.plot(margins, zero_one, "k--", label="0-1 loss", linewidth=1.5)
-    ax_hl.plot(margins, hinge, label="Hinge loss (SVM)", linewidth=2)
-    ax_hl.plot(margins, logistic_loss, label="Logistic loss", linewidth=2)
-    ax_hl.set_xlabel(r"Functional margin $y \cdot f(x)$")
-    ax_hl.set_ylabel("Loss")
-    ax_hl.set_title("Hinge loss is zero beyond margin = 1 (sparse support vectors)")
-    ax_hl.legend()
-    ax_hl.set_ylim(-0.1, 4)
-    plt.tight_layout()
-    fig_hl
+        fig_hl, ax_hl = plt.subplots(figsize=(7, 4))
+        ax_hl.plot(margins, zero_one, "k--", label="0-1 loss", linewidth=1.5)
+        ax_hl.plot(margins, hinge, label="Hinge loss (SVM)", linewidth=2)
+        ax_hl.plot(margins, logistic_loss, label="Logistic loss", linewidth=2)
+        ax_hl.set_xlabel(r"Functional margin $y \cdot f(x)$")
+        ax_hl.set_ylabel("Loss")
+        ax_hl.set_title("Hinge loss is zero beyond margin = 1 (sparse support vectors)")
+        ax_hl.legend()
+        ax_hl.set_ylim(-0.1, 4)
+        plt.tight_layout()
+        fig_hl
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # RBF kernel: K(x, z) = exp(-gamma ||x - z||^2)
-    # It computes inner products in infinite-dimensional space!
-    def rbf_kernel(X, gamma=1.0):
-        """Compute the RBF (Gaussian) kernel matrix."""
-        sq_dists = np.sum(X**2, axis=1, keepdims=True) - 2 * X @ X.T + np.sum(X**2, axis=1)
-        return np.exp(-gamma * sq_dists)
+    def _run():
+        # RBF kernel: K(x, z) = exp(-gamma ||x - z||^2)
+        # It computes inner products in infinite-dimensional space!
+        def rbf_kernel(X, gamma=1.0):
+            """Compute the RBF (Gaussian) kernel matrix."""
+            sq_dists = np.sum(X**2, axis=1, keepdims=True) - 2 * X @ X.T + np.sum(X**2, axis=1)
+            return np.exp(-gamma * sq_dists)
 
-    # Small example: 4 points
-    X_kern = np.array([[0, 0], [1, 0], [0, 1], [5, 5]])
-    K = rbf_kernel(X_kern, gamma=0.5)
-    print("RBF kernel matrix (nearby points -> values near 1):")
-    print(np.round(K, 3))
-    # Note: K[0,1] and K[0,2] are high (nearby), K[0,3] is near 0 (far away)
+        # Small example: 4 points
+        X_kern = np.array([[0, 0], [1, 0], [0, 1], [5, 5]])
+        K = rbf_kernel(X_kern, gamma=0.5)
+        print("RBF kernel matrix (nearby points -> values near 1):")
+        print(np.round(K, 3))
+        # Note: K[0,1] and K[0,2] are high (nearby), K[0,3] is near 0 (far away)
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -759,47 +786,50 @@ def _(mo):
 
 @app.cell
 def _(c_slider, kernel_dropdown, np, plt, SVC, StandardScaler, make_moons):
-    _C = 10 ** c_slider.value
-    _kernel = kernel_dropdown.value
+    def _run():
+        _C = 10 ** c_slider.value
+        _kernel = kernel_dropdown.value
 
-    # Generate dataset
-    rng = np.random.default_rng(42)
-    _X, _y = make_moons(n_samples=200, noise=0.2, random_state=42)
-    _scaler = StandardScaler()
-    _X_scaled = _scaler.fit_transform(_X)
+        # Generate dataset
+        rng = np.random.default_rng(42)
+        _X, _y = make_moons(n_samples=200, noise=0.2, random_state=42)
+        _scaler = StandardScaler()
+        _X_scaled = _scaler.fit_transform(_X)
 
-    # Fit SVM
-    _svm = SVC(kernel=_kernel, C=_C, gamma='scale')
-    _svm.fit(_X_scaled, _y)
-    _acc = _svm.score(_X_scaled, _y)
-    _n_sv = _svm.n_support_.sum()
+        # Fit SVM
+        _svm = SVC(kernel=_kernel, C=_C, gamma='scale')
+        _svm.fit(_X_scaled, _y)
+        _acc = _svm.score(_X_scaled, _y)
+        _n_sv = _svm.n_support_.sum()
 
-    # Create decision boundary mesh
-    _x_min, _x_max = _X_scaled[:, 0].min() - 0.5, _X_scaled[:, 0].max() + 0.5
-    _y_min, _y_max = _X_scaled[:, 1].min() - 0.5, _X_scaled[:, 1].max() + 0.5
-    _xx, _yy = np.meshgrid(np.linspace(_x_min, _x_max, 200),
-                            np.linspace(_y_min, _y_max, 200))
-    _Z = _svm.predict(np.c_[_xx.ravel(), _yy.ravel()])
-    _Z = _Z.reshape(_xx.shape)
+        # Create decision boundary mesh
+        _x_min, _x_max = _X_scaled[:, 0].min() - 0.5, _X_scaled[:, 0].max() + 0.5
+        _y_min, _y_max = _X_scaled[:, 1].min() - 0.5, _X_scaled[:, 1].max() + 0.5
+        _xx, _yy = np.meshgrid(np.linspace(_x_min, _x_max, 200),
+                                np.linspace(_y_min, _y_max, 200))
+        _Z = _svm.predict(np.c_[_xx.ravel(), _yy.ravel()])
+        _Z = _Z.reshape(_xx.shape)
 
-    _fig, _ax = plt.subplots(1, 1, figsize=(9, 6))
-    _ax.contourf(_xx, _yy, _Z, alpha=0.3, cmap="RdBu")
-    _ax.contour(_xx, _yy, _Z, colors="k", linewidths=0.5)
-    _ax.scatter(_X_scaled[_y == 0, 0], _X_scaled[_y == 0, 1], c="steelblue", s=30, edgecolors="k", linewidths=0.5, label="Class 0")
-    _ax.scatter(_X_scaled[_y == 1, 0], _X_scaled[_y == 1, 1], c="tomato", s=30, edgecolors="k", linewidths=0.5, label="Class 1")
+        _fig, _ax = plt.subplots(1, 1, figsize=(9, 6))
+        _ax.contourf(_xx, _yy, _Z, alpha=0.3, cmap="RdBu")
+        _ax.contour(_xx, _yy, _Z, colors="k", linewidths=0.5)
+        _ax.scatter(_X_scaled[_y == 0, 0], _X_scaled[_y == 0, 1], c="steelblue", s=30, edgecolors="k", linewidths=0.5, label="Class 0")
+        _ax.scatter(_X_scaled[_y == 1, 0], _X_scaled[_y == 1, 1], c="tomato", s=30, edgecolors="k", linewidths=0.5, label="Class 1")
 
-    # Highlight support vectors
-    _sv = _svm.support_vectors_
-    _ax.scatter(_sv[:, 0], _sv[:, 1], s=100, facecolors='none', edgecolors='gold', linewidths=2, label=f"Support vectors ({_n_sv})")
+        # Highlight support vectors
+        _sv = _svm.support_vectors_
+        _ax.scatter(_sv[:, 0], _sv[:, 1], s=100, facecolors='none', edgecolors='gold', linewidths=2, label=f"Support vectors ({_n_sv})")
 
-    _ax.set_xlabel("Feature 1 (scaled)")
-    _ax.set_ylabel("Feature 2 (scaled)")
-    _ax.set_title(f"SVM  |  Kernel: {_kernel}  |  C = {_C:.3f}  |  Accuracy = {_acc:.3f}")
-    _ax.legend(loc="lower left")
-    plt.tight_layout()
-    _fig
+        _ax.set_xlabel("Feature 1 (scaled)")
+        _ax.set_ylabel("Feature 2 (scaled)")
+        _ax.set_title(f"SVM  |  Kernel: {_kernel}  |  C = {_C:.3f}  |  Accuracy = {_acc:.3f}")
+        _ax.legend(loc="lower left")
+        plt.tight_layout()
+        _fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -866,28 +896,31 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Computing precision, recall, F1 from scratch using the confusion matrix
-    # Simulated predictions
-    y_true_eval = np.array([1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
-    y_pred_eval = np.array([1, 1, 0, 0, 0, 0, 0, 0, 1, 0])
+    def _run():
+        # Computing precision, recall, F1 from scratch using the confusion matrix
+        # Simulated predictions
+        y_true_eval = np.array([1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+        y_pred_eval = np.array([1, 1, 0, 0, 0, 0, 0, 0, 1, 0])
 
-    TP = np.sum((y_pred_eval == 1) & (y_true_eval == 1))
-    FP = np.sum((y_pred_eval == 1) & (y_true_eval == 0))
-    FN = np.sum((y_pred_eval == 0) & (y_true_eval == 1))
-    TN = np.sum((y_pred_eval == 0) & (y_true_eval == 0))
+        TP = np.sum((y_pred_eval == 1) & (y_true_eval == 1))
+        FP = np.sum((y_pred_eval == 1) & (y_true_eval == 0))
+        FN = np.sum((y_pred_eval == 0) & (y_true_eval == 1))
+        TN = np.sum((y_pred_eval == 0) & (y_true_eval == 0))
 
-    precision_manual = TP / (TP + FP)
-    recall_manual = TP / (TP + FN)
-    f1_manual = 2 * precision_manual * recall_manual / (precision_manual + recall_manual)
-    accuracy_manual = (TP + TN) / len(y_true_eval)
+        precision_manual = TP / (TP + FP)
+        recall_manual = TP / (TP + FN)
+        f1_manual = 2 * precision_manual * recall_manual / (precision_manual + recall_manual)
+        accuracy_manual = (TP + TN) / len(y_true_eval)
 
-    print(f"TP={TP}, FP={FP}, FN={FN}, TN={TN}")
-    print(f"Precision: {precision_manual:.3f}")
-    print(f"Recall:    {recall_manual:.3f}")
-    print(f"F1 score:  {f1_manual:.3f}")
-    print(f"Accuracy:  {accuracy_manual:.3f}")
+        print(f"TP={TP}, FP={FP}, FN={FN}, TN={TN}")
+        print(f"Precision: {precision_manual:.3f}")
+        print(f"Recall:    {recall_manual:.3f}")
+        print(f"F1 score:  {f1_manual:.3f}")
+        print(f"Accuracy:  {accuracy_manual:.3f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -897,34 +930,37 @@ def _(mo):
 
 @app.cell
 def _(X_lr, y_lr, np, plt, LogisticRegression, classification_report, roc_curve, roc_auc_score):
-    from sklearn.model_selection import train_test_split as _tts
-    rng = np.random.default_rng(42)
-    _X_train, _X_test, _y_train, _y_test = _tts(X_lr, y_lr, test_size=0.3, random_state=42)
+    def _run():
+        from sklearn.model_selection import train_test_split as _tts
+        rng = np.random.default_rng(42)
+        _X_train, _X_test, _y_train, _y_test = _tts(X_lr, y_lr, test_size=0.3, random_state=42)
 
-    _model = LogisticRegression(C=1.0, solver='lbfgs')
-    _model.fit(_X_train, _y_train)
+        _model = LogisticRegression(C=1.0, solver='lbfgs')
+        _model.fit(_X_train, _y_train)
 
-    _y_pred = _model.predict(_X_test)
-    _y_prob = _model.predict_proba(_X_test)[:, 1]  # probability of positive class
+        _y_pred = _model.predict(_X_test)
+        _y_prob = _model.predict_proba(_X_test)[:, 1]  # probability of positive class
 
-    # All metrics at once
-    print(classification_report(_y_test, _y_pred))
+        # All metrics at once
+        print(classification_report(_y_test, _y_pred))
 
-    # ROC curve
-    _fpr, _tpr, _thresholds = roc_curve(_y_test, _y_prob)
-    _auc = roc_auc_score(_y_test, _y_prob)
+        # ROC curve
+        _fpr, _tpr, _thresholds = roc_curve(_y_test, _y_prob)
+        _auc = roc_auc_score(_y_test, _y_prob)
 
-    _fig, _ax = plt.subplots(figsize=(7, 5))
-    _ax.plot(_fpr, _tpr, label=f'AUC = {_auc:.3f}')
-    _ax.plot([0, 1], [0, 1], 'k--', label='Random')
-    _ax.set_xlabel('False Positive Rate')
-    _ax.set_ylabel('True Positive Rate')
-    _ax.set_title('ROC Curve')
-    _ax.legend()
-    plt.tight_layout()
-    _fig
+        _fig, _ax = plt.subplots(figsize=(7, 5))
+        _ax.plot(_fpr, _tpr, label=f'AUC = {_auc:.3f}')
+        _ax.plot([0, 1], [0, 1], 'k--', label='Random')
+        _ax.set_xlabel('False Positive Rate')
+        _ax.set_ylabel('True Positive Rate')
+        _ax.set_title('ROC Curve')
+        _ax.legend()
+        plt.tight_layout()
+        _fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1023,28 +1059,31 @@ def _(mo):
 
 @app.cell
 def _(np):
-    def my_sigmoid(z):
-        # TODO: implement sigmoid with numerical stability
-        # Hint: for large negative z, exp(-z) overflows. Use np.clip or
-        # the identity sigma(z) = exp(z)/(1+exp(z)) for z < 0
-        pass
+    def _run():
+        def my_sigmoid(z):
+            # TODO: implement sigmoid with numerical stability
+            # Hint: for large negative z, exp(-z) overflows. Use np.clip or
+            # the identity sigma(z) = exp(z)/(1+exp(z)) for z < 0
+            pass
 
-    def my_sigmoid_grad(z):
-        # TODO: implement sigma'(z) = sigma(z) * (1 - sigma(z))
-        pass
+        def my_sigmoid_grad(z):
+            # TODO: implement sigma'(z) = sigma(z) * (1 - sigma(z))
+            pass
 
-    # Test your implementation
-    z_exercise = np.array([-100, -1, 0, 1, 100])
-    # print("sigmoid:", my_sigmoid(z_exercise))
-    # print("gradient:", my_sigmoid_grad(z_exercise))
+        # Test your implementation
+        z_exercise = np.array([-100, -1, 0, 1, 100])
+        # print("sigmoid:", my_sigmoid(z_exercise))
+        # print("gradient:", my_sigmoid_grad(z_exercise))
 
-    # Verify gradient with finite differences
-    # eps_fd = 1e-7
-    # numerical_grad = (my_sigmoid(z_exercise + eps_fd) - my_sigmoid(z_exercise - eps_fd)) / (2 * eps_fd)
-    # print("numerical grad:", numerical_grad)
-    # print("match:", np.allclose(my_sigmoid_grad(z_exercise), numerical_grad))
+        # Verify gradient with finite differences
+        # eps_fd = 1e-7
+        # numerical_grad = (my_sigmoid(z_exercise + eps_fd) - my_sigmoid(z_exercise - eps_fd)) / (2 * eps_fd)
+        # print("numerical grad:", numerical_grad)
+        # print("match:", np.allclose(my_sigmoid_grad(z_exercise), numerical_grad))
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1058,19 +1097,22 @@ def _(mo):
 
 @app.cell
 def _(np):
-    def my_cross_entropy(y_true_ce, p_hat_ce):
-        # TODO: implement NLL = -mean[ y*log(p) + (1-y)*log(1-p) ]
-        # Hint: clip p_hat to avoid log(0)
-        pass
+    def _run():
+        def my_cross_entropy(y_true_ce, p_hat_ce):
+            # TODO: implement NLL = -mean[ y*log(p) + (1-y)*log(1-p) ]
+            # Hint: clip p_hat to avoid log(0)
+            pass
 
-    # Test: compare loss for confident-correct vs confident-wrong
-    # y_test_ce = np.array([1, 1, 0, 0])
-    # p_good = np.array([0.95, 0.9, 0.1, 0.05])   # good predictions
-    # p_bad  = np.array([0.05, 0.1, 0.9, 0.95])    # terrible predictions
-    # print(f"Loss (good predictions): {my_cross_entropy(y_test_ce, p_good):.4f}")
-    # print(f"Loss (bad predictions):  {my_cross_entropy(y_test_ce, p_bad):.4f}")
+        # Test: compare loss for confident-correct vs confident-wrong
+        # y_test_ce = np.array([1, 1, 0, 0])
+        # p_good = np.array([0.95, 0.9, 0.1, 0.05])   # good predictions
+        # p_bad  = np.array([0.05, 0.1, 0.9, 0.95])    # terrible predictions
+        # print(f"Loss (good predictions): {my_cross_entropy(y_test_ce, p_good):.4f}")
+        # print(f"Loss (bad predictions):  {my_cross_entropy(y_test_ce, p_bad):.4f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1084,35 +1126,38 @@ def _(mo):
 
 @app.cell
 def _(np, plt, make_moons):
-    def fit_logistic_regression_gd(X_fit, y_fit, lr_fit=0.1, n_epochs=200):
-        """Train logistic regression via gradient descent. Return weights and loss history."""
-        n, d = X_fit.shape
-        w_fit = np.zeros(d)
-        losses = []
+    def _run():
+        def fit_logistic_regression_gd(X_fit, y_fit, lr_fit=0.1, n_epochs=200):
+            """Train logistic regression via gradient descent. Return weights and loss history."""
+            n, d = X_fit.shape
+            w_fit = np.zeros(d)
+            losses = []
 
-        for _ in range(n_epochs):
-            # TODO: 1. compute predictions p_hat = sigmoid(X @ w)
-            # TODO: 2. compute cross-entropy loss, append to losses
-            # TODO: 3. compute gradient = X^T (p_hat - y) / n
-            # TODO: 4. update w = w - lr * gradient
-            pass
+            for _ in range(n_epochs):
+                # TODO: 1. compute predictions p_hat = sigmoid(X @ w)
+                # TODO: 2. compute cross-entropy loss, append to losses
+                # TODO: 3. compute gradient = X^T (p_hat - y) / n
+                # TODO: 4. update w = w - lr * gradient
+                pass
 
-        return w_fit, losses
+            return w_fit, losses
 
-    # Generate data and test your implementation
-    # rng = np.random.default_rng(42)
-    # X_ex, y_ex = make_moons(n_samples=200, noise=0.2, random_state=42)
-    # X_ex_bias = np.column_stack([np.ones(len(X_ex)), X_ex])  # add bias column
-    # w_learned, loss_curve = fit_logistic_regression_gd(X_ex_bias, y_ex, lr_fit=0.5, n_epochs=300)
+        # Generate data and test your implementation
+        # rng = np.random.default_rng(42)
+        # X_ex, y_ex = make_moons(n_samples=200, noise=0.2, random_state=42)
+        # X_ex_bias = np.column_stack([np.ones(len(X_ex)), X_ex])  # add bias column
+        # w_learned, loss_curve = fit_logistic_regression_gd(X_ex_bias, y_ex, lr_fit=0.5, n_epochs=300)
 
-    # Plot convergence
-    # fig_ex, ax_ex = plt.subplots(figsize=(6, 3))
-    # ax_ex.plot(loss_curve)
-    # ax_ex.set_xlabel("Epoch"); ax_ex.set_ylabel("Loss")
-    # ax_ex.set_title("Training loss"); plt.tight_layout()
-    # fig_ex
+        # Plot convergence
+        # fig_ex, ax_ex = plt.subplots(figsize=(6, 3))
+        # ax_ex.plot(loss_curve)
+        # ax_ex.set_xlabel("Epoch"); ax_ex.set_ylabel("Loss")
+        # ax_ex.set_title("Training loss"); plt.tight_layout()
+        # fig_ex
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1126,26 +1171,29 @@ def _(mo):
 
 @app.cell
 def _(np):
-    def my_softmax(z_sm):
-        # TODO: implement softmax with numerical stability (subtract max)
-        # z_sm shape: (n_samples, K) or (K,)
-        # Return: same shape, rows sum to 1
-        pass
+    def _run():
+        def my_softmax(z_sm):
+            # TODO: implement softmax with numerical stability (subtract max)
+            # z_sm shape: (n_samples, K) or (K,)
+            # Return: same shape, rows sum to 1
+            pass
 
-    def categorical_cross_entropy(y_classes, probs_cce):
-        # TODO: NLL = -mean[ log(probs[i, y[i]]) ] for each sample i
-        # y_classes: integer labels (n,), probs_cce: (n, K)
-        pass
+        def categorical_cross_entropy(y_classes, probs_cce):
+            # TODO: NLL = -mean[ log(probs[i, y[i]]) ] for each sample i
+            # y_classes: integer labels (n,), probs_cce: (n, K)
+            pass
 
-    # Test
-    # logits_ex = np.array([[2.0, 1.0, 0.1], [-1.0, 2.0, 0.5]])
-    # probs_ex = my_softmax(logits_ex)
-    # print("Probabilities:\n", probs_ex)
-    # print("Row sums:", probs_ex.sum(axis=1))
-    # y_ex_mc = np.array([0, 1])
-    # print("Cat. cross-entropy:", categorical_cross_entropy(y_ex_mc, probs_ex))
+        # Test
+        # logits_ex = np.array([[2.0, 1.0, 0.1], [-1.0, 2.0, 0.5]])
+        # probs_ex = my_softmax(logits_ex)
+        # print("Probabilities:\n", probs_ex)
+        # print("Row sums:", probs_ex.sum(axis=1))
+        # y_ex_mc = np.array([0, 1])
+        # print("Cat. cross-entropy:", categorical_cross_entropy(y_ex_mc, probs_ex))
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1162,34 +1210,37 @@ def _(mo):
 
 @app.cell
 def _(np, plt, make_circles, SVC, LogisticRegression):
-    # Generate concentric circles
-    X_circ, y_circ = make_circles(n_samples=200, noise=0.1, factor=0.4, random_state=42)
+    def _run():
+        # Generate concentric circles
+        X_circ, y_circ = make_circles(n_samples=200, noise=0.1, factor=0.4, random_state=42)
 
-    # TODO 1: Fit a linear logistic regression -- check accuracy
-    # lin_model = LogisticRegression(...)
-    # print(f"Linear accuracy: {lin_model.score(X_circ, y_circ):.3f}")
+        # TODO 1: Fit a linear logistic regression -- check accuracy
+        # lin_model = LogisticRegression(...)
+        # print(f"Linear accuracy: {lin_model.score(X_circ, y_circ):.3f}")
 
-    # TODO 2: Add radial feature phi(x) = x1^2 + x2^2, fit linear model
-    # r = (X_circ[:, 0]**2 + X_circ[:, 1]**2).reshape(-1, 1)
-    # X_circ_aug = np.hstack([X_circ, r])
-    # aug_model = LogisticRegression(...)
-    # print(f"Augmented accuracy: {aug_model.score(X_circ_aug, y_circ):.3f}")
+        # TODO 2: Add radial feature phi(x) = x1^2 + x2^2, fit linear model
+        # r = (X_circ[:, 0]**2 + X_circ[:, 1]**2).reshape(-1, 1)
+        # X_circ_aug = np.hstack([X_circ, r])
+        # aug_model = LogisticRegression(...)
+        # print(f"Augmented accuracy: {aug_model.score(X_circ_aug, y_circ):.3f}")
 
-    # TODO 3: RBF kernel SVM (no manual features needed)
-    # rbf_model = SVC(kernel='rbf', ...)
-    # print(f"RBF SVM accuracy: {rbf_model.score(X_circ, y_circ):.3f}")
+        # TODO 3: RBF kernel SVM (no manual features needed)
+        # rbf_model = SVC(kernel='rbf', ...)
+        # print(f"RBF SVM accuracy: {rbf_model.score(X_circ, y_circ):.3f}")
 
-    # Scatter plot to visualize the data
-    fig_circ, ax_circ = plt.subplots(figsize=(5, 5))
-    ax_circ.scatter(X_circ[y_circ == 0, 0], X_circ[y_circ == 0, 1], s=20, label="Class 0")
-    ax_circ.scatter(X_circ[y_circ == 1, 0], X_circ[y_circ == 1, 1], s=20, label="Class 1")
-    ax_circ.set_title("Concentric circles -- not linearly separable")
-    ax_circ.legend()
-    ax_circ.set_aspect("equal")
-    plt.tight_layout()
-    fig_circ
+        # Scatter plot to visualize the data
+        fig_circ, ax_circ = plt.subplots(figsize=(5, 5))
+        ax_circ.scatter(X_circ[y_circ == 0, 0], X_circ[y_circ == 0, 1], s=20, label="Class 0")
+        ax_circ.scatter(X_circ[y_circ == 1, 0], X_circ[y_circ == 1, 1], s=20, label="Class 1")
+        ax_circ.set_title("Concentric circles -- not linearly separable")
+        ax_circ.legend()
+        ax_circ.set_aspect("equal")
+        plt.tight_layout()
+        fig_circ
+
+
+    if __name__ == "__main__":
+        app.run()
+
+    _run()
     return
-
-
-if __name__ == "__main__":
-    app.run()

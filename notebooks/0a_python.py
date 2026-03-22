@@ -68,31 +68,34 @@ def _(mo):
 
 @app.cell
 def _():
-    # Lists -- you'll use these for collecting results, hyperparameters, etc.
-    accuracies = [0.82, 0.85, 0.87, 0.91]
+    def _run():
+        # Lists -- you'll use these for collecting results, hyperparameters, etc.
+        accuracies = [0.82, 0.85, 0.87, 0.91]
 
-    # Dicts -- configuration is everywhere in ML
-    config = {
-        "learning_rate": 0.001,
-        "batch_size": 32,
-        "epochs": 100,
-        "hidden_dims": [128, 64, 32],
-    }
+        # Dicts -- configuration is everywhere in ML
+        config = {
+            "learning_rate": 0.001,
+            "batch_size": 32,
+            "epochs": 100,
+            "hidden_dims": [128, 64, 32],
+        }
 
-    # Tuples -- immutable, used for shapes constantly
-    batch_size = 32
-    channels, height, width = 3, 224, 224
-    shape = (batch_size, channels, height, width)  # you'll see this a lot
+        # Tuples -- immutable, used for shapes constantly
+        batch_size = 32
+        channels, height, width = 3, 224, 224
+        shape = (batch_size, channels, height, width)  # you'll see this a lot
 
-    # Sets -- useful for vocabulary, unique labels
-    classes = {"cat", "dog", "bird"}
+        # Sets -- useful for vocabulary, unique labels
+        classes = {"cat", "dog", "bird"}
 
-    print(f"accuracies: {accuracies}")
-    print(f"config: {config}")
-    print(f"shape: {shape}")
-    print(f"classes: {classes}")
+        print(f"accuracies: {accuracies}")
+        print(f"config: {config}")
+        print(f"shape: {shape}")
+        print(f"classes: {classes}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -118,23 +121,26 @@ def _(mo):
 
 @app.cell
 def _():
-    # Filter and transform in one shot
-    all_losses = [0.5, 1.2, 0.3, 0.8, 1.5, 0.2]
-    threshold = 1.0
-    valid_losses = [loss for loss in all_losses if loss < threshold]
-    print(f"valid_losses: {valid_losses}")
+    def _run():
+        # Filter and transform in one shot
+        all_losses = [0.5, 1.2, 0.3, 0.8, 1.5, 0.2]
+        threshold = 1.0
+        valid_losses = [loss for loss in all_losses if loss < threshold]
+        print(f"valid_losses: {valid_losses}")
 
-    # Nested comprehension -- flattening batches
-    batches = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    all_predictions = [pred for batch in batches for pred in batch]
-    print(f"all_predictions: {all_predictions}")
+        # Nested comprehension -- flattening batches
+        batches = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+        all_predictions = [pred for batch in batches for pred in batch]
+        print(f"all_predictions: {all_predictions}")
 
-    # Dict comprehension -- renaming model layers
-    state_dict = {"module.layer1": "w1", "module.layer2": "w2"}
-    renamed = {k.replace("module.", ""): v for k, v in state_dict.items()}
-    print(f"renamed: {renamed}")
+        # Dict comprehension -- renaming model layers
+        state_dict = {"module.layer1": "w1", "module.layer2": "w2"}
+        renamed = {k.replace("module.", ""): v for k, v in state_dict.items()}
+        print(f"renamed: {renamed}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -148,16 +154,19 @@ def _(mo):
 
 @app.cell
 def _():
-    # Generators matter when your dataset doesn't fit in memory (which happens often)
-    def data_stream(items):
-        for item in items:
-            yield item * 2  # yields one item at a time, no full list in memory
+    def _run():
+        # Generators matter when your dataset doesn't fit in memory (which happens often)
+        def data_stream(items):
+            for item in items:
+                yield item * 2  # yields one item at a time, no full list in memory
 
-    # Generator expression -- lazy evaluation
-    squares = (x**2 for x in range(10_000_000))  # uses almost no memory
-    print(f"First 5 squares: {[next(squares) for _ in range(5)]}")
+        # Generator expression -- lazy evaluation
+        squares = (x**2 for x in range(10_000_000))  # uses almost no memory
+        print(f"First 5 squares: {[next(squares) for _ in range(5)]}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -175,26 +184,29 @@ def _(mo):
 
 @app.cell
 def _():
-    # Default arguments -- common for configurable ML functions
-    def train(model, data, lr=0.001, epochs=10, verbose=True):
-        if verbose:
-            print(f"Training with lr={lr}, epochs={epochs}")
+    def _run():
+        # Default arguments -- common for configurable ML functions
+        def train(model, data, lr=0.001, epochs=10, verbose=True):
+            if verbose:
+                print(f"Training with lr={lr}, epochs={epochs}")
 
-    # Lambda -- short throwaway functions, often for sorting or key functions
-    model_layers = [{"name": "fc1", "params": 1000}, {"name": "fc2", "params": 500}]
-    layers = sorted(model_layers, key=lambda x: x["params"])
-    print(f"Sorted layers: {layers}")
+        # Lambda -- short throwaway functions, often for sorting or key functions
+        model_layers = [{"name": "fc1", "params": 1000}, {"name": "fc2", "params": 500}]
+        layers = sorted(model_layers, key=lambda x: x["params"])
+        print(f"Sorted layers: {layers}")
 
-    # *args and **kwargs -- you'll see these in wrapper functions and decorators
-    def log_experiment(name, **hyperparams):
-        """Log any set of hyperparameters without defining them all upfront."""
-        print(f"Experiment: {name}")
-        for k, v in hyperparams.items():
-            print(f"  {k}: {v}")
+        # *args and **kwargs -- you'll see these in wrapper functions and decorators
+        def log_experiment(name, **hyperparams):
+            """Log any set of hyperparameters without defining them all upfront."""
+            print(f"Experiment: {name}")
+            for k, v in hyperparams.items():
+                print(f"  {k}: {v}")
 
-    log_experiment("run_42", lr=0.001, batch_size=64, dropout=0.3)
+        log_experiment("run_42", lr=0.001, batch_size=64, dropout=0.3)
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -226,25 +238,28 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
+        import numpy as np
 
-    class LinearRegressor:
-        def __init__(self, n_features):
-            self.weights = np.zeros(n_features)
-            self.bias = 0.0
+        class LinearRegressor:
+            def __init__(self, n_features):
+                self.weights = np.zeros(n_features)
+                self.bias = 0.0
 
-        def predict(self, X):
-            return X @ self.weights + self.bias
+            def predict(self, X):
+                return X @ self.weights + self.bias
 
-        def __repr__(self):
-            return f"LinearRegressor(n_features={len(self.weights)})"
+            def __repr__(self):
+                return f"LinearRegressor(n_features={len(self.weights)})"
 
-    model = LinearRegressor(5)
-    print(model)
-    X_test = rng.standard_normal((3, 5))
-    print(f"Predictions: {model.predict(X_test)}")
+        model = LinearRegressor(5)
+        print(model)
+        X_test = rng.standard_normal((3, 5))
+        print(f"Predictions: {model.predict(X_test)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -285,14 +300,17 @@ def _(mo):
 
 @app.cell
 def _():
-    # F-string format specifiers worth memorizing
-    epoch = 7
-    loss = 0.3421
-    accuracy = 0.9120
-    print(f"Epoch {epoch:03d} | Loss: {loss:.4f} | Acc: {accuracy:.2%}")
-    # Output: Epoch 007 | Loss: 0.3421 | Acc: 91.20%
-    return
+    def _run():
+        # F-string format specifiers worth memorizing
+        epoch = 7
+        loss = 0.3421
+        accuracy = 0.9120
+        print(f"Epoch {epoch:03d} | Loss: {loss:.4f} | Acc: {accuracy:.2%}")
+        # Output: Epoch 007 | Loss: 0.3421 | Acc: 91.20%
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -365,30 +383,32 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import time
+    def _run():
+        import time
 
-    n = 1_000_000
+        n = 1_000_000
 
-    # The slow way: Python loop
-    a = list(range(n))
-    b = list(range(n))
+        # The slow way: Python loop
+        a = list(range(n))
+        b = list(range(n))
 
-    start = time.time()
-    c = [a[i] + b[i] for i in range(n)]
-    loop_time = time.time() - start
+        start = time.time()
+        c = [a[i] + b[i] for i in range(n)]
+        loop_time = time.time() - start
 
-    # The fast way: NumPy vectorized
-    a_np = np.arange(n)
-    b_np = np.arange(n)
+        # The fast way: NumPy vectorized
+        a_np = np.arange(n)
+        b_np = np.arange(n)
 
-    start = time.time()
-    c_np = a_np + b_np
-    vec_time = time.time() - start
+        start = time.time()
+        c_np = a_np + b_np
+        vec_time = time.time() - start
 
-    print(f"Loop: {loop_time:.4f}s | Vectorized: {vec_time:.4f}s | Speedup: {loop_time/vec_time:.0f}x")
+        print(f"Loop: {loop_time:.4f}s | Vectorized: {vec_time:.4f}s | Speedup: {loop_time/vec_time:.0f}x")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -412,23 +432,25 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Creation
-    zeros = np.zeros((3, 4))           # 3x4 matrix of zeros
-    ones = np.ones((2, 3))             # 2x3 matrix of ones
-    identity = np.eye(4)               # 4x4 identity matrix
-    range_arr = np.arange(0, 10, 0.5)  # like range() but supports floats
-    linspace = np.linspace(0, 1, 100)  # 100 evenly spaced points in [0, 1]
-    random = rng.standard_normal((3, 4))     # 3x4 matrix from standard normal
+        # Creation
+        zeros = np.zeros((3, 4))           # 3x4 matrix of zeros
+        ones = np.ones((2, 3))             # 2x3 matrix of ones
+        identity = np.eye(4)               # 4x4 identity matrix
+        range_arr = np.arange(0, 10, 0.5)  # like range() but supports floats
+        linspace = np.linspace(0, 1, 100)  # 100 evenly spaced points in [0, 1]
+        random = rng.standard_normal((3, 4))     # 3x4 matrix from standard normal
 
-    print(f"zeros shape: {zeros.shape}")
-    print(f"ones shape: {ones.shape}")
-    print(f"identity:\n{identity}")
-    print(f"range_arr: {range_arr[:10]}...")
-    print(f"random:\n{random}")
+        print(f"zeros shape: {zeros.shape}")
+        print(f"ones shape: {ones.shape}")
+        print(f"identity:\n{identity}")
+        print(f"range_arr: {range_arr[:10]}...")
+        print(f"random:\n{random}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -445,24 +467,26 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Indexing and slicing -- same as Python lists, but multi-dimensional
-    A = np.arange(20).reshape(4, 5)
-    print(f"A:\n{A}\n")
+        # Indexing and slicing -- same as Python lists, but multi-dimensional
+        A = np.arange(20).reshape(4, 5)
+        print(f"A:\n{A}\n")
 
-    print(f"A[0, :] (first row): {A[0, :]}")
-    print(f"A[:, 0] (first column): {A[:, 0]}")
-    print(f"A[1:3, 2:4] (submatrix):\n{A[1:3, 2:4]}\n")
+        print(f"A[0, :] (first row): {A[0, :]}")
+        print(f"A[:, 0] (first column): {A[:, 0]}")
+        print(f"A[1:3, 2:4] (submatrix):\n{A[1:3, 2:4]}\n")
 
-    # Boolean indexing -- very common for filtering
-    mask = A > 10
-    print(f"A[A > 10]: {A[mask]}")
+        # Boolean indexing -- very common for filtering
+        mask = A > 10
+        print(f"A[A > 10]: {A[mask]}")
 
-    # Fancy indexing -- selecting specific rows/columns
-    print(f"A[[0, 2, 3], :] (rows 0, 2, 3):\n{A[[0, 2, 3], :]}")
+        # Fancy indexing -- selecting specific rows/columns
+        print(f"A[[0, 2, 3], :] (rows 0, 2, 3):\n{A[[0, 2, 3], :]}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -482,21 +506,23 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Reshaping
-    v = np.arange(12)
-    print(f"v: {v}")
-    print(f"v.reshape(3, 4):\n{v.reshape(3, 4)}")
-    print(f"v.reshape(3, -1) (same as 3, 4):\n{v.reshape(3, -1)}")
-    print(f"v.reshape(-1, 1) (column vector):\n{v.reshape(-1, 1).T} (shown transposed)")
+        # Reshaping
+        v = np.arange(12)
+        print(f"v: {v}")
+        print(f"v.reshape(3, 4):\n{v.reshape(3, 4)}")
+        print(f"v.reshape(3, -1) (same as 3, 4):\n{v.reshape(3, -1)}")
+        print(f"v.reshape(-1, 1) (column vector):\n{v.reshape(-1, 1).T} (shown transposed)")
 
-    # Transpose
-    A = np.arange(12).reshape(3, 4)
-    print(f"\nA:\n{A}")
-    print(f"A.T:\n{A.T}")
+        # Transpose
+        A = np.arange(12).reshape(3, 4)
+        print(f"\nA:\n{A}")
+        print(f"A.T:\n{A.T}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -510,21 +536,23 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    A = np.arange(20).reshape(4, 5)
-    print(f"Original A[0, 0]: {A[0, 0]}")
+        A = np.arange(20).reshape(4, 5)
+        print(f"Original A[0, 0]: {A[0, 0]}")
 
-    row = A[0, :]
-    row[0] = 999      # this ALSO changes A[0, 0] to 999!
-    print(f"After modifying slice, A[0, 0]: {A[0, 0]}")
+        row = A[0, :]
+        row[0] = 999      # this ALSO changes A[0, 0] to 999!
+        print(f"After modifying slice, A[0, 0]: {A[0, 0]}")
 
-    A = np.arange(20).reshape(4, 5)
-    row = A[0, :].copy()  # now row is independent
-    row[0] = 999
-    print(f"After modifying copy, A[0, 0]: {A[0, 0]}")
+        A = np.arange(20).reshape(4, 5)
+        row = A[0, :].copy()  # now row is independent
+        row[0] = 999
+        print(f"After modifying copy, A[0, 0]: {A[0, 0]}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -548,31 +576,33 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Example 1: scalar + array (trivial broadcasting)
-    A = np.ones((3, 4))
-    result1 = A + 5  # 5 is broadcast to (3, 4)
-    print(f"A + 5:\n{result1}\n")
+        # Example 1: scalar + array (trivial broadcasting)
+        A = np.ones((3, 4))
+        result1 = A + 5  # 5 is broadcast to (3, 4)
+        print(f"A + 5:\n{result1}\n")
 
-    # Example 2: row vector + matrix
-    A = np.ones((3, 4))        # shape (3, 4)
-    row = np.array([1, 2, 3, 4])  # shape (4,) -> treated as (1, 4) -> broadcast to (3, 4)
-    result2 = A + row  # adds [1,2,3,4] to every row
-    print(f"A + row:\n{result2}\n")
+        # Example 2: row vector + matrix
+        A = np.ones((3, 4))        # shape (3, 4)
+        row = np.array([1, 2, 3, 4])  # shape (4,) -> treated as (1, 4) -> broadcast to (3, 4)
+        result2 = A + row  # adds [1,2,3,4] to every row
+        print(f"A + row:\n{result2}\n")
 
-    # Example 3: column vector + matrix
-    col = np.array([[10], [20], [30]])  # shape (3, 1) -> broadcast to (3, 4)
-    result3 = A + col  # adds 10 to row 0, 20 to row 1, 30 to row 2
-    print(f"A + col:\n{result3}\n")
+        # Example 3: column vector + matrix
+        col = np.array([[10], [20], [30]])  # shape (3, 1) -> broadcast to (3, 4)
+        result3 = A + col  # adds 10 to row 0, 20 to row 1, 30 to row 2
+        print(f"A + col:\n{result3}\n")
 
-    # Example 4: outer product via broadcasting
-    x = np.array([1, 2, 3]).reshape(-1, 1)  # shape (3, 1)
-    y = np.array([4, 5, 6]).reshape(1, -1)  # shape (1, 3)
-    outer = x * y  # shape (3, 3) -- outer product!
-    print(f"Outer product:\n{outer}")
+        # Example 4: outer product via broadcasting
+        x = np.array([1, 2, 3]).reshape(-1, 1)  # shape (3, 1)
+        y = np.array([4, 5, 6]).reshape(1, -1)  # shape (1, 3)
+        outer = x * y  # shape (3, 3) -- outer product!
+        print(f"Outer product:\n{outer}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -604,34 +634,36 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    A = rng.standard_normal((3, 3))
-    b = rng.standard_normal(3)
+        A = rng.standard_normal((3, 3))
+        b = rng.standard_normal(3)
 
-    # Matrix-vector product
-    print(f"A @ b: {A @ b}")
-    print(f"np.dot(A, b): {np.dot(A, b)}")
+        # Matrix-vector product
+        print(f"A @ b: {A @ b}")
+        print(f"np.dot(A, b): {np.dot(A, b)}")
 
-    # Matrix-matrix product
-    B = rng.standard_normal((3, 4))
-    C = A @ B                # (3,3) @ (3,4) = (3,4)
-    print(f"\nA @ B shape: {C.shape}")
+        # Matrix-matrix product
+        B = rng.standard_normal((3, 4))
+        C = A @ B                # (3,3) @ (3,4) = (3,4)
+        print(f"\nA @ B shape: {C.shape}")
 
-    # Transpose
-    print(f"A.T:\n{A.T}")
+        # Transpose
+        print(f"A.T:\n{A.T}")
 
-    # Inverse
-    A_inv = np.linalg.inv(A)
-    print(f"\nA @ A_inv (should be identity):\n{np.round(A @ A_inv, 10)}")
+        # Inverse
+        A_inv = np.linalg.inv(A)
+        print(f"\nA @ A_inv (should be identity):\n{np.round(A @ A_inv, 10)}")
 
-    # Solve linear system Ax = b (better than computing inverse explicitly)
-    x = np.linalg.solve(A, b)
-    print(f"\nSolution x: {x}")
-    print(f"A @ x (should equal b): {A @ x}")
-    print(f"b: {b}")
+        # Solve linear system Ax = b (better than computing inverse explicitly)
+        x = np.linalg.solve(A, b)
+        print(f"\nSolution x: {x}")
+        print(f"A @ x (should equal b): {A @ x}")
+        print(f"b: {b}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -647,26 +679,28 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    A = rng.standard_normal((3, 3))
-    b = rng.standard_normal(3)
+        A = rng.standard_normal((3, 3))
+        b = rng.standard_normal(3)
 
-    # Eigenvalue decomposition
-    eigenvalues, eigenvectors = np.linalg.eig(A)
-    print(f"Eigenvalues: {eigenvalues}")
+        # Eigenvalue decomposition
+        eigenvalues, eigenvectors = np.linalg.eig(A)
+        print(f"Eigenvalues: {eigenvalues}")
 
-    # Singular Value Decomposition -- you'll use this a lot
-    U, S, Vt = np.linalg.svd(A)
-    print(f"Singular values: {S}")
+        # Singular Value Decomposition -- you'll use this a lot
+        U, S, Vt = np.linalg.svd(A)
+        print(f"Singular values: {S}")
 
-    # Determinant, rank, norm
-    print(f"\nDeterminant: {np.linalg.det(A):.4f}")
-    print(f"Rank: {np.linalg.matrix_rank(A)}")
-    print(f"L2 norm of b: {np.linalg.norm(b):.4f}")
-    print(f"L1 norm of b: {np.linalg.norm(b, ord=1):.4f}")
+        # Determinant, rank, norm
+        print(f"\nDeterminant: {np.linalg.det(A):.4f}")
+        print(f"Rank: {np.linalg.matrix_rank(A)}")
+        print(f"L2 norm of b: {np.linalg.norm(b):.4f}")
+        print(f"L1 norm of b: {np.linalg.norm(b, ord=1):.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -690,17 +724,19 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    rng = np.random.default_rng(seed=42)  # modern API -- use this, not rng = np.random.default_rng()
+        rng = np.random.default_rng(seed=42)  # modern API -- use this, not rng = np.random.default_rng()
 
-    print(f"Standard normal:\n{rng.standard_normal((3, 4))}\n")
-    print(f"Uniform [0, 1):\n{rng.uniform(0, 1, size=(3, 4))}\n")
-    print(f"Random integers: {rng.integers(0, 10, size=5)}")
-    print(f"Choice without replacement: {rng.choice([1, 2, 3, 4], size=2, replace=False)}")
-    print(f"Permutation: {rng.permutation(10)}")
+        print(f"Standard normal:\n{rng.standard_normal((3, 4))}\n")
+        print(f"Uniform [0, 1):\n{rng.uniform(0, 1, size=(3, 4))}\n")
+        print(f"Random integers: {rng.integers(0, 10, size=5)}")
+        print(f"Choice without replacement: {rng.choice([1, 2, 3, 4], size=2, replace=False)}")
+        print(f"Permutation: {rng.permutation(10)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -733,7 +769,6 @@ def _(mo):
 @app.cell
 def _():
     import pandas as pd
-    import numpy as np
 
     # Creating a DataFrame
     df = pd.DataFrame({
@@ -775,26 +810,29 @@ def _(mo):
 
 @app.cell
 def _(df):
-    # loc: by label
-    print("loc[0:2, 'feature_1']:")
-    print(df.loc[0:2, "feature_1"])
+    def _run():
+        # loc: by label
+        print("loc[0:2, 'feature_1']:")
+        print(df.loc[0:2, "feature_1"])
 
-    print("\nloc where label == 'cat':")
-    print(df.loc[df["label"] == "cat", :])
+        print("\nloc where label == 'cat':")
+        print(df.loc[df["label"] == "cat", :])
 
-    # iloc: by position
-    print("\niloc[0:2, 0] (first 2 rows, first column):")
-    print(df.iloc[0:2, 0])
+        # iloc: by position
+        print("\niloc[0:2, 0] (first 2 rows, first column):")
+        print(df.iloc[0:2, 0])
 
-    print("\niloc[:, -1] (last column):")
-    print(df.iloc[:, -1])
+        print("\niloc[:, -1] (last column):")
+        print(df.iloc[:, -1])
 
-    # Boolean indexing -- arguably the most common pattern
-    mask = (df["feature_1"] > 3.0) & (df["label"] != "bird")
-    filtered = df[mask]
-    print(f"\nFiltered (feature_1 > 3.0 and not bird):\n{filtered}")
+        # Boolean indexing -- arguably the most common pattern
+        mask = (df["feature_1"] > 3.0) & (df["label"] != "bird")
+        filtered = df[mask]
+        print(f"\nFiltered (feature_1 > 3.0 and not bird):\n{filtered}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -816,24 +854,27 @@ def _(mo):
 
 @app.cell
 def _(df):
-    import pandas as pd
+    def _run():
+        import pandas as pd
 
-    # groupby -- split-apply-combine
-    print("Mean of feature_1 per class:")
-    print(df.groupby("label")["feature_1"].mean())
+        # groupby -- split-apply-combine
+        print("Mean of feature_1 per class:")
+        print(df.groupby("label")["feature_1"].mean())
 
-    # merge -- joining tables (SQL-style)
-    features_df = pd.DataFrame({"id": [1, 2, 3], "x": [10, 20, 30]})
-    labels_df = pd.DataFrame({"id": [1, 2, 3], "y": [0, 1, 1]})
-    merged = pd.merge(features_df, labels_df, on="id", how="inner")
-    print(f"\nMerged:\n{merged}")
+        # merge -- joining tables (SQL-style)
+        features_df = pd.DataFrame({"id": [1, 2, 3], "x": [10, 20, 30]})
+        labels_df = pd.DataFrame({"id": [1, 2, 3], "y": [0, 1, 1]})
+        merged = pd.merge(features_df, labels_df, on="id", how="inner")
+        print(f"\nMerged:\n{merged}")
 
-    # Vectorized operations (prefer over .apply for speed)
-    df_copy = df.copy()
-    df_copy["feature_1_scaled"] = (df_copy["feature_1"] - df_copy["feature_1"].mean()) / df_copy["feature_1"].std()
-    print(f"\nScaled:\n{df_copy}")
+        # Vectorized operations (prefer over .apply for speed)
+        df_copy = df.copy()
+        df_copy["feature_1_scaled"] = (df_copy["feature_1"] - df_copy["feature_1"].mean()) / df_copy["feature_1"].std()
+        print(f"\nScaled:\n{df_copy}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -851,27 +892,29 @@ def _(mo):
 
 @app.cell
 def _():
-    import pandas as pd
-    import numpy as np
+    def _run():
+        import pandas as pd
 
-    # Create sample data with missing values
-    df_missing = pd.DataFrame({
-        "feature_1": [1.0, np.nan, 3.0, 4.0],
-        "feature_2": [0.1, 0.2, np.nan, 0.4],
-        "label": ["cat", "dog", None, "bird"],
-    })
+        # Create sample data with missing values
+        df_missing = pd.DataFrame({
+            "feature_1": [1.0, np.nan, 3.0, 4.0],
+            "feature_2": [0.1, 0.2, np.nan, 0.4],
+            "label": ["cat", "dog", None, "bird"],
+        })
 
-    print(f"Missing values per column:\n{df_missing.isnull().sum()}\n")
-    print(f"After dropna:\n{df_missing.dropna()}\n")
+        print(f"Missing values per column:\n{df_missing.isnull().sum()}\n")
+        print(f"After dropna:\n{df_missing.dropna()}\n")
 
-    df_filled = df_missing.copy()
-    df_filled["feature_1"] = df_filled["feature_1"].fillna(df_filled["feature_1"].median())
-    print(f"After fillna (median):\n{df_filled}\n")
+        df_filled = df_missing.copy()
+        df_filled["feature_1"] = df_filled["feature_1"].fillna(df_filled["feature_1"].median())
+        print(f"After fillna (median):\n{df_filled}\n")
 
-    # Check for implicit missing values too
-    print(f"Unique labels: {df_missing['label'].unique()}")
+        # Check for implicit missing values too
+        print(f"Unique labels: {df_missing['label'].unique()}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -912,26 +955,28 @@ def _(mo):
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
-    import numpy as np
+    def _run():
+        import matplotlib.pyplot as plt
 
-    # Line plot -- training curves
-    epochs = range(1, 51)
-    rng = np.random.default_rng(42)
-    train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
-    val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * rng.standard_normal(50) * 0.05
+        # Line plot -- training curves
+        epochs = range(1, 51)
+        rng = np.random.default_rng(42)
+        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
+        val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * rng.standard_normal(50) * 0.05
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(epochs, train_loss, label="Train Loss", color="blue")
-    ax.plot(epochs, val_loss, label="Val Loss", color="red", linestyle="--")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Loss")
-    ax.set_title("Training Curves")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    fig
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(epochs, train_loss, label="Train Loss", color="blue")
+        ax.plot(epochs, val_loss, label="Val Loss", color="red", linestyle="--")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Loss")
+        ax.set_title("Training Curves")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -943,21 +988,22 @@ def _(mo):
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
-    import numpy as np
+    def _run():
 
-    # Scatter plot -- 2D data visualization
-    rng = np.random.default_rng(42)
-    X = rng.standard_normal((200, 2))
-    labels = (X[:, 0] + X[:, 1] > 0).astype(int)
+        # Scatter plot -- 2D data visualization
+        rng = np.random.default_rng(42)
+        X = rng.standard_normal((200, 2))
+        labels = (X[:, 0] + X[:, 1] > 0).astype(int)
 
-    fig, ax = plt.subplots(figsize=(6, 5))
-    scatter = ax.scatter(X[:, 0], X[:, 1], c=labels, cmap="bwr", alpha=0.6, edgecolors="k", linewidth=0.5)
-    fig.colorbar(scatter, ax=ax, label="Class")
-    ax.set_title("2D Classification Data")
-    fig
+        fig, ax = plt.subplots(figsize=(6, 5))
+        scatter = ax.scatter(X[:, 0], X[:, 1], c=labels, cmap="bwr", alpha=0.6, edgecolors="k", linewidth=0.5)
+        fig.colorbar(scatter, ax=ax, label="Class")
+        ax.set_title("2D Classification Data")
+        fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -969,19 +1015,20 @@ def _(mo):
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
-    import numpy as np
+    def _run():
 
-    # Histogram -- distribution inspection
-    rng = np.random.default_rng(42)
-    data = rng.standard_normal(10000)
+        # Histogram -- distribution inspection
+        rng = np.random.default_rng(42)
+        data = rng.standard_normal(10000)
 
-    fig, ax = plt.subplots(figsize=(6, 4))
-    ax.hist(data, bins=50, density=True, alpha=0.7, color="steelblue", edgecolor="white")
-    ax.set_title("Standard Normal Distribution")
-    fig
+        fig, ax = plt.subplots(figsize=(6, 4))
+        ax.hist(data, bins=50, density=True, alpha=0.7, color="steelblue", edgecolor="white")
+        ax.set_title("Standard Normal Distribution")
+        fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -995,20 +1042,21 @@ def _(mo):
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
-    import numpy as np
+    def _run():
 
-    # Heatmap -- correlation matrices, confusion matrices
-    rng = np.random.default_rng(42)
-    corr_matrix = np.corrcoef(rng.standard_normal((5, 100)))
+        # Heatmap -- correlation matrices, confusion matrices
+        rng = np.random.default_rng(42)
+        corr_matrix = np.corrcoef(rng.standard_normal((5, 100)))
 
-    fig, ax = plt.subplots(figsize=(5, 4))
-    im = ax.imshow(corr_matrix, cmap="coolwarm", vmin=-1, vmax=1)
-    fig.colorbar(im, ax=ax)
-    ax.set_title("Correlation Matrix")
-    fig
+        fig, ax = plt.subplots(figsize=(5, 4))
+        im = ax.imshow(corr_matrix, cmap="coolwarm", vmin=-1, vmax=1)
+        fig.colorbar(im, ax=ax)
+        ax.set_title("Correlation Matrix")
+        fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1022,32 +1070,33 @@ def _(mo):
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
-    import numpy as np
+    def _run():
 
-    rng = np.random.default_rng(42)
-    epochs = range(1, 51)
-    train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
-    data = rng.standard_normal(10000)
-    X = rng.standard_normal((200, 2))
-    labels = (X[:, 0] + X[:, 1] > 0).astype(int)
+        rng = np.random.default_rng(42)
+        epochs = range(1, 51)
+        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
+        data = rng.standard_normal(10000)
+        X = rng.standard_normal((200, 2))
+        labels = (X[:, 0] + X[:, 1] > 0).astype(int)
 
-    fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+        fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
-    axes[0].plot(epochs, train_loss)
-    axes[0].set_title("Training Loss")
-    axes[0].set_xlabel("Epoch")
+        axes[0].plot(epochs, train_loss)
+        axes[0].set_title("Training Loss")
+        axes[0].set_xlabel("Epoch")
 
-    axes[1].hist(data, bins=50, color="coral")
-    axes[1].set_title("Data Distribution")
+        axes[1].hist(data, bins=50, color="coral")
+        axes[1].set_title("Data Distribution")
 
-    axes[2].scatter(X[:, 0], X[:, 1], c=labels, cmap="bwr", s=10)
-    axes[2].set_title("Decision Boundary Data")
+        axes[2].scatter(X[:, 0], X[:, 1], c=labels, cmap="bwr", s=10)
+        axes[2].set_title("Decision Boundary Data")
 
-    plt.tight_layout()
-    fig
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1063,27 +1112,28 @@ def _(mo):
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
-    import numpy as np
+    def _run():
 
-    rng = np.random.default_rng(42)
-    epochs = range(1, 51)
-    train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
-    val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * rng.standard_normal(50) * 0.05
+        rng = np.random.default_rng(42)
+        epochs = range(1, 51)
+        train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * rng.standard_normal(50) * 0.05
+        val_loss = np.exp(-np.linspace(0, 2.5, 50)) + 0.15 * rng.standard_normal(50) * 0.05
 
-    # OO approach -- preferred for production/reusable code
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.plot(epochs, train_loss, label="Train")
-    ax.plot(epochs, val_loss, label="Validation")
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Loss")
-    ax.set_title("My Plot")
-    ax.legend(loc="upper right")
-    ax.set_xlim(0, 50)
-    ax.set_ylim(0, 1.5)
-    fig
+        # OO approach -- preferred for production/reusable code
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(epochs, train_loss, label="Train")
+        ax.plot(epochs, val_loss, label="Validation")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Loss")
+        ax.set_title("My Plot")
+        ax.legend(loc="upper right")
+        ax.set_xlim(0, 50)
+        ax.set_ylim(0, 1.5)
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1201,23 +1251,25 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    def pairwise_distances(X):
-        """Compute pairwise Euclidean distances without loops.
-        X: shape (n, d)
-        Returns: shape (n, n)
-        """
-        # Your code here
-        pass
+        def pairwise_distances(X):
+            """Compute pairwise Euclidean distances without loops.
+            X: shape (n, d)
+            Returns: shape (n, n)
+            """
+            # Your code here
+            pass
 
-    # Test: should give 0 on the diagonal
-    X = rng.standard_normal((100, 5))
-    D = pairwise_distances(X)
-    # assert D.shape == (100, 100)
-    # assert np.allclose(np.diag(D), 0)
+        # Test: should give 0 on the diagonal
+        X = rng.standard_normal((100, 5))
+        D = pairwise_distances(X)
+        # assert D.shape == (100, 100)
+        # assert np.allclose(np.diag(D), 0)
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1271,20 +1323,22 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    A = np.ones((3, 4, 5))
-    B = np.ones((4, 1))
-    C = np.ones((5,))
-    D = np.ones((3, 1, 1))
+        A = np.ones((3, 4, 5))
+        B = np.ones((4, 1))
+        C = np.ones((5,))
+        D = np.ones((3, 1, 1))
 
-    # What shape is each result?
-    print(f"A + B -> {(A + B).shape}")
-    print(f"A + C -> {(A + C).shape}")
-    print(f"A + D -> {(A + D).shape}")
-    print(f"A * B * C -> {(A * B * C).shape}")
+        # What shape is each result?
+        print(f"A + B -> {(A + B).shape}")
+        print(f"A + C -> {(A + C).shape}")
+        print(f"A + D -> {(A + D).shape}")
+        print(f"A * B * C -> {(A * B * C).shape}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

@@ -60,24 +60,27 @@ This is a neural network. Two linear transformations with a nonlinearity in betw
 
 @app.cell
 def _(np):
-    # XOR: a linear model cannot solve this, but a 2-layer network can
-    X_xor = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    y_xor = np.array([0, 1, 1, 0])
+    def _run():
+        # XOR: a linear model cannot solve this, but a 2-layer network can
+        X_xor = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+        y_xor = np.array([0, 1, 1, 0])
 
-    # Hand-picked weights that solve XOR:
-    # h = ReLU(W1 @ x + b1), y_hat = w2 @ h + b2
-    W1_xor = np.array([[1, 1], [1, 1]])    # both neurons sum x1+x2
-    b1_xor = np.array([-0.5, -1.5])         # thresholds at 0.5 and 1.5
-    w2_xor = np.array([1, -1])              # subtract: "at least 1" minus "both"
-    b2_xor = 0.0
+        # Hand-picked weights that solve XOR:
+        # h = ReLU(W1 @ x + b1), y_hat = w2 @ h + b2
+        W1_xor = np.array([[1, 1], [1, 1]])    # both neurons sum x1+x2
+        b1_xor = np.array([-0.5, -1.5])         # thresholds at 0.5 and 1.5
+        w2_xor = np.array([1, -1])              # subtract: "at least 1" minus "both"
+        b2_xor = 0.0
 
-    for i in range(4):
-        z = W1_xor @ X_xor[i] + b1_xor     # pre-activation
-        h = np.maximum(0, z)                 # ReLU
-        y_hat = w2_xor @ h + b2_xor         # output
-        print(f"x={X_xor[i]}  h={h}  y_hat={y_hat:.1f}  target={y_xor[i]}")
+        for i in range(4):
+            z = W1_xor @ X_xor[i] + b1_xor     # pre-activation
+            h = np.maximum(0, z)                 # ReLU
+            y_hat = w2_xor @ h + b2_xor         # output
+            print(f"x={X_xor[i]}  h={h}  y_hat={y_hat:.1f}  target={y_xor[i]}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -251,32 +254,35 @@ The theorem is a reassurance about representational power, not a practical guara
 
 @app.cell
 def _(np, relu):
-    # A 3-layer MLP forward pass in numpy
-    # Architecture: 3 inputs -> 4 hidden -> 4 hidden -> 1 output
-    rng = np.random.default_rng(0)
-    dims = [3, 4, 4, 1]  # layer sizes
+    def _run():
+        # A 3-layer MLP forward pass in numpy
+        # Architecture: 3 inputs -> 4 hidden -> 4 hidden -> 1 output
+        rng = np.random.default_rng(0)
+        dims = [3, 4, 4, 1]  # layer sizes
 
-    # Kaiming initialization for ReLU layers
-    weights_mlp = []
-    biases_mlp = []
-    for l in range(len(dims) - 1):
-        scale = np.sqrt(2.0 / dims[l])              # He init: sqrt(2/n_in)
-        W = rng.standard_normal((dims[l+1], dims[l])) * scale
-        b = np.zeros(dims[l+1])
-        weights_mlp.append(W)
-        biases_mlp.append(b)
+        # Kaiming initialization for ReLU layers
+        weights_mlp = []
+        biases_mlp = []
+        for l in range(len(dims) - 1):
+            scale = np.sqrt(2.0 / dims[l])              # He init: sqrt(2/n_in)
+            W = rng.standard_normal((dims[l+1], dims[l])) * scale
+            b = np.zeros(dims[l+1])
+            weights_mlp.append(W)
+            biases_mlp.append(b)
 
-    # Forward pass through all layers
-    x_mlp = np.array([1.0, -0.5, 0.3])
-    h = x_mlp
-    for l in range(len(weights_mlp)):
-        z = weights_mlp[l] @ h + biases_mlp[l]      # affine: z = Wh + b
-        h = relu(z) if l < len(weights_mlp) - 1 else z  # ReLU hidden, identity output
-        print(f"Layer {l+1}: z shape={z.shape}, output={np.round(h, 3)}")
+        # Forward pass through all layers
+        x_mlp = np.array([1.0, -0.5, 0.3])
+        h = x_mlp
+        for l in range(len(weights_mlp)):
+            z = weights_mlp[l] @ h + biases_mlp[l]      # affine: z = Wh + b
+            h = relu(z) if l < len(weights_mlp) - 1 else z  # ReLU hidden, identity output
+            print(f"Layer {l+1}: z shape={z.shape}, output={np.round(h, 3)}")
 
-    print(f"\nNetwork output: {h[0]:.4f}")
+        print(f"\nNetwork output: {h[0]:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -491,33 +497,36 @@ That is backpropagation. We started at the loss and worked backward, computing e
 
 @app.cell
 def _(W1_fp, b1_fp, b2_fp, h1_fp, np, w2_fp, x_fp, y_fp, y_hat_fp, z1_fp):
-    # Backpropagation — exact reproduction of the math above
-    # Step 1: dL/dy_hat = -2(y - y_hat)
-    dL_dy_hat = -2 * (y_fp - y_hat_fp)
-    print(f"dL/dy_hat = {dL_dy_hat:.4f}")
+    def _run():
+        # Backpropagation — exact reproduction of the math above
+        # Step 1: dL/dy_hat = -2(y - y_hat)
+        dL_dy_hat = -2 * (y_fp - y_hat_fp)
+        print(f"dL/dy_hat = {dL_dy_hat:.4f}")
 
-    # Step 2: gradients for output layer
-    dL_dw2 = dL_dy_hat * h1_fp                  # dL/dw2 = dL/dy_hat * h
-    dL_db2 = dL_dy_hat                           # dL/db2 = dL/dy_hat
-    print(f"dL/dw2 = {dL_dw2}")
-    print(f"dL/db2 = {dL_db2:.4f}")
+        # Step 2: gradients for output layer
+        dL_dw2 = dL_dy_hat * h1_fp                  # dL/dw2 = dL/dy_hat * h
+        dL_db2 = dL_dy_hat                           # dL/db2 = dL/dy_hat
+        print(f"dL/dw2 = {dL_dw2}")
+        print(f"dL/db2 = {dL_db2:.4f}")
 
-    # Step 3: gradient flowing back to hidden layer
-    dL_dh1 = dL_dy_hat * w2_fp                   # dL/dh = dL/dy_hat * w2
-    print(f"dL/dh1 = {dL_dh1}")
+        # Step 3: gradient flowing back to hidden layer
+        dL_dh1 = dL_dy_hat * w2_fp                   # dL/dh = dL/dy_hat * w2
+        print(f"dL/dh1 = {dL_dh1}")
 
-    # Step 4: gradient through ReLU (element-wise)
-    relu_mask = (z1_fp > 0).astype(float)        # ReLU'(z) = 1[z > 0]
-    dL_dz1 = dL_dh1 * relu_mask                  # element-wise: dL/dz = dL/dh * ReLU'(z)
-    print(f"dL/dz1 = {dL_dz1}")
+        # Step 4: gradient through ReLU (element-wise)
+        relu_mask = (z1_fp > 0).astype(float)        # ReLU'(z) = 1[z > 0]
+        dL_dz1 = dL_dh1 * relu_mask                  # element-wise: dL/dz = dL/dh * ReLU'(z)
+        print(f"dL/dz1 = {dL_dz1}")
 
-    # Step 5: gradients for hidden layer parameters
-    dL_dW1 = dL_dz1.reshape(-1, 1) @ x_fp.reshape(1, -1)  # outer product: delta @ x^T
-    dL_db1 = dL_dz1                              # dL/db = delta
-    print(f"dL/dW1 =\n{dL_dW1}")
-    print(f"dL/db1 = {dL_db1}")
+        # Step 5: gradients for hidden layer parameters
+        dL_dW1 = dL_dz1.reshape(-1, 1) @ x_fp.reshape(1, -1)  # outer product: delta @ x^T
+        dL_db1 = dL_dz1                              # dL/db = delta
+        print(f"dL/dW1 =\n{dL_dW1}")
+        print(f"dL/db1 = {dL_db1}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -637,31 +646,34 @@ PyTorch builds a **dynamic computational graph** as you execute operations on te
 
 @app.cell
 def _():
-    import torch
+    def _run():
+        import torch
 
-    # Create tensors with gradient tracking
-    x = torch.tensor([1.0, 2.0])
-    W1 = torch.tensor([[0.5, -0.3], [0.8, 0.2]], requires_grad=True)
-    b1 = torch.tensor([0.1, -0.1], requires_grad=True)
-    w2 = torch.tensor([0.6, -0.4], requires_grad=True)
-    b2 = torch.tensor([0.05], requires_grad=True)
+        # Create tensors with gradient tracking
+        x = torch.tensor([1.0, 2.0])
+        W1 = torch.tensor([[0.5, -0.3], [0.8, 0.2]], requires_grad=True)
+        b1 = torch.tensor([0.1, -0.1], requires_grad=True)
+        w2 = torch.tensor([0.6, -0.4], requires_grad=True)
+        b2 = torch.tensor([0.05], requires_grad=True)
 
-    # Forward pass — PyTorch records the graph
-    z1 = W1 @ x + b1
-    h1 = torch.relu(z1)
-    y_hat = w2 @ h1 + b2
-    loss = (1.0 - y_hat) ** 2
+        # Forward pass — PyTorch records the graph
+        z1 = W1 @ x + b1
+        h1 = torch.relu(z1)
+        y_hat = w2 @ h1 + b2
+        loss = (1.0 - y_hat) ** 2
 
-    # Backward pass — PyTorch traverses the graph in reverse
-    loss.backward()
+        # Backward pass — PyTorch traverses the graph in reverse
+        loss.backward()
 
-    # Gradients are now stored on each parameter tensor
-    print("dL/dW1:", W1.grad)
-    print("dL/db1:", b1.grad)
-    print("dL/dw2:", w2.grad)
-    print("dL/db2:", b2.grad)
+        # Gradients are now stored on each parameter tensor
+        print("dL/dW1:", W1.grad)
+        print("dL/db1:", b1.grad)
+        print("dL/dw2:", w2.grad)
+        print("dL/db2:", b2.grad)
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -720,34 +732,37 @@ Typical batch sizes: 32, 64, 128, 256. Larger batches give more stable gradient 
 
 @app.cell
 def _(np):
-    # Weight initialization: observe how scale affects forward pass
-    rng = np.random.default_rng(42)
-    n_in, n_out = 256, 256
-    x_init = rng.standard_normal(n_in)
+    def _run():
+        # Weight initialization: observe how scale affects forward pass
+        rng = np.random.default_rng(42)
+        n_in, n_out = 256, 256
+        x_init = rng.standard_normal(n_in)
 
-    # Bad: too large
-    W_large = rng.standard_normal((n_out, n_in)) * 1.0
-    h_large = np.maximum(0, W_large @ x_init)
-    print(f"Std=1.0 init:  activation mean={h_large.mean():.2f}, std={h_large.std():.2f}")
+        # Bad: too large
+        W_large = rng.standard_normal((n_out, n_in)) * 1.0
+        h_large = np.maximum(0, W_large @ x_init)
+        print(f"Std=1.0 init:  activation mean={h_large.mean():.2f}, std={h_large.std():.2f}")
 
-    # Bad: too small
-    W_small = rng.standard_normal((n_out, n_in)) * 0.001
-    h_small = np.maximum(0, W_small @ x_init)
-    print(f"Std=0.001 init: activation mean={h_small.mean():.4f}, std={h_small.std():.4f}")
+        # Bad: too small
+        W_small = rng.standard_normal((n_out, n_in)) * 0.001
+        h_small = np.maximum(0, W_small @ x_init)
+        print(f"Std=0.001 init: activation mean={h_small.mean():.4f}, std={h_small.std():.4f}")
 
-    # Good: Kaiming/He initialization for ReLU — sqrt(2/n_in)
-    W_he = rng.standard_normal((n_out, n_in)) * np.sqrt(2.0 / n_in)
-    h_he = np.maximum(0, W_he @ x_init)
-    print(f"He init:        activation mean={h_he.mean():.2f}, std={h_he.std():.2f}")
+        # Good: Kaiming/He initialization for ReLU — sqrt(2/n_in)
+        W_he = rng.standard_normal((n_out, n_in)) * np.sqrt(2.0 / n_in)
+        h_he = np.maximum(0, W_he @ x_init)
+        print(f"He init:        activation mean={h_he.mean():.2f}, std={h_he.std():.2f}")
 
-    # Show variance preservation across 10 layers
-    h = rng.standard_normal(256)
-    for layer in range(10):
-        W = rng.standard_normal((256, 256)) * np.sqrt(2.0 / 256)
-        h = np.maximum(0, W @ h)
-    print(f"\nAfter 10 ReLU layers (He init): mean={h.mean():.2f}, std={h.std():.2f}")
+        # Show variance preservation across 10 layers
+        h = rng.standard_normal(256)
+        for layer in range(10):
+            W = rng.standard_normal((256, 256)) * np.sqrt(2.0 / 256)
+            h = np.maximum(0, W @ h)
+        print(f"\nAfter 10 ReLU layers (He init): mean={h.mean():.2f}, std={h.std():.2f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -761,41 +776,44 @@ This is the standard pattern you will use for every neural network you train:
 
 @app.cell
 def _():
-    import torch as _torch
-    import torch.nn as nn
-    import torch.optim as optim
+    def _run():
+        import torch as _torch
+        import torch.nn as nn
+        import torch.optim as optim
 
-    # Define model
-    model = nn.Sequential(
-        nn.Linear(784, 256),
-        nn.ReLU(),
-        nn.Linear(256, 128),
-        nn.ReLU(),
-        nn.Linear(128, 10)
-    )
+        # Define model
+        model = nn.Sequential(
+            nn.Linear(784, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 10)
+        )
 
-    # Define loss and optimizer
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=0.01)
+        # Define loss and optimizer
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-    # Training loop (sketch — would need a dataloader in practice)
-    # for epoch in range(num_epochs):
-    #     for batch_x, batch_y in dataloader:
-    #         # Forward pass
-    #         predictions = model(batch_x)
-    #         loss = criterion(predictions, batch_y)
-    #
-    #         # Backward pass
-    #         optimizer.zero_grad()   # Clear gradients from previous step
-    #         loss.backward()         # Compute gradients via backprop
-    #         optimizer.step()        # Update parameters: theta <- theta - eta * grad_L
+        # Training loop (sketch — would need a dataloader in practice)
+        # for epoch in range(num_epochs):
+        #     for batch_x, batch_y in dataloader:
+        #         # Forward pass
+        #         predictions = model(batch_x)
+        #         loss = criterion(predictions, batch_y)
+        #
+        #         # Backward pass
+        #         optimizer.zero_grad()   # Clear gradients from previous step
+        #         loss.backward()         # Compute gradients via backprop
+        #         optimizer.step()        # Update parameters: theta <- theta - eta * grad_L
 
-    print("Model architecture:")
-    print(model)
-    total_params = sum(p.numel() for p in model.parameters())
-    print(f"\nTotal parameters: {total_params:,}")
+        print("Model architecture:")
+        print(model)
+        total_params = sum(p.numel() for p in model.parameters())
+        print(f"\nTotal parameters: {total_params:,}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -884,62 +902,63 @@ def _(mo):
 
 @app.cell
 def _(hidden_neurons_slider):
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from sklearn.datasets import make_moons
-    import torch as _torch2
-    import torch.nn as _nn2
-    import torch.optim as _optim2
+    def _run():
+        from sklearn.datasets import make_moons
+        import torch as _torch2
+        import torch.nn as _nn2
+        import torch.optim as _optim2
 
-    n_hidden = hidden_neurons_slider.value
+        n_hidden = hidden_neurons_slider.value
 
-    # Generate data
-    rng = np.random.default_rng(42)
-    X_data, y_data = make_moons(n_samples=300, noise=0.2, random_state=42)
-    X_tensor = _torch2.tensor(X_data, dtype=_torch2.float32)
-    y_tensor = _torch2.tensor(y_data, dtype=_torch2.float32).unsqueeze(1)
+        # Generate data
+        rng = np.random.default_rng(42)
+        X_data, y_data = make_moons(n_samples=300, noise=0.2, random_state=42)
+        X_tensor = _torch2.tensor(X_data, dtype=_torch2.float32)
+        y_tensor = _torch2.tensor(y_data, dtype=_torch2.float32).unsqueeze(1)
 
-    # Build and train a small network
-    _model = _nn2.Sequential(
-        _nn2.Linear(2, n_hidden),
-        _nn2.ReLU(),
-        _nn2.Linear(n_hidden, 1),
-        _nn2.Sigmoid()
-    )
-    _criterion = _nn2.BCELoss()
-    _optimizer = _optim2.Adam(_model.parameters(), lr=0.01)
+        # Build and train a small network
+        _model = _nn2.Sequential(
+            _nn2.Linear(2, n_hidden),
+            _nn2.ReLU(),
+            _nn2.Linear(n_hidden, 1),
+            _nn2.Sigmoid()
+        )
+        _criterion = _nn2.BCELoss()
+        _optimizer = _optim2.Adam(_model.parameters(), lr=0.01)
 
-    for _epoch in range(500):
-        _pred = _model(X_tensor)
-        _loss = _criterion(_pred, y_tensor)
-        _optimizer.zero_grad()
-        _loss.backward()
-        _optimizer.step()
+        for _epoch in range(500):
+            _pred = _model(X_tensor)
+            _loss = _criterion(_pred, y_tensor)
+            _optimizer.zero_grad()
+            _loss.backward()
+            _optimizer.step()
 
-    # Plot decision boundary
-    fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-    xx, yy = np.meshgrid(
-        np.linspace(X_data[:, 0].min() - 0.5, X_data[:, 0].max() + 0.5, 200),
-        np.linspace(X_data[:, 1].min() - 0.5, X_data[:, 1].max() + 0.5, 200)
-    )
-    grid = _torch2.tensor(np.c_[xx.ravel(), yy.ravel()], dtype=_torch2.float32)
-    with _torch2.no_grad():
-        zz = _model(grid).numpy().reshape(xx.shape)
+        # Plot decision boundary
+        fig, ax = plt.subplots(1, 1, figsize=(8, 6))
+        xx, yy = np.meshgrid(
+            np.linspace(X_data[:, 0].min() - 0.5, X_data[:, 0].max() + 0.5, 200),
+            np.linspace(X_data[:, 1].min() - 0.5, X_data[:, 1].max() + 0.5, 200)
+        )
+        grid = _torch2.tensor(np.c_[xx.ravel(), yy.ravel()], dtype=_torch2.float32)
+        with _torch2.no_grad():
+            zz = _model(grid).numpy().reshape(xx.shape)
 
-    ax.contourf(xx, yy, zz, levels=50, cmap="RdBu", alpha=0.7)
-    ax.contour(xx, yy, zz, levels=[0.5], colors="k", linewidths=2)
-    ax.scatter(X_data[y_data == 0, 0], X_data[y_data == 0, 1],
-               c="blue", edgecolors="k", s=30, label="Class 0")
-    ax.scatter(X_data[y_data == 1, 0], X_data[y_data == 1, 1],
-               c="red", edgecolors="k", s=30, label="Class 1")
-    ax.set_title(f"Decision Boundary with {n_hidden} Hidden Neurons (final loss: {_loss.item():.4f})")
-    ax.legend()
-    ax.set_xlabel("$x_1$")
-    ax.set_ylabel("$x_2$")
-    plt.tight_layout()
-    fig
+        ax.contourf(xx, yy, zz, levels=50, cmap="RdBu", alpha=0.7)
+        ax.contour(xx, yy, zz, levels=[0.5], colors="k", linewidths=2)
+        ax.scatter(X_data[y_data == 0, 0], X_data[y_data == 0, 1],
+                   c="blue", edgecolors="k", s=30, label="Class 0")
+        ax.scatter(X_data[y_data == 1, 0], X_data[y_data == 1, 1],
+                   c="red", edgecolors="k", s=30, label="Class 1")
+        ax.set_title(f"Decision Boundary with {n_hidden} Hidden Neurons (final loss: {_loss.item():.4f})")
+        ax.legend()
+        ax.set_xlabel("$x_1$")
+        ax.set_ylabel("$x_2$")
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1030,31 +1049,34 @@ Implement sigmoid, tanh, and ReLU along with their derivatives. Test that the de
 
 @app.cell
 def _(np):
-    def ex1_sigmoid(z):
-        # TODO: implement sigmoid: 1 / (1 + exp(-z))
-        pass
+    def _run():
+        def ex1_sigmoid(z):
+            # TODO: implement sigmoid: 1 / (1 + exp(-z))
+            pass
 
-    def ex1_sigmoid_deriv(z):
-        # TODO: implement sigmoid derivative: sigmoid(z) * (1 - sigmoid(z))
-        pass
+        def ex1_sigmoid_deriv(z):
+            # TODO: implement sigmoid derivative: sigmoid(z) * (1 - sigmoid(z))
+            pass
 
-    def ex1_relu(z):
-        # TODO: implement ReLU: max(0, z)
-        pass
+        def ex1_relu(z):
+            # TODO: implement ReLU: max(0, z)
+            pass
 
-    def ex1_relu_deriv(z):
-        # TODO: implement ReLU derivative: 1 if z > 0, else 0
-        pass
+        def ex1_relu_deriv(z):
+            # TODO: implement ReLU derivative: 1 if z > 0, else 0
+            pass
 
-    # Test with finite differences: f'(z) ≈ (f(z+eps) - f(z-eps)) / (2*eps)
-    _eps = 1e-5
-    _z_test = np.array([-2.0, -0.5, 0.0, 0.5, 2.0])
-    # TODO: for each activation, compare your analytic derivative to numerical
-    # Example: num_deriv = (ex1_sigmoid(_z_test + _eps) - ex1_sigmoid(_z_test - _eps)) / (2 * _eps)
-    # print(f"Sigmoid deriv (analytic): {ex1_sigmoid_deriv(_z_test)}")
-    # print(f"Sigmoid deriv (numeric):  {num_deriv}")
+        # Test with finite differences: f'(z) ≈ (f(z+eps) - f(z-eps)) / (2*eps)
+        _eps = 1e-5
+        _z_test = np.array([-2.0, -0.5, 0.0, 0.5, 2.0])
+        # TODO: for each activation, compare your analytic derivative to numerical
+        # Example: num_deriv = (ex1_sigmoid(_z_test + _eps) - ex1_sigmoid(_z_test - _eps)) / (2 * _eps)
+        # print(f"Sigmoid deriv (analytic): {ex1_sigmoid_deriv(_z_test)}")
+        # print(f"Sigmoid deriv (numeric):  {num_deriv}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1068,39 +1090,42 @@ Write a forward pass for a 2-layer MLP (input -> hidden with ReLU -> output with
 
 @app.cell
 def _(np):
-    def ex2_forward(x, W1, b1, W2, b2):
-        """
-        Forward pass for a 2-layer MLP.
-        Args:
-            x: input vector (n_in,)
-            W1: hidden weights (n_hidden, n_in)
-            b1: hidden biases (n_hidden,)
-            W2: output weights (n_out, n_hidden)
-            b2: output biases (n_out,)
-        Returns:
-            y_hat: prediction (n_out,)
-            cache: dict with intermediate values for backprop
-        """
-        # TODO: compute z1 = W1 @ x + b1
-        z1 = None
-        # TODO: compute h1 = ReLU(z1)
-        h1 = None
-        # TODO: compute y_hat = W2 @ h1 + b2
-        y_hat = None
+    def _run():
+        def ex2_forward(x, W1, b1, W2, b2):
+            """
+            Forward pass for a 2-layer MLP.
+            Args:
+                x: input vector (n_in,)
+                W1: hidden weights (n_hidden, n_in)
+                b1: hidden biases (n_hidden,)
+                W2: output weights (n_out, n_hidden)
+                b2: output biases (n_out,)
+            Returns:
+                y_hat: prediction (n_out,)
+                cache: dict with intermediate values for backprop
+            """
+            # TODO: compute z1 = W1 @ x + b1
+            z1 = None
+            # TODO: compute h1 = ReLU(z1)
+            h1 = None
+            # TODO: compute y_hat = W2 @ h1 + b2
+            y_hat = None
 
-        cache = {"x": x, "z1": z1, "h1": h1}
-        return y_hat, cache
+            cache = {"x": x, "z1": z1, "h1": h1}
+            return y_hat, cache
 
-    # Test: should match the forward pass example from Section 6
-    # _W1 = np.array([[0.5, -0.3], [0.8, 0.2]])
-    # _b1 = np.array([0.1, -0.1])
-    # _W2 = np.array([[0.6, -0.4]])
-    # _b2 = np.array([0.05])
-    # _x = np.array([1.0, 2.0])
-    # _y_hat, _cache = ex2_forward(_x, _W1, _b1, _W2, _b2)
-    # print(f"y_hat = {_y_hat}  (expected: [-0.39])")
+        # Test: should match the forward pass example from Section 6
+        # _W1 = np.array([[0.5, -0.3], [0.8, 0.2]])
+        # _b1 = np.array([0.1, -0.1])
+        # _W2 = np.array([[0.6, -0.4]])
+        # _b2 = np.array([0.05])
+        # _x = np.array([1.0, 2.0])
+        # _y_hat, _cache = ex2_forward(_x, _W1, _b1, _W2, _b2)
+        # print(f"y_hat = {_y_hat}  (expected: [-0.39])")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1114,39 +1139,42 @@ Implement the backward pass. Given the cache from the forward pass and the loss 
 
 @app.cell
 def _(np):
-    def ex3_backward(dL_dy_hat, cache, W2):
-        """
-        Backward pass for a 2-layer MLP.
-        Args:
-            dL_dy_hat: gradient of loss w.r.t. prediction (n_out,)
-            cache: dict from forward pass with x, z1, h1
-            W2: output layer weights (needed to propagate gradient back)
-        Returns:
-            grads: dict with dW1, db1, dW2, db2
-        """
-        x, z1, h1 = cache["x"], cache["z1"], cache["h1"]
+    def _run():
+        def ex3_backward(dL_dy_hat, cache, W2):
+            """
+            Backward pass for a 2-layer MLP.
+            Args:
+                dL_dy_hat: gradient of loss w.r.t. prediction (n_out,)
+                cache: dict from forward pass with x, z1, h1
+                W2: output layer weights (needed to propagate gradient back)
+            Returns:
+                grads: dict with dW1, db1, dW2, db2
+            """
+            x, z1, h1 = cache["x"], cache["z1"], cache["h1"]
 
-        # TODO: dL/dW2 = dL/dy_hat @ h1^T  (outer product)
-        dW2 = None
-        # TODO: dL/db2 = dL/dy_hat
-        db2 = None
+            # TODO: dL/dW2 = dL/dy_hat @ h1^T  (outer product)
+            dW2 = None
+            # TODO: dL/db2 = dL/dy_hat
+            db2 = None
 
-        # TODO: dL/dh1 = W2^T @ dL/dy_hat
-        dL_dh1 = None
-        # TODO: dL/dz1 = dL/dh1 * ReLU'(z1)
-        dL_dz1 = None
+            # TODO: dL/dh1 = W2^T @ dL/dy_hat
+            dL_dh1 = None
+            # TODO: dL/dz1 = dL/dh1 * ReLU'(z1)
+            dL_dz1 = None
 
-        # TODO: dL/dW1 = dL/dz1 @ x^T  (outer product)
-        dW1 = None
-        # TODO: dL/db1 = dL/dz1
-        db1 = None
+            # TODO: dL/dW1 = dL/dz1 @ x^T  (outer product)
+            dW1 = None
+            # TODO: dL/db1 = dL/dz1
+            db1 = None
 
-        return {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
+            return {"dW1": dW1, "db1": db1, "dW2": dW2, "db2": db2}
 
-    # TODO: test with the example from Section 7
-    # Verify against the finite-difference check or the known values
+        # TODO: test with the example from Section 7
+        # Verify against the finite-difference check or the known values
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1160,42 +1188,45 @@ Put it all together. Generate $y = \sin(x) + \text{noise}$ data, initialize a ne
 
 @app.cell
 def _(np):
-    # Generate data: y = sin(x) + noise
-    _rng = np.random.default_rng(42)
-    _N = 200
-    _x_train = _rng.uniform(-2 * np.pi, 2 * np.pi, _N)
-    _y_train = np.sin(_x_train) + _rng.randn(_N) * 0.1
+    def _run():
+        # Generate data: y = sin(x) + noise
+        _rng = np.random.default_rng(42)
+        _N = 200
+        _x_train = _rng.uniform(-2 * np.pi, 2 * np.pi, _N)
+        _y_train = np.sin(_x_train) + _rng.randn(_N) * 0.1
 
-    # Network: 1 input -> 32 hidden (ReLU) -> 1 output
-    n_hidden_ex = 32
-    lr_ex = 0.01
-    epochs_ex = 500
-    batch_size_ex = 32
+        # Network: 1 input -> 32 hidden (ReLU) -> 1 output
+        n_hidden_ex = 32
+        lr_ex = 0.01
+        epochs_ex = 500
+        batch_size_ex = 32
 
-    # TODO: He initialization
-    # W1_ex = _rng.randn(n_hidden_ex, 1) * np.sqrt(2.0 / 1)
-    # b1_ex = np.zeros(n_hidden_ex)
-    # W2_ex = _rng.randn(1, n_hidden_ex) * np.sqrt(2.0 / n_hidden_ex)
-    # b2_ex = np.zeros(1)
+        # TODO: He initialization
+        # W1_ex = _rng.randn(n_hidden_ex, 1) * np.sqrt(2.0 / 1)
+        # b1_ex = np.zeros(n_hidden_ex)
+        # W2_ex = _rng.randn(1, n_hidden_ex) * np.sqrt(2.0 / n_hidden_ex)
+        # b2_ex = np.zeros(1)
 
-    # TODO: training loop
-    # for epoch in range(epochs_ex):
-    #     # shuffle data
-    #     perm = _rng.permutation(_N)
-    #     for i in range(0, _N, batch_size_ex):
-    #         idx = perm[i:i+batch_size_ex]
-    #         # forward pass on batch
-    #         # compute MSE loss and its gradient: dL/dy_hat = 2/B * (y_hat - y)
-    #         # backward pass
-    #         # SGD update: param -= lr * grad
+        # TODO: training loop
+        # for epoch in range(epochs_ex):
+        #     # shuffle data
+        #     perm = _rng.permutation(_N)
+        #     for i in range(0, _N, batch_size_ex):
+        #         idx = perm[i:i+batch_size_ex]
+        #         # forward pass on batch
+        #         # compute MSE loss and its gradient: dL/dy_hat = 2/B * (y_hat - y)
+        #         # backward pass
+        #         # SGD update: param -= lr * grad
 
-    # TODO: plot results
-    # import matplotlib.pyplot as plt
-    # _x_plot = np.linspace(-2*np.pi, 2*np.pi, 300)
-    # predict each point and plot against np.sin(_x_plot)
-    print("Implement training loop and plot results")
+        # TODO: plot results
+        # import matplotlib.pyplot as plt
+        # _x_plot = np.linspace(-2*np.pi, 2*np.pi, 300)
+        # predict each point and plot against np.sin(_x_plot)
+        print("Implement training loop and plot results")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1209,30 +1240,33 @@ Implement a gradient checker that compares your backprop gradients to finite-dif
 
 @app.cell
 def _(np):
-    def ex5_gradient_check(forward_fn, params, x, y, eps=1e-5):
-        """
-        Compare analytic gradients to numerical gradients.
-        Args:
-            forward_fn: callable(params, x) -> y_hat
-            params: list of np arrays (weights and biases)
-            x: input, y: target
-            eps: finite difference step size
-        Returns:
-            max_rel_error across all parameters
-        """
-        # TODO:
-        # 1. Run forward + backward to get analytic gradients
-        # 2. For each parameter, for each element:
-        #    - perturb +eps, compute loss
-        #    - perturb -eps, compute loss
-        #    - numerical grad = (loss_plus - loss_minus) / (2 * eps)
-        # 3. Compute relative error: |analytic - numerical| / max(|analytic|, |numerical|, 1e-8)
-        # 4. Return the max relative error (should be < 1e-5)
-        pass
+    def _run():
+        def ex5_gradient_check(forward_fn, params, x, y, eps=1e-5):
+            """
+            Compare analytic gradients to numerical gradients.
+            Args:
+                forward_fn: callable(params, x) -> y_hat
+                params: list of np arrays (weights and biases)
+                x: input, y: target
+                eps: finite difference step size
+            Returns:
+                max_rel_error across all parameters
+            """
+            # TODO:
+            # 1. Run forward + backward to get analytic gradients
+            # 2. For each parameter, for each element:
+            #    - perturb +eps, compute loss
+            #    - perturb -eps, compute loss
+            #    - numerical grad = (loss_plus - loss_minus) / (2 * eps)
+            # 3. Compute relative error: |analytic - numerical| / max(|analytic|, |numerical|, 1e-8)
+            # 4. Return the max relative error (should be < 1e-5)
+            pass
 
-    print("Implement gradient checking — essential debugging tool")
+        print("Implement gradient checking — essential debugging tool")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

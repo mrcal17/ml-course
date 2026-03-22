@@ -64,27 +64,31 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # --- Bayes' rule for a coin flip (conjugate Beta-Binomial) ---
-    # Prior: Beta(alpha, beta) -> observe data -> Posterior: Beta(alpha + heads, beta + tails)
-    from scipy.stats import beta as beta_dist
+    def _run():
+        # --- Bayes' rule for a coin flip (conjugate Beta-Binomial) ---
+        # Prior: Beta(alpha, beta) -> observe data -> Posterior: Beta(alpha + heads, beta + tails)
+        from scipy.stats import beta as beta_dist
 
-    alpha_prior, beta_prior = 2, 5  # prior: believe coin is biased toward tails
-    data = np.array([1, 1, 1, 0, 1, 1, 0, 1, 1, 1])  # 1=heads, 0=tails
-    heads, tails = data.sum(), len(data) - data.sum()
+        alpha_prior, beta_prior = 2, 5  # prior: believe coin is biased toward tails
+        data = np.array([1, 1, 1, 0, 1, 1, 0, 1, 1, 1])  # 1=heads, 0=tails
+        heads, tails = data.sum(), len(data) - data.sum()
 
-    # Posterior parameters (conjugate update -- no integral needed!)
-    alpha_post = alpha_prior + heads  # 2 + 8 = 10
-    beta_post = beta_prior + tails    # 5 + 2 = 7
+        # Posterior parameters (conjugate update -- no integral needed!)
+        alpha_post = alpha_prior + heads  # 2 + 8 = 10
+        beta_post = beta_prior + tails    # 5 + 2 = 7
 
-    theta_grid = np.linspace(0, 1, 200)
-    prior_pdf = beta_dist.pdf(theta_grid, alpha_prior, beta_prior)
-    posterior_pdf = beta_dist.pdf(theta_grid, alpha_post, beta_post)
+        theta_grid = np.linspace(0, 1, 200)
+        prior_pdf = beta_dist.pdf(theta_grid, alpha_prior, beta_prior)
+        posterior_pdf = beta_dist.pdf(theta_grid, alpha_post, beta_post)
 
-    print(f"Prior:     Beta({alpha_prior}, {beta_prior})  ->  E[theta] = {alpha_prior/(alpha_prior+beta_prior):.3f}")
-    print(f"Posterior: Beta({alpha_post}, {beta_post})  ->  E[theta] = {alpha_post/(alpha_post+beta_post):.3f}")
-    print(f"MLE:       {heads/len(data):.3f}")
-    return alpha_post, alpha_prior, beta_post, beta_prior, posterior_pdf, prior_pdf, theta_grid
+        print(f"Prior:     Beta({alpha_prior}, {beta_prior})  ->  E[theta] = {alpha_prior/(alpha_prior+beta_prior):.3f}")
+        print(f"Posterior: Beta({alpha_post}, {beta_post})  ->  E[theta] = {alpha_post/(alpha_post+beta_post):.3f}")
+        print(f"MLE:       {heads/len(data):.3f}")
+        return alpha_post, alpha_prior, beta_post, beta_prior, posterior_pdf, prior_pdf, theta_grid
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -141,34 +145,38 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # --- Kernel functions in numpy ---
-    def rbf_kernel(X1, X2, length_scale=1.0, signal_var=1.0):
-        """k(x,x') = sigma^2 * exp(-||x-x'||^2 / (2*l^2))"""
-        sq_dist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * X1 @ X2.T
-        return signal_var * np.exp(-0.5 * sq_dist / length_scale**2)
+    def _run():
+        # --- Kernel functions in numpy ---
+        def rbf_kernel(X1, X2, length_scale=1.0, signal_var=1.0):
+            """k(x,x') = sigma^2 * exp(-||x-x'||^2 / (2*l^2))"""
+            sq_dist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * X1 @ X2.T
+            return signal_var * np.exp(-0.5 * sq_dist / length_scale**2)
 
-    def matern32_kernel(X1, X2, length_scale=1.0, signal_var=1.0):
-        """Matern-3/2: k = sigma^2 * (1 + sqrt(3)*r/l) * exp(-sqrt(3)*r/l)"""
-        sq_dist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * X1 @ X2.T
-        r = np.sqrt(np.maximum(sq_dist, 1e-12))
-        scaled = np.sqrt(3) * r / length_scale
-        return signal_var * (1 + scaled) * np.exp(-scaled)
+        def matern32_kernel(X1, X2, length_scale=1.0, signal_var=1.0):
+            """Matern-3/2: k = sigma^2 * (1 + sqrt(3)*r/l) * exp(-sqrt(3)*r/l)"""
+            sq_dist = np.sum(X1**2, 1).reshape(-1, 1) + np.sum(X2**2, 1) - 2 * X1 @ X2.T
+            r = np.sqrt(np.maximum(sq_dist, 1e-12))
+            scaled = np.sqrt(3) * r / length_scale
+            return signal_var * (1 + scaled) * np.exp(-scaled)
 
-    # Compare: sample from GP prior with different kernels
-    X_grid = np.linspace(-5, 5, 200).reshape(-1, 1)
-    K_rbf = rbf_kernel(X_grid, X_grid, length_scale=1.0)
-    K_mat = matern32_kernel(X_grid, X_grid, length_scale=1.0)
+        # Compare: sample from GP prior with different kernels
+        X_grid = np.linspace(-5, 5, 200).reshape(-1, 1)
+        K_rbf = rbf_kernel(X_grid, X_grid, length_scale=1.0)
+        K_mat = matern32_kernel(X_grid, X_grid, length_scale=1.0)
 
-    # Draw 3 function samples from each prior: f ~ N(0, K)
-    L_rbf = np.linalg.cholesky(K_rbf + 1e-6 * np.eye(200))
-    L_mat = np.linalg.cholesky(K_mat + 1e-6 * np.eye(200))
-    samples_rbf = L_rbf @ rng.standard_normal((200, 3))
-    samples_mat = L_mat @ rng.standard_normal((200, 3))
+        # Draw 3 function samples from each prior: f ~ N(0, K)
+        L_rbf = np.linalg.cholesky(K_rbf + 1e-6 * np.eye(200))
+        L_mat = np.linalg.cholesky(K_mat + 1e-6 * np.eye(200))
+        samples_rbf = L_rbf @ rng.standard_normal((200, 3))
+        samples_mat = L_mat @ rng.standard_normal((200, 3))
 
-    print("RBF samples are infinitely smooth; Matern-3/2 samples are rougher.")
-    print(f"RBF kernel matrix shape: {K_rbf.shape}, trace: {np.trace(K_rbf):.1f}")
-    return X_grid, matern32_kernel, rbf_kernel, samples_mat, samples_rbf
+        print("RBF samples are infinitely smooth; Matern-3/2 samples are rougher.")
+        print(f"RBF kernel matrix shape: {K_rbf.shape}, trace: {np.trace(K_rbf):.1f}")
+        return X_grid, matern32_kernel, rbf_kernel, samples_mat, samples_rbf
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -193,29 +201,33 @@ def _(mo):
 
 @app.cell
 def _(X_grid, np, rbf_kernel):
-    # --- GP regression in numpy (the key equations from above) ---
-    # Training data: noisy observations of sin(x)
-    X_train = np.array([-4, -3, -1, 0, 2, 4]).reshape(-1, 1)
-    y_train = np.sin(X_train).ravel() + 0.1 * rng.standard_normal((len(X_train)))
+    def _run():
+        # --- GP regression in numpy (the key equations from above) ---
+        # Training data: noisy observations of sin(x)
+        X_train = np.array([-4, -3, -1, 0, 2, 4]).reshape(-1, 1)
+        y_train = np.sin(X_train).ravel() + 0.1 * rng.standard_normal((len(X_train)))
 
-    noise_var = 0.1**2  # sigma_n^2
-    length_scale, signal_var = 1.0, 1.0
+        noise_var = 0.1**2  # sigma_n^2
+        length_scale, signal_var = 1.0, 1.0
 
-    # Compute kernel matrices
-    K = rbf_kernel(X_train, X_train, length_scale, signal_var) + noise_var * np.eye(len(X_train))
-    K_s = rbf_kernel(X_train, X_grid, length_scale, signal_var)
-    K_ss = rbf_kernel(X_grid, X_grid, length_scale, signal_var)
+        # Compute kernel matrices
+        K = rbf_kernel(X_train, X_train, length_scale, signal_var) + noise_var * np.eye(len(X_train))
+        K_s = rbf_kernel(X_train, X_grid, length_scale, signal_var)
+        K_ss = rbf_kernel(X_grid, X_grid, length_scale, signal_var)
 
-    # Posterior mean and covariance (the two key GP equations)
-    K_inv = np.linalg.inv(K)
-    mu_post = K_s.T @ K_inv @ y_train                    # f_* mean
-    cov_post = K_ss - K_s.T @ K_inv @ K_s                # f_* covariance
-    std_post = np.sqrt(np.diag(cov_post))                 # marginal std at each point
+        # Posterior mean and covariance (the two key GP equations)
+        K_inv = np.linalg.inv(K)
+        mu_post = K_s.T @ K_inv @ y_train                    # f_* mean
+        cov_post = K_ss - K_s.T @ K_inv @ K_s                # f_* covariance
+        std_post = np.sqrt(np.diag(cov_post))                 # marginal std at each point
 
-    print(f"Posterior mean range: [{mu_post.min():.2f}, {mu_post.max():.2f}]")
-    print(f"Uncertainty (std) near data: {std_post[100]:.3f}, far from data: {std_post[0]:.3f}")
-    return K, K_inv, K_s, X_train, cov_post, mu_post, noise_var, std_post, y_train
+        print(f"Posterior mean range: [{mu_post.min():.2f}, {mu_post.max():.2f}]")
+        print(f"Uncertainty (std) near data: {std_post[100]:.3f}, far from data: {std_post[0]:.3f}")
+        return K, K_inv, K_s, X_train, cov_post, mu_post, noise_var, std_post, y_train
 
+
+    _run()
+    return
 
 @app.cell(hide_code=True)
 def _(mo):

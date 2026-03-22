@@ -136,49 +136,53 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Checking convexity: verify f(lambda*x + (1-lambda)*y) <= lambda*f(x) + (1-lambda)*f(y)
-    f = lambda x: x**2  # convex
-    g = lambda x: -x**2  # NOT convex (concave)
+        # Checking convexity: verify f(lambda*x + (1-lambda)*y) <= lambda*f(x) + (1-lambda)*f(y)
+        f = lambda x: x**2  # convex
+        g = lambda x: -x**2  # NOT convex (concave)
 
-    x, y = -2.0, 3.0
-    lam = 0.4
-    mid = lam * x + (1 - lam) * y  # point on line segment
+        x, y = -2.0, 3.0
+        lam = 0.4
+        mid = lam * x + (1 - lam) * y  # point on line segment
 
-    print("f(x) = x^2 (convex):")
-    print(f"  f(midpoint)     = {f(mid):.4f}")
-    print(f"  weighted average = {lam * f(x) + (1 - lam) * f(y):.4f}")
-    print(f"  f(mid) <= avg?   {f(mid) <= lam * f(x) + (1 - lam) * f(y)}")
+        print("f(x) = x^2 (convex):")
+        print(f"  f(midpoint)     = {f(mid):.4f}")
+        print(f"  weighted average = {lam * f(x) + (1 - lam) * f(y):.4f}")
+        print(f"  f(mid) <= avg?   {f(mid) <= lam * f(x) + (1 - lam) * f(y)}")
 
-    print("\ng(x) = -x^2 (concave):")
-    print(f"  g(midpoint)     = {g(mid):.4f}")
-    print(f"  weighted average = {lam * g(x) + (1 - lam) * g(y):.4f}")
-    print(f"  g(mid) <= avg?   {g(mid) <= lam * g(x) + (1 - lam) * g(y)}")
+        print("\ng(x) = -x^2 (concave):")
+        print(f"  g(midpoint)     = {g(mid):.4f}")
+        print(f"  weighted average = {lam * g(x) + (1 - lam) * g(y):.4f}")
+        print(f"  g(mid) <= avg?   {g(mid) <= lam * g(x) + (1 - lam) * g(y)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Hessian check: OLS Hessian is 2*X^T*X, should be PSD
-    rng = np.random.default_rng(1)
-    X = rng.standard_normal((20, 3))
-    H_ols = 2 * X.T @ X  # Hessian of ||y - Xθ||^2
+        # Hessian check: OLS Hessian is 2*X^T*X, should be PSD
+        rng = np.random.default_rng(1)
+        X = rng.standard_normal((20, 3))
+        H_ols = 2 * X.T @ X  # Hessian of ||y - Xθ||^2
 
-    eigenvalues = np.linalg.eigvalsh(H_ols)
-    print(f"OLS Hessian eigenvalues: {eigenvalues.round(4)}")
-    print(f"All >= 0? {np.all(eigenvalues >= -1e-10)}  => OLS is convex")
+        eigenvalues = np.linalg.eigvalsh(H_ols)
+        print(f"OLS Hessian eigenvalues: {eigenvalues.round(4)}")
+        print(f"All >= 0? {np.all(eigenvalues >= -1e-10)}  => OLS is convex")
 
-    # Add L2 regularization: Hessian becomes 2(X^T X + lambda*I)
-    lam = 1.0
-    H_ridge = 2 * (X.T @ X + lam * np.eye(3))
-    eig_ridge = np.linalg.eigvalsh(H_ridge)
-    print(f"\nRidge Hessian eigenvalues: {eig_ridge.round(4)}")
-    print(f"All > 0?  {np.all(eig_ridge > 0)}  => Ridge is strongly convex")
+        # Add L2 regularization: Hessian becomes 2(X^T X + lambda*I)
+        lam = 1.0
+        H_ridge = 2 * (X.T @ X + lam * np.eye(3))
+        eig_ridge = np.linalg.eigvalsh(H_ridge)
+        print(f"\nRidge Hessian eigenvalues: {eig_ridge.round(4)}")
+        print(f"All > 0?  {np.all(eig_ridge > 0)}  => Ridge is strongly convex")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -225,48 +229,52 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Gradient descent from scratch on f(x) = x^2
-    # gradient: f'(x) = 2x
-    # update:   x_{t+1} = x_t - alpha * 2 * x_t
+        # Gradient descent from scratch on f(x) = x^2
+        # gradient: f'(x) = 2x
+        # update:   x_{t+1} = x_t - alpha * 2 * x_t
 
-    def gradient_descent_1d(f_grad, x0, lr, n_steps):
-        """Vanilla GD: theta <- theta - lr * grad."""
-        x = x0
-        history = [x]
-        for _ in range(n_steps):
-            g = f_grad(x)       # compute gradient
-            x = x - lr * g      # take step downhill
-            history.append(x)
-        return np.array(history)
+        def gradient_descent_1d(f_grad, x0, lr, n_steps):
+            """Vanilla GD: theta <- theta - lr * grad."""
+            x = x0
+            history = [x]
+            for _ in range(n_steps):
+                g = f_grad(x)       # compute gradient
+                x = x - lr * g      # take step downhill
+                history.append(x)
+            return np.array(history)
 
-    f_grad = lambda x: 2 * x  # gradient of x^2
-    path = gradient_descent_1d(f_grad, x0=5.0, lr=0.1, n_steps=20)
-    print("GD on f(x)=x^2, lr=0.1, start=5.0:")
-    print(f"  Steps 0-4: {path[:5].round(4)}")
-    print(f"  Final x = {path[-1]:.6f}, f(x) = {path[-1]**2:.6f}")
+        f_grad = lambda x: 2 * x  # gradient of x^2
+        path = gradient_descent_1d(f_grad, x0=5.0, lr=0.1, n_steps=20)
+        print("GD on f(x)=x^2, lr=0.1, start=5.0:")
+        print(f"  Steps 0-4: {path[:5].round(4)}")
+        print(f"  Final x = {path[-1]:.6f}, f(x) = {path[-1]**2:.6f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Learning rate comparison: too small, just right, too large
-    f_grad = lambda x: 2 * x  # gradient of x^2
+        # Learning rate comparison: too small, just right, too large
+        f_grad = lambda x: 2 * x  # gradient of x^2
 
-    for lr, label in [(0.01, "too small"), (0.1, "just right"), (1.05, "too large")]:
-        x = 5.0
-        for t in range(20):
-            x = x - lr * f_grad(x)
-            if abs(x) > 1e6:
-                print(f"lr={lr:5.2f} ({label:>10s}): DIVERGED at step {t}")
-                break
-        else:
-            print(f"lr={lr:5.2f} ({label:>10s}): x={x:.6f}, f(x)={x**2:.6f}")
+        for lr, label in [(0.01, "too small"), (0.1, "just right"), (1.05, "too large")]:
+            x = 5.0
+            for t in range(20):
+                x = x - lr * f_grad(x)
+                if abs(x) > 1e6:
+                    print(f"lr={lr:5.2f} ({label:>10s}): DIVERGED at step {t}")
+                    break
+            else:
+                print(f"lr={lr:5.2f} ({label:>10s}): x={x:.6f}, f(x)={x**2:.6f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -287,59 +295,61 @@ def _(mo):
 
 @app.cell
 def _(lr_slider):
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
+        import matplotlib.pyplot as plt
 
-    def gradient_descent_2d(lr, n_steps=50):
-        """Run gradient descent on f(x,y) = x^2 + 4y^2."""
-        path = [(4.0, 4.0)]
-        x, y = 4.0, 4.0
-        for _ in range(n_steps):
-            gx = 2 * x
-            gy = 8 * y
-            x = x - lr * gx
-            y = y - lr * gy
-            path.append((x, y))
-            if x**2 + y**2 > 1e6:  # diverged
-                break
-        return np.array(path)
+        def gradient_descent_2d(lr, n_steps=50):
+            """Run gradient descent on f(x,y) = x^2 + 4y^2."""
+            path = [(4.0, 4.0)]
+            x, y = 4.0, 4.0
+            for _ in range(n_steps):
+                gx = 2 * x
+                gy = 8 * y
+                x = x - lr * gx
+                y = y - lr * gy
+                path.append((x, y))
+                if x**2 + y**2 > 1e6:  # diverged
+                    break
+            return np.array(path)
 
-    _lr = lr_slider.value
-    _path = gradient_descent_2d(_lr)
+        _lr = lr_slider.value
+        _path = gradient_descent_2d(_lr)
 
-    fig_lr, ax_lr = plt.subplots(figsize=(8, 6))
+        fig_lr, ax_lr = plt.subplots(figsize=(8, 6))
 
-    # Contour plot
-    _xx = np.linspace(-6, 6, 200)
-    _yy = np.linspace(-6, 6, 200)
-    _XX, _YY = np.meshgrid(_xx, _yy)
-    _ZZ = _XX**2 + 4 * _YY**2
+        # Contour plot
+        _xx = np.linspace(-6, 6, 200)
+        _yy = np.linspace(-6, 6, 200)
+        _XX, _YY = np.meshgrid(_xx, _yy)
+        _ZZ = _XX**2 + 4 * _YY**2
 
-    ax_lr.contour(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.5)
-    ax_lr.contourf(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.2)
+        ax_lr.contour(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.5)
+        ax_lr.contourf(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.2)
 
-    # Clip path for plotting
-    _path_clipped = _path[np.abs(_path).max(axis=1) < 10]
+        # Clip path for plotting
+        _path_clipped = _path[np.abs(_path).max(axis=1) < 10]
 
-    if len(_path_clipped) > 1:
-        ax_lr.plot(_path_clipped[:, 0], _path_clipped[:, 1], 'ro-', markersize=3, linewidth=1)
-        ax_lr.plot(_path_clipped[0, 0], _path_clipped[0, 1], 'gs', markersize=10, label='Start')
-        ax_lr.plot(_path_clipped[-1, 0], _path_clipped[-1, 1], 'r*', markersize=15, label='End')
+        if len(_path_clipped) > 1:
+            ax_lr.plot(_path_clipped[:, 0], _path_clipped[:, 1], 'ro-', markersize=3, linewidth=1)
+            ax_lr.plot(_path_clipped[0, 0], _path_clipped[0, 1], 'gs', markersize=10, label='Start')
+            ax_lr.plot(_path_clipped[-1, 0], _path_clipped[-1, 1], 'r*', markersize=15, label='End')
 
-    _final_loss = _path[-1][0]**2 + 4 * _path[-1][1]**2 if len(_path) > 0 else float('inf')
-    _status = "DIVERGED" if _final_loss > 100 else f"Loss = {_final_loss:.4f}"
+        _final_loss = _path[-1][0]**2 + 4 * _path[-1][1]**2 if len(_path) > 0 else float('inf')
+        _status = "DIVERGED" if _final_loss > 100 else f"Loss = {_final_loss:.4f}"
 
-    ax_lr.set_title(f"Gradient Descent on f(x,y) = x² + 4y² | lr={_lr:.2f} | {_status}")
-    ax_lr.set_xlabel("x")
-    ax_lr.set_ylabel("y")
-    ax_lr.set_xlim(-6, 6)
-    ax_lr.set_ylim(-6, 6)
-    ax_lr.legend()
-    ax_lr.set_aspect('equal')
-    plt.tight_layout()
-    fig_lr
+        ax_lr.set_title(f"Gradient Descent on f(x,y) = x² + 4y² | lr={_lr:.2f} | {_status}")
+        ax_lr.set_xlabel("x")
+        ax_lr.set_ylabel("y")
+        ax_lr.set_xlim(-6, 6)
+        ax_lr.set_ylim(-6, 6)
+        ax_lr.legend()
+        ax_lr.set_aspect('equal')
+        plt.tight_layout()
+        fig_lr
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -373,37 +383,39 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Convergence rate depends on condition number kappa = L / m
-    # Well-conditioned (kappa=2) vs ill-conditioned (kappa=50)
+        # Convergence rate depends on condition number kappa = L / m
+        # Well-conditioned (kappa=2) vs ill-conditioned (kappa=50)
 
-    def gd_quadratic(A, x0, n_steps=50):
-        """GD on f(x) = 0.5 * x^T A x with lr = 1/L."""
-        L = np.max(np.linalg.eigvalsh(A))  # Lipschitz constant
-        lr = 1.0 / L
-        x = x0.copy()
-        losses = [0.5 * x @ A @ x]
-        for _ in range(n_steps):
-            g = A @ x              # gradient of 0.5 * x^T A x
-            x = x - lr * g         # GD step with optimal fixed lr
-            losses.append(0.5 * x @ A @ x)
-        return np.array(losses)
+        def gd_quadratic(A, x0, n_steps=50):
+            """GD on f(x) = 0.5 * x^T A x with lr = 1/L."""
+            L = np.max(np.linalg.eigvalsh(A))  # Lipschitz constant
+            lr = 1.0 / L
+            x = x0.copy()
+            losses = [0.5 * x @ A @ x]
+            for _ in range(n_steps):
+                g = A @ x              # gradient of 0.5 * x^T A x
+                x = x - lr * g         # GD step with optimal fixed lr
+                losses.append(0.5 * x @ A @ x)
+            return np.array(losses)
 
-    x0 = np.array([10.0, 10.0])
-    # Well-conditioned: eigenvalues 1 and 2 -> kappa = 2
-    losses_good = gd_quadratic(np.diag([1.0, 2.0]), x0)
-    # Ill-conditioned: eigenvalues 1 and 50 -> kappa = 50
-    losses_bad = gd_quadratic(np.diag([1.0, 50.0]), x0)
+        x0 = np.array([10.0, 10.0])
+        # Well-conditioned: eigenvalues 1 and 2 -> kappa = 2
+        losses_good = gd_quadratic(np.diag([1.0, 2.0]), x0)
+        # Ill-conditioned: eigenvalues 1 and 50 -> kappa = 50
+        losses_bad = gd_quadratic(np.diag([1.0, 50.0]), x0)
 
-    print("Steps to reach loss < 0.01:")
-    good_steps = np.argmax(losses_good < 0.01)
-    bad_steps = np.argmax(losses_bad < 0.01)
-    print(f"  kappa=2:  {good_steps} steps")
-    print(f"  kappa=50: {bad_steps} steps")
-    print(f"High condition number -> {bad_steps/good_steps:.1f}x slower convergence")
+        print("Steps to reach loss < 0.01:")
+        good_steps = np.argmax(losses_good < 0.01)
+        bad_steps = np.argmax(losses_bad < 0.01)
+        print(f"  kappa=2:  {good_steps} steps")
+        print(f"  kappa=50: {bad_steps} steps")
+        print(f"High condition number -> {bad_steps/good_steps:.1f}x slower convergence")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -477,62 +489,66 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # SGD vs full-batch GD on linear regression
-    rng = np.random.default_rng(42)
-    N, d = 200, 2
-    X = rng.standard_normal((N, d))
-    theta_true = np.array([3.0, -1.0])
-    y = X @ theta_true + 0.5 * rng.standard_normal(N)
+        # SGD vs full-batch GD on linear regression
+        rng = np.random.default_rng(42)
+        N, d = 200, 2
+        X = rng.standard_normal((N, d))
+        theta_true = np.array([3.0, -1.0])
+        y = X @ theta_true + 0.5 * rng.standard_normal(N)
 
-    # Full gradient: average over ALL samples
-    def full_gradient(theta, X, y):
-        return -(2 / len(y)) * X.T @ (y - X @ theta)
+        # Full gradient: average over ALL samples
+        def full_gradient(theta, X, y):
+            return -(2 / len(y)) * X.T @ (y - X @ theta)
 
-    # Mini-batch gradient: average over a random subset
-    def minibatch_gradient(theta, X, y, batch_size=32):
-        idx = rng.choice(len(y), batch_size, replace=False)
-        return -(2 / batch_size) * X[idx].T @ (y[idx] - X[idx] @ theta)
+        # Mini-batch gradient: average over a random subset
+        def minibatch_gradient(theta, X, y, batch_size=32):
+            idx = rng.choice(len(y), batch_size, replace=False)
+            return -(2 / batch_size) * X[idx].T @ (y[idx] - X[idx] @ theta)
 
-    theta_gd = np.zeros(d)
-    theta_sgd = np.zeros(d)
-    lr = 0.01
+        theta_gd = np.zeros(d)
+        theta_sgd = np.zeros(d)
+        lr = 0.01
 
-    for t in range(200):
-        theta_gd  -= lr * full_gradient(theta_gd, X, y)
-        theta_sgd -= lr * minibatch_gradient(theta_sgd, X, y, batch_size=16)
+        for t in range(200):
+            theta_gd  -= lr * full_gradient(theta_gd, X, y)
+            theta_sgd -= lr * minibatch_gradient(theta_sgd, X, y, batch_size=16)
 
-    print(f"True theta:      {theta_true}")
-    print(f"Full-batch GD:   {theta_gd.round(4)}")
-    print(f"SGD (B=16):      {theta_sgd.round(4)}")
+        print(f"True theta:      {theta_true}")
+        print(f"Full-batch GD:   {theta_gd.round(4)}")
+        print(f"SGD (B=16):      {theta_sgd.round(4)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Learning rate schedules in code
-    T = 100  # total steps
+        # Learning rate schedules in code
+        T = 100  # total steps
 
-    def step_decay(t, lr0=0.1, drop_every=30, factor=0.1):
-        return lr0 * (factor ** (t // drop_every))
+        def step_decay(t, lr0=0.1, drop_every=30, factor=0.1):
+            return lr0 * (factor ** (t // drop_every))
 
-    def cosine_anneal(t, lr0=0.1, T=100):
-        return lr0 * 0.5 * (1 + np.cos(np.pi * t / T))
+        def cosine_anneal(t, lr0=0.1, T=100):
+            return lr0 * 0.5 * (1 + np.cos(np.pi * t / T))
 
-    def warmup_linear(t, lr0=0.1, warmup=10, T=100):
-        if t < warmup:
-            return lr0 * t / warmup  # linear warmup
-        return lr0 * (1 - (t - warmup) / (T - warmup))  # linear decay
+        def warmup_linear(t, lr0=0.1, warmup=10, T=100):
+            if t < warmup:
+                return lr0 * t / warmup  # linear warmup
+            return lr0 * (1 - (t - warmup) / (T - warmup))  # linear decay
 
-    steps = np.arange(T)
-    for name, fn in [("Step decay", step_decay), ("Cosine", cosine_anneal), ("Warmup+decay", warmup_linear)]:
-        lrs = [fn(t) for t in steps]
-        print(f"{name:>14s}: lr[0]={lrs[0]:.4f}, lr[50]={lrs[50]:.4f}, lr[99]={lrs[99]:.4f}")
+        steps = np.arange(T)
+        for name, fn in [("Step decay", step_decay), ("Cosine", cosine_anneal), ("Warmup+decay", warmup_linear)]:
+            lrs = [fn(t) for t in steps]
+            print(f"{name:>14s}: lr[0]={lrs[0]:.4f}, lr[50]={lrs[50]:.4f}, lr[99]={lrs[99]:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -583,41 +599,43 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Momentum from scratch on f(x,y) = x^2 + 50*y^2 (ill-conditioned, kappa=50)
-    def gd_no_momentum(lr=0.01, n_steps=100):
-        x = np.array([10.0, 10.0])
-        losses = []
-        for _ in range(n_steps):
-            g = np.array([2*x[0], 100*x[1]])  # grad of x^2 + 50*y^2
-            x = x - lr * g
-            losses.append(x[0]**2 + 50*x[1]**2)
-        return losses
+        # Momentum from scratch on f(x,y) = x^2 + 50*y^2 (ill-conditioned, kappa=50)
+        def gd_no_momentum(lr=0.01, n_steps=100):
+            x = np.array([10.0, 10.0])
+            losses = []
+            for _ in range(n_steps):
+                g = np.array([2*x[0], 100*x[1]])  # grad of x^2 + 50*y^2
+                x = x - lr * g
+                losses.append(x[0]**2 + 50*x[1]**2)
+            return losses
 
-    def gd_with_momentum(lr=0.01, beta=0.9, n_steps=100):
-        x = np.array([10.0, 10.0])
-        v = np.zeros(2)  # velocity initialized to zero
-        losses = []
-        for _ in range(n_steps):
-            g = np.array([2*x[0], 100*x[1]])
-            v = beta * v + g       # accumulate velocity
-            x = x - lr * v         # step with momentum
-            losses.append(x[0]**2 + 50*x[1]**2)
-        return losses
+        def gd_with_momentum(lr=0.01, beta=0.9, n_steps=100):
+            x = np.array([10.0, 10.0])
+            v = np.zeros(2)  # velocity initialized to zero
+            losses = []
+            for _ in range(n_steps):
+                g = np.array([2*x[0], 100*x[1]])
+                v = beta * v + g       # accumulate velocity
+                x = x - lr * v         # step with momentum
+                losses.append(x[0]**2 + 50*x[1]**2)
+            return losses
 
-    losses_plain = gd_no_momentum()
-    losses_mom = gd_with_momentum()
+        losses_plain = gd_no_momentum()
+        losses_mom = gd_with_momentum()
 
-    print("Steps to reach loss < 1.0:")
-    plain_s = next((i for i, l in enumerate(losses_plain) if l < 1.0), None)
-    mom_s = next((i for i, l in enumerate(losses_mom) if l < 1.0), None)
-    print(f"  Vanilla GD:      {plain_s if plain_s else '>100'}")
-    print(f"  GD + Momentum:   {mom_s if mom_s else '>100'}")
-    print(f"  Final loss (GD):       {losses_plain[-1]:.4f}")
-    print(f"  Final loss (Momentum): {losses_mom[-1]:.6f}")
+        print("Steps to reach loss < 1.0:")
+        plain_s = next((i for i, l in enumerate(losses_plain) if l < 1.0), None)
+        mom_s = next((i for i, l in enumerate(losses_mom) if l < 1.0), None)
+        print(f"  Vanilla GD:      {plain_s if plain_s else '>100'}")
+        print(f"  GD + Momentum:   {mom_s if mom_s else '>100'}")
+        print(f"  Final loss (GD):       {losses_plain[-1]:.4f}")
+        print(f"  Final loss (Momentum): {losses_mom[-1]:.6f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -697,33 +715,35 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Adam from scratch on f(x,y) = x^2 + 50*y^2
-    def adam_optimize(f_grad, x0, lr=0.1, beta1=0.9, beta2=0.999, eps=1e-8, n_steps=100):
-        x = x0.copy()
-        m = np.zeros_like(x)  # first moment (mean of gradients)
-        s = np.zeros_like(x)  # second moment (mean of squared gradients)
-        losses = []
-        for t in range(1, n_steps + 1):
-            g = f_grad(x)
-            m = beta1 * m + (1 - beta1) * g       # update biased first moment
-            s = beta2 * s + (1 - beta2) * g**2     # update biased second moment
-            m_hat = m / (1 - beta1**t)             # bias correction
-            s_hat = s / (1 - beta2**t)             # bias correction
-            x = x - lr * m_hat / (np.sqrt(s_hat) + eps)  # adaptive step
-            losses.append(x[0]**2 + 50*x[1]**2)
-        return losses
+        # Adam from scratch on f(x,y) = x^2 + 50*y^2
+        def adam_optimize(f_grad, x0, lr=0.1, beta1=0.9, beta2=0.999, eps=1e-8, n_steps=100):
+            x = x0.copy()
+            m = np.zeros_like(x)  # first moment (mean of gradients)
+            s = np.zeros_like(x)  # second moment (mean of squared gradients)
+            losses = []
+            for t in range(1, n_steps + 1):
+                g = f_grad(x)
+                m = beta1 * m + (1 - beta1) * g       # update biased first moment
+                s = beta2 * s + (1 - beta2) * g**2     # update biased second moment
+                m_hat = m / (1 - beta1**t)             # bias correction
+                s_hat = s / (1 - beta2**t)             # bias correction
+                x = x - lr * m_hat / (np.sqrt(s_hat) + eps)  # adaptive step
+                losses.append(x[0]**2 + 50*x[1]**2)
+            return losses
 
-    grad_f = lambda x: np.array([2*x[0], 100*x[1]])
-    x0 = np.array([10.0, 10.0])
+        grad_f = lambda x: np.array([2*x[0], 100*x[1]])
+        x0 = np.array([10.0, 10.0])
 
-    losses_adam = adam_optimize(grad_f, x0, lr=0.5)
-    print(f"Adam: loss after 20 steps = {losses_adam[19]:.6f}")
-    print(f"Adam: loss after 50 steps = {losses_adam[49]:.6f}")
-    print(f"Adam: loss after 100 steps = {losses_adam[99]:.8f}")
+        losses_adam = adam_optimize(grad_f, x0, lr=0.5)
+        print(f"Adam: loss after 20 steps = {losses_adam[19]:.6f}")
+        print(f"Adam: loss after 50 steps = {losses_adam[49]:.6f}")
+        print(f"Adam: loss after 100 steps = {losses_adam[99]:.8f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -750,82 +770,83 @@ def _(mo):
 
 @app.cell
 def _(optimizer_dropdown):
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    def run_optimizer(name, n_steps=100, lr=0.05):
-        """Run optimizer on f(x,y) = x^2 + 4y^2."""
-        x, y = 4.0, 4.0
-        path = [(x, y)]
+        def run_optimizer(name, n_steps=100, lr=0.05):
+            """Run optimizer on f(x,y) = x^2 + 4y^2."""
+            x, y = 4.0, 4.0
+            path = [(x, y)]
 
-        # State variables
-        vx, vy = 0.0, 0.0  # velocity (momentum)
-        mx, my = 0.0, 0.0  # first moment (Adam)
-        sx, sy = 0.0, 0.0  # second moment (Adam)
-        beta1, beta2, eps = 0.9, 0.999, 1e-8
+            # State variables
+            vx, vy = 0.0, 0.0  # velocity (momentum)
+            mx, my = 0.0, 0.0  # first moment (Adam)
+            sx, sy = 0.0, 0.0  # second moment (Adam)
+            beta1, beta2, eps = 0.9, 0.999, 1e-8
 
-        for t in range(1, n_steps + 1):
-            gx = 2 * x
-            gy = 8 * y
+            for t in range(1, n_steps + 1):
+                gx = 2 * x
+                gy = 8 * y
 
-            if name == "SGD":
-                x -= lr * gx
-                y -= lr * gy
-            elif name == "Momentum":
-                vx = 0.9 * vx + gx
-                vy = 0.9 * vy + gy
-                x -= lr * vx
-                y -= lr * vy
-            elif name == "Adam":
-                mx = beta1 * mx + (1 - beta1) * gx
-                my = beta1 * my + (1 - beta1) * gy
-                sx = beta2 * sx + (1 - beta2) * gx**2
-                sy = beta2 * sy + (1 - beta2) * gy**2
-                mx_hat = mx / (1 - beta1**t)
-                my_hat = my / (1 - beta1**t)
-                sx_hat = sx / (1 - beta2**t)
-                sy_hat = sy / (1 - beta2**t)
-                x -= lr * mx_hat / (np.sqrt(sx_hat) + eps)
-                y -= lr * my_hat / (np.sqrt(sy_hat) + eps)
+                if name == "SGD":
+                    x -= lr * gx
+                    y -= lr * gy
+                elif name == "Momentum":
+                    vx = 0.9 * vx + gx
+                    vy = 0.9 * vy + gy
+                    x -= lr * vx
+                    y -= lr * vy
+                elif name == "Adam":
+                    mx = beta1 * mx + (1 - beta1) * gx
+                    my = beta1 * my + (1 - beta1) * gy
+                    sx = beta2 * sx + (1 - beta2) * gx**2
+                    sy = beta2 * sy + (1 - beta2) * gy**2
+                    mx_hat = mx / (1 - beta1**t)
+                    my_hat = my / (1 - beta1**t)
+                    sx_hat = sx / (1 - beta2**t)
+                    sy_hat = sy / (1 - beta2**t)
+                    x -= lr * mx_hat / (np.sqrt(sx_hat) + eps)
+                    y -= lr * my_hat / (np.sqrt(sy_hat) + eps)
 
-            path.append((x, y))
-            if x**2 + y**2 > 1e6:
-                break
+                path.append((x, y))
+                if x**2 + y**2 > 1e6:
+                    break
 
-        return np.array(path)
+            return np.array(path)
 
-    _name = optimizer_dropdown.value
-    _lr_map = {"SGD": 0.05, "Momentum": 0.02, "Adam": 0.3}
-    _path = run_optimizer(_name, lr=_lr_map[_name])
+        _name = optimizer_dropdown.value
+        _lr_map = {"SGD": 0.05, "Momentum": 0.02, "Adam": 0.3}
+        _path = run_optimizer(_name, lr=_lr_map[_name])
 
-    fig_opt, ax_opt = plt.subplots(figsize=(8, 6))
+        fig_opt, ax_opt = plt.subplots(figsize=(8, 6))
 
-    _xx = np.linspace(-6, 6, 200)
-    _yy = np.linspace(-6, 6, 200)
-    _XX, _YY = np.meshgrid(_xx, _yy)
-    _ZZ = _XX**2 + 4 * _YY**2
+        _xx = np.linspace(-6, 6, 200)
+        _yy = np.linspace(-6, 6, 200)
+        _XX, _YY = np.meshgrid(_xx, _yy)
+        _ZZ = _XX**2 + 4 * _YY**2
 
-    ax_opt.contour(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.5)
-    ax_opt.contourf(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.2)
+        ax_opt.contour(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.5)
+        ax_opt.contourf(_XX, _YY, _ZZ, levels=20, cmap='viridis', alpha=0.2)
 
-    _p = _path[np.abs(_path).max(axis=1) < 10]
-    if len(_p) > 1:
-        ax_opt.plot(_p[:, 0], _p[:, 1], 'ro-', markersize=3, linewidth=1)
-        ax_opt.plot(_p[0, 0], _p[0, 1], 'gs', markersize=10, label='Start')
-        ax_opt.plot(_p[-1, 0], _p[-1, 1], 'r*', markersize=15, label='End')
+        _p = _path[np.abs(_path).max(axis=1) < 10]
+        if len(_p) > 1:
+            ax_opt.plot(_p[:, 0], _p[:, 1], 'ro-', markersize=3, linewidth=1)
+            ax_opt.plot(_p[0, 0], _p[0, 1], 'gs', markersize=10, label='Start')
+            ax_opt.plot(_p[-1, 0], _p[-1, 1], 'r*', markersize=15, label='End')
 
-    _final = _path[-1][0]**2 + 4 * _path[-1][1]**2
-    ax_opt.set_title(f"{_name} on f(x,y) = x² + 4y² | Steps={len(_path)-1} | Final loss={_final:.4f}")
-    ax_opt.set_xlabel("x")
-    ax_opt.set_ylabel("y")
-    ax_opt.set_xlim(-6, 6)
-    ax_opt.set_ylim(-6, 6)
-    ax_opt.legend()
-    ax_opt.set_aspect('equal')
-    plt.tight_layout()
-    fig_opt
+        _final = _path[-1][0]**2 + 4 * _path[-1][1]**2
+        ax_opt.set_title(f"{_name} on f(x,y) = x² + 4y² | Steps={len(_path)-1} | Final loss={_final:.4f}")
+        ax_opt.set_xlabel("x")
+        ax_opt.set_ylabel("y")
+        ax_opt.set_xlim(-6, 6)
+        ax_opt.set_ylim(-6, 6)
+        ax_opt.legend()
+        ax_opt.set_aspect('equal')
+        plt.tight_layout()
+        fig_opt
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -869,25 +890,27 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Lagrange multipliers: minimize f(x,y) = x + y subject to x^2 + y^2 = 1
-    # Lagrangian: L = x + y + lambda*(x^2 + y^2 - 1)
-    # Grad_x L = 1 + 2*lambda*x = 0 => x = -1/(2*lambda)
-    # Grad_y L = 1 + 2*lambda*y = 0 => y = -1/(2*lambda)
-    # Constraint: x^2 + y^2 = 1 => 2/(4*lambda^2) = 1 => lambda = +/- 1/sqrt(2)
+        # Lagrange multipliers: minimize f(x,y) = x + y subject to x^2 + y^2 = 1
+        # Lagrangian: L = x + y + lambda*(x^2 + y^2 - 1)
+        # Grad_x L = 1 + 2*lambda*x = 0 => x = -1/(2*lambda)
+        # Grad_y L = 1 + 2*lambda*y = 0 => y = -1/(2*lambda)
+        # Constraint: x^2 + y^2 = 1 => 2/(4*lambda^2) = 1 => lambda = +/- 1/sqrt(2)
 
-    lam = 1 / np.sqrt(2)  # take positive root (minimizer)
-    x_star = -1 / (2 * lam)
-    y_star = -1 / (2 * lam)
+        lam = 1 / np.sqrt(2)  # take positive root (minimizer)
+        x_star = -1 / (2 * lam)
+        y_star = -1 / (2 * lam)
 
-    print("Minimize f(x,y) = x + y  subject to  x^2 + y^2 = 1")
-    print(f"Solution: x* = {x_star:.4f}, y* = {y_star:.4f}")
-    print(f"f(x*,y*) = {x_star + y_star:.4f}")
-    print(f"Constraint check: x*^2 + y*^2 = {x_star**2 + y_star**2:.4f}")
-    print(f"Lagrange multiplier lambda = {lam:.4f}")
+        print("Minimize f(x,y) = x + y  subject to  x^2 + y^2 = 1")
+        print(f"Solution: x* = {x_star:.4f}, y* = {y_star:.4f}")
+        print(f"f(x*,y*) = {x_star + y_star:.4f}")
+        print(f"Constraint check: x*^2 + y*^2 = {x_star**2 + y_star**2:.4f}")
+        print(f"Lagrange multiplier lambda = {lam:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -928,30 +951,32 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Newton's method vs GD on f(x) = 0.5 * x^T A x
-    # Newton: x <- x - H^{-1} g  (one step for quadratics!)
-    A = np.array([[10.0, 2.0], [2.0, 3.0]])
-    x0 = np.array([10.0, 10.0])
+        # Newton's method vs GD on f(x) = 0.5 * x^T A x
+        # Newton: x <- x - H^{-1} g  (one step for quadratics!)
+        A = np.array([[10.0, 2.0], [2.0, 3.0]])
+        x0 = np.array([10.0, 10.0])
 
-    # Newton's method
-    x_newton = x0.copy()
-    g = A @ x_newton
-    H_inv = np.linalg.inv(A)
-    x_newton = x_newton - H_inv @ g  # single Newton step
-    print(f"Newton after 1 step:  x = {x_newton.round(6)}, loss = {0.5 * x_newton @ A @ x_newton:.6f}")
+        # Newton's method
+        x_newton = x0.copy()
+        g = A @ x_newton
+        H_inv = np.linalg.inv(A)
+        x_newton = x_newton - H_inv @ g  # single Newton step
+        print(f"Newton after 1 step:  x = {x_newton.round(6)}, loss = {0.5 * x_newton @ A @ x_newton:.6f}")
 
-    # Gradient descent needs many steps
-    x_gd = x0.copy()
-    L = np.max(np.linalg.eigvalsh(A))
-    lr = 1.0 / L
-    for t in range(50):
-        x_gd = x_gd - lr * (A @ x_gd)
-    print(f"GD after 50 steps:    x = {x_gd.round(6)}, loss = {0.5 * x_gd @ A @ x_gd:.6f}")
-    print("\nNewton solves quadratics in one step; GD needs many iterations.")
+        # Gradient descent needs many steps
+        x_gd = x0.copy()
+        L = np.max(np.linalg.eigvalsh(A))
+        lr = 1.0 / L
+        for t in range(50):
+            x_gd = x_gd - lr * (A @ x_gd)
+        print(f"GD after 50 steps:    x = {x_gd.round(6)}, loss = {0.5 * x_gd @ A @ x_gd:.6f}")
+        print("\nNewton solves quadratics in one step; GD needs many iterations.")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -991,25 +1016,27 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Saddle points vs local minima in high dimensions
-    # At a critical point, the Hessian has d eigenvalues.
-    # Probability ALL are positive (local min) shrinks exponentially with d.
+        # Saddle points vs local minima in high dimensions
+        # At a critical point, the Hessian has d eigenvalues.
+        # Probability ALL are positive (local min) shrinks exponentially with d.
 
-    rng = np.random.default_rng(7)
-    for d in [2, 10, 50, 200]:
-        # Simulate: random symmetric matrix eigenvalues (like a random critical point)
-        n_trials = 1000
-        n_local_min = 0
-        for _ in range(n_trials):
-            eigs = rng.standard_normal(d)  # random eigenvalues
-            if np.all(eigs > 0):       # local min requires ALL positive
-                n_local_min += 1
-        frac = n_local_min / n_trials
-        print(f"d={d:>3d}: P(local min) ~ {frac:.4f}  (saddle points dominate as d grows)")
+        rng = np.random.default_rng(7)
+        for d in [2, 10, 50, 200]:
+            # Simulate: random symmetric matrix eigenvalues (like a random critical point)
+            n_trials = 1000
+            n_local_min = 0
+            for _ in range(n_trials):
+                eigs = rng.standard_normal(d)  # random eigenvalues
+                if np.all(eigs > 0):       # local min requires ALL positive
+                    n_local_min += 1
+            frac = n_local_min / n_trials
+            print(f"d={d:>3d}: P(local min) ~ {frac:.4f}  (saddle points dominate as d grows)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1069,31 +1096,33 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Exercise 6: Gradient descent on quadratic
-    A = np.array([[10, 0], [0, 1]])
-    b = np.array([0, 0])
-    x = np.array([10.0, 10.0])
+        # Exercise 6: Gradient descent on quadratic
+        A = np.array([[10, 0], [0, 1]])
+        b = np.array([0, 0])
+        x = np.array([10.0, 10.0])
 
-    L = 10  # largest eigenvalue
-    m = 1   # smallest eigenvalue
-    kappa = L / m
-    alpha = 1 / L
+        L = 10  # largest eigenvalue
+        m = 1   # smallest eigenvalue
+        kappa = L / m
+        alpha = 1 / L
 
-    print(f"Condition number kappa = {kappa}")
-    print(f"Learning rate alpha = 1/L = {alpha}")
-    print(f"\nInitial x = {x}")
-    print(f"Initial f(x) = {0.5 * x @ A @ x - b @ x}")
+        print(f"Condition number kappa = {kappa}")
+        print(f"Learning rate alpha = 1/L = {alpha}")
+        print(f"\nInitial x = {x}")
+        print(f"Initial f(x) = {0.5 * x @ A @ x - b @ x}")
 
-    for t in range(1, 4):
-        grad = A @ x - b
-        x = x - alpha * grad
-        f_val = 0.5 * x @ A @ x - b @ x
-        print(f"\nStep {t}: x = [{x[0]:.4f}, {x[1]:.4f}], f(x) = {f_val:.4f}")
-        print(f"  x1 shrinks by factor {1 - alpha * 10:.1f}, x2 shrinks by factor {1 - alpha * 1:.1f}")
+        for t in range(1, 4):
+            grad = A @ x - b
+            x = x - alpha * grad
+            f_val = 0.5 * x @ A @ x - b @ x
+            print(f"\nStep {t}: x = [{x[0]:.4f}, {x[1]:.4f}], f(x) = {f_val:.4f}")
+            print(f"  x1 shrinks by factor {1 - alpha * 10:.1f}, x2 shrinks by factor {1 - alpha * 1:.1f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1105,30 +1134,32 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Verify numerically that the Hessian of logistic regression is PSD
-    rng = np.random.default_rng(42)
-    n, d = 50, 3
-    X = rng.standard_normal((n, d))
-    theta = rng.standard_normal(d)
+        # Verify numerically that the Hessian of logistic regression is PSD
+        rng = np.random.default_rng(42)
+        n, d = 50, 3
+        X = rng.standard_normal((n, d))
+        theta = rng.standard_normal(d)
 
-    def sigmoid(z):
-        return 1 / (1 + np.exp(-z))
+        def sigmoid(z):
+            return 1 / (1 + np.exp(-z))
 
-    # Compute Hessian: H = X^T D X
-    z = X @ theta
-    s = sigmoid(z)
-    D = np.diag(s * (1 - s))
-    H = X.T @ D @ X
+        # Compute Hessian: H = X^T D X
+        z = X @ theta
+        s = sigmoid(z)
+        D = np.diag(s * (1 - s))
+        H = X.T @ D @ X
 
-    # Check eigenvalues
-    eigenvalues = np.linalg.eigvalsh(H)
-    print(f"Hessian eigenvalues: {eigenvalues}")
-    print(f"All non-negative? {np.all(eigenvalues >= -1e-10)}")
-    print(f"=> Logistic regression loss is convex!")
+        # Check eigenvalues
+        eigenvalues = np.linalg.eigvalsh(H)
+        print(f"Hessian eigenvalues: {eigenvalues}")
+        print(f"All non-negative? {np.all(eigenvalues >= -1e-10)}")
+        print(f"=> Logistic regression loss is convex!")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1140,36 +1171,38 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    # Exercise 8: Adam iterations on f(x) = x^2
-    x = 10.0
-    alpha = 0.1
-    beta1 = 0.9
-    beta2 = 0.999
-    eps = 1e-8
-    m = 0.0
-    s = 0.0
+        # Exercise 8: Adam iterations on f(x) = x^2
+        x = 10.0
+        alpha = 0.1
+        beta1 = 0.9
+        beta2 = 0.999
+        eps = 1e-8
+        m = 0.0
+        s = 0.0
 
-    print(f"Initial: x = {x:.6f}, f(x) = {x**2:.6f}")
-    print()
-
-    for t in range(1, 4):
-        g = 2 * x  # gradient of x^2
-        m = beta1 * m + (1 - beta1) * g
-        s = beta2 * s + (1 - beta2) * g**2
-        m_hat = m / (1 - beta1**t)
-        s_hat = s / (1 - beta2**t)
-        x = x - alpha * m_hat / (np.sqrt(s_hat) + eps)
-
-        print(f"Step {t}:")
-        print(f"  gradient = {g:.6f}")
-        print(f"  m = {m:.6f}, s = {s:.6f}")
-        print(f"  m_hat = {m_hat:.6f}, s_hat = {s_hat:.6f}")
-        print(f"  x = {x:.6f}, f(x) = {x**2:.6f}")
+        print(f"Initial: x = {x:.6f}, f(x) = {x**2:.6f}")
         print()
-    return
 
+        for t in range(1, 4):
+            g = 2 * x  # gradient of x^2
+            m = beta1 * m + (1 - beta1) * g
+            s = beta2 * s + (1 - beta2) * g**2
+            m_hat = m / (1 - beta1**t)
+            s_hat = s / (1 - beta2**t)
+            x = x - alpha * m_hat / (np.sqrt(s_hat) + eps)
+
+            print(f"Step {t}:")
+            print(f"  gradient = {g:.6f}")
+            print(f"  m = {m:.6f}, s = {s:.6f}")
+            print(f"  m_hat = {m_hat:.6f}, s_hat = {s_hat:.6f}")
+            print(f"  x = {x:.6f}, f(x) = {x**2:.6f}")
+            print()
+
+
+    _run()
+    return
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1197,30 +1230,32 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    rng = np.random.default_rng(99)
-    N, d = 100, 3
-    X = rng.standard_normal((N, d))
-    theta_true = np.array([2.0, -1.0, 0.5])
-    y = X @ theta_true + 0.2 * rng.standard_normal(N)
+        rng = np.random.default_rng(99)
+        N, d = 100, 3
+        X = rng.standard_normal((N, d))
+        theta_true = np.array([2.0, -1.0, 0.5])
+        y = X @ theta_true + 0.2 * rng.standard_normal(N)
 
-    # TODO: implement gradient descent
-    theta = np.zeros(d)
-    lr = 0.01
-    for t in range(500):
-        # Compute gradient: grad = -(2/N) * X^T @ (y - X @ theta)
-        grad = ...  # FILL IN
-        theta = ...  # FILL IN: GD update
+        # TODO: implement gradient descent
+        theta = np.zeros(d)
+        lr = 0.01
+        for t in range(500):
+            # Compute gradient: grad = -(2/N) * X^T @ (y - X @ theta)
+            grad = ...  # FILL IN
+            theta = ...  # FILL IN: GD update
 
-    # Closed-form solution for comparison
-    theta_exact = np.linalg.solve(X.T @ X, X.T @ y)
+        # Closed-form solution for comparison
+        theta_exact = np.linalg.solve(X.T @ X, X.T @ y)
 
-    print(f"Your GD result:      {theta.round(4) if not isinstance(theta, type(...)) else 'NOT IMPLEMENTED'}")
-    print(f"Closed-form result:  {theta_exact.round(4)}")
-    print(f"True theta:          {theta_true}")
+        print(f"Your GD result:      {theta.round(4) if not isinstance(theta, type(...)) else 'NOT IMPLEMENTED'}")
+        print(f"Closed-form result:  {theta_exact.round(4)}")
+        print(f"True theta:          {theta_true}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1234,41 +1269,43 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    rng = np.random.default_rng(42)
-    N, d = 200, 3
-    X = rng.standard_normal((N, d))
-    theta_true = np.array([1.0, -2.0, 3.0])
-    y = X @ theta_true + 0.3 * rng.standard_normal(N)
+        rng = np.random.default_rng(42)
+        N, d = 200, 3
+        X = rng.standard_normal((N, d))
+        theta_true = np.array([1.0, -2.0, 3.0])
+        y = X @ theta_true + 0.3 * rng.standard_normal(N)
 
-    theta = np.zeros(d)
-    lr = 0.01
-    batch_size = 32
+        theta = np.zeros(d)
+        lr = 0.01
+        batch_size = 32
 
-    losses = []
-    for epoch in range(3):
-        # TODO: shuffle the data each epoch
-        perm = ...  # FILL IN: random permutation of indices
+        losses = []
+        for epoch in range(3):
+            # TODO: shuffle the data each epoch
+            perm = ...  # FILL IN: random permutation of indices
 
-        for start in range(0, N, batch_size):
-            # TODO: select mini-batch
-            idx = ...  # FILL IN: slice from perm
-            X_batch = ...  # FILL IN
-            y_batch = ...  # FILL IN
+            for start in range(0, N, batch_size):
+                # TODO: select mini-batch
+                idx = ...  # FILL IN: slice from perm
+                X_batch = ...  # FILL IN
+                y_batch = ...  # FILL IN
 
-            # TODO: compute mini-batch gradient and update
-            grad = ...  # FILL IN
-            theta = ...  # FILL IN
+                # TODO: compute mini-batch gradient and update
+                grad = ...  # FILL IN
+                theta = ...  # FILL IN
 
-            loss = np.mean((y - X @ theta) ** 2)
-            losses.append(loss)
+                loss = np.mean((y - X @ theta) ** 2)
+                losses.append(loss)
 
-    print(f"Final theta: {theta.round(4) if not isinstance(theta, type(...)) else 'NOT IMPLEMENTED'}")
-    print(f"True theta:  {theta_true}")
-    print(f"Final loss:  {losses[-1]:.4f}" if losses else "No losses recorded")
+        print(f"Final theta: {theta.round(4) if not isinstance(theta, type(...)) else 'NOT IMPLEMENTED'}")
+        print(f"True theta:  {theta_true}")
+        print(f"Final loss:  {losses[-1]:.4f}" if losses else "No losses recorded")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1282,38 +1319,40 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
+    def _run():
 
-    A = np.diag([1.0, 50.0])  # condition number = 50
-    x0 = np.array([10.0, 10.0])
-    lr = 0.01
-    beta = 0.9
-    n_steps = 200
+        A = np.diag([1.0, 50.0])  # condition number = 50
+        x0 = np.array([10.0, 10.0])
+        lr = 0.01
+        beta = 0.9
+        n_steps = 200
 
-    # Vanilla GD
-    x_gd = x0.copy()
-    losses_gd = []
-    for _ in range(n_steps):
-        g = A @ x_gd
-        x_gd = x_gd - lr * g
-        losses_gd.append(0.5 * x_gd @ A @ x_gd)
+        # Vanilla GD
+        x_gd = x0.copy()
+        losses_gd = []
+        for _ in range(n_steps):
+            g = A @ x_gd
+            x_gd = x_gd - lr * g
+            losses_gd.append(0.5 * x_gd @ A @ x_gd)
 
-    # TODO: GD with momentum
-    x_mom = x0.copy()
-    v = np.zeros(2)  # velocity
-    losses_mom = []
-    for _ in range(n_steps):
-        g = A @ x_mom
-        # TODO: update velocity and parameters
-        v = ...  # FILL IN: v = beta * v + g
-        x_mom = ...  # FILL IN: x = x - lr * v
-        losses_mom.append(0.5 * x_mom @ A @ x_mom)
+        # TODO: GD with momentum
+        x_mom = x0.copy()
+        v = np.zeros(2)  # velocity
+        losses_mom = []
+        for _ in range(n_steps):
+            g = A @ x_mom
+            # TODO: update velocity and parameters
+            v = ...  # FILL IN: v = beta * v + g
+            x_mom = ...  # FILL IN: x = x - lr * v
+            losses_mom.append(0.5 * x_mom @ A @ x_mom)
 
-    print(f"After {n_steps} steps:")
-    print(f"  Vanilla GD loss:  {losses_gd[-1]:.6f}")
-    print(f"  Momentum loss:    {losses_mom[-1]:.6f}" if not isinstance(v, type(...)) else "  Momentum: NOT IMPLEMENTED")
+        print(f"After {n_steps} steps:")
+        print(f"  Vanilla GD loss:  {losses_gd[-1]:.6f}")
+        print(f"  Momentum loss:    {losses_mom[-1]:.6f}" if not isinstance(v, type(...)) else "  Momentum: NOT IMPLEMENTED")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1327,7 +1366,6 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
 
     def rosenbrock(x):
         """f(x,y) = (1-x)^2 + 100*(y-x^2)^2. Minimum at (1,1)."""
@@ -1373,51 +1411,52 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
+    def _run():
 
-    A = np.diag([1.0, 5.0, 25.0, 50.0, 100.0])
-    x0 = np.ones(5) * 10.0
-    n_steps = 300
+        A = np.diag([1.0, 5.0, 25.0, 50.0, 100.0])
+        x0 = np.ones(5) * 10.0
+        n_steps = 300
 
-    def run_all_optimizers(A, x0, n_steps):
-        results = {}
-        d = len(x0)
+        def run_all_optimizers(A, x0, n_steps):
+            results = {}
+            d = len(x0)
 
-        # --- Vanilla GD ---
-        x = x0.copy()
-        L = np.max(np.diag(A))
-        lr_gd = 1.0 / L
-        losses = []
-        for _ in range(n_steps):
-            x = x - lr_gd * (A @ x)
-            losses.append(0.5 * x @ A @ x)
-        results["GD"] = losses
+            # --- Vanilla GD ---
+            x = x0.copy()
+            L = np.max(np.diag(A))
+            lr_gd = 1.0 / L
+            losses = []
+            for _ in range(n_steps):
+                x = x - lr_gd * (A @ x)
+                losses.append(0.5 * x @ A @ x)
+            results["GD"] = losses
 
-        # --- Momentum ---
-        # TODO: implement and collect losses
-        # results["Momentum"] = losses
+            # --- Momentum ---
+            # TODO: implement and collect losses
+            # results["Momentum"] = losses
 
-        # --- Adam ---
-        # TODO: implement and collect losses
-        # results["Adam"] = losses
+            # --- Adam ---
+            # TODO: implement and collect losses
+            # results["Adam"] = losses
 
-        return results
+            return results
 
-    results = run_all_optimizers(A, x0, n_steps)
+        results = run_all_optimizers(A, x0, n_steps)
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    for name, losses in results.items():
-        ax.semilogy(losses, label=name)
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Loss (log scale)")
-    ax.set_title("Optimizer Showdown on ill-conditioned quadratic")
-    ax.legend()
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-    fig
+        fig, ax = plt.subplots(figsize=(8, 5))
+        for name, losses in results.items():
+            ax.semilogy(losses, label=name)
+        ax.set_xlabel("Step")
+        ax.set_ylabel("Loss (log scale)")
+        ax.set_title("Optimizer Showdown on ill-conditioned quadratic")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):

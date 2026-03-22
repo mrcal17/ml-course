@@ -366,34 +366,37 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # --- Masked Language Modeling (MLM): the BERT pre-training objective ---
-    sentence_tokens = ["the", "cat", "sat", "on", "the", "mat"]
-    mask_prob = 0.15  # BERT masks ~15% of tokens
+    def _run():
+        # --- Masked Language Modeling (MLM): the BERT pre-training objective ---
+        sentence_tokens = ["the", "cat", "sat", "on", "the", "mat"]
+        mask_prob = 0.15  # BERT masks ~15% of tokens
 
-    rng = np.random.default_rng(7)
-    masked = sentence_tokens.copy()
-    masked_positions = []
-    for i in range(len(masked)):
-        if rng.random() < mask_prob or i == 2:  # force at least one mask
-            masked[i] = "[MASK]"
-            masked_positions.append(i)
+        rng = np.random.default_rng(7)
+        masked = sentence_tokens.copy()
+        masked_positions = []
+        for i in range(len(masked)):
+            if rng.random() < mask_prob or i == 2:  # force at least one mask
+                masked[i] = "[MASK]"
+                masked_positions.append(i)
 
-    # Simulate model output: probability distribution over small vocab
-    small_vocab = ["the", "cat", "sat", "on", "mat", "dog", "ran"]
-    fake_logits = rng.standard_normal((len(masked_positions)), len(small_vocab))
-    # Make correct answer have highest logit (pretend model is good)
-    for idx, pos in enumerate(masked_positions):
-        correct_word = sentence_tokens[pos]
-        fake_logits[idx, small_vocab.index(correct_word)] += 3.0
+        # Simulate model output: probability distribution over small vocab
+        small_vocab = ["the", "cat", "sat", "on", "mat", "dog", "ran"]
+        fake_logits = rng.standard_normal((len(masked_positions)), len(small_vocab))
+        # Make correct answer have highest logit (pretend model is good)
+        for idx, pos in enumerate(masked_positions):
+            correct_word = sentence_tokens[pos]
+            fake_logits[idx, small_vocab.index(correct_word)] += 3.0
 
-    probs = np.exp(fake_logits) / np.exp(fake_logits).sum(axis=1, keepdims=True)
-    print(f"Original:  {sentence_tokens}")
-    print(f"Masked:    {masked}")
-    for idx, pos in enumerate(masked_positions):
-        pred = small_vocab[np.argmax(probs[idx])]
-        print(f"  Position {pos}: predicted '{pred}' (correct: '{sentence_tokens[pos]}')")
+        probs = np.exp(fake_logits) / np.exp(fake_logits).sum(axis=1, keepdims=True)
+        print(f"Original:  {sentence_tokens}")
+        print(f"Masked:    {masked}")
+        for idx, pos in enumerate(masked_positions):
+            pred = small_vocab[np.argmax(probs[idx])]
+            print(f"  Position {pos}: predicted '{pred}' (correct: '{sentence_tokens[pos]}')")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -478,25 +481,28 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # --- Bag-of-words text classification (sentiment) ---
-    # Positive/negative word lists as a simple baseline
-    positive_words = {"good", "great", "love", "excellent", "wonderful", "best", "amazing"}
-    negative_words = {"bad", "terrible", "hate", "awful", "worst", "boring", "poor"}
+    def _run():
+        # --- Bag-of-words text classification (sentiment) ---
+        # Positive/negative word lists as a simple baseline
+        positive_words = {"good", "great", "love", "excellent", "wonderful", "best", "amazing"}
+        negative_words = {"bad", "terrible", "hate", "awful", "worst", "boring", "poor"}
 
-    reviews = [
-        "this movie was great and wonderful",
-        "terrible film awful acting worst ever",
-        "good story but bad ending",
-    ]
+        reviews = [
+            "this movie was great and wonderful",
+            "terrible film awful acting worst ever",
+            "good story but bad ending",
+        ]
 
-    for review in reviews:
-        words = set(review.lower().split())
-        pos_score = len(words & positive_words)
-        neg_score = len(words & negative_words)
-        label = "POSITIVE" if pos_score > neg_score else ("NEGATIVE" if neg_score > pos_score else "MIXED")
-        print(f"'{review}' -> +{pos_score}/-{neg_score} -> {label}")
+        for review in reviews:
+            words = set(review.lower().split())
+            pos_score = len(words & positive_words)
+            neg_score = len(words & negative_words)
+            label = "POSITIVE" if pos_score > neg_score else ("NEGATIVE" if neg_score > pos_score else "MIXED")
+            print(f"'{review}' -> +{pos_score}/-{neg_score} -> {label}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -525,36 +531,39 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # --- Minimal RAG: embed, index, retrieve with cosine similarity ---
-    # Fake embeddings (in practice you'd use a real embedding model)
-    rng = np.random.default_rng(99)
-    knowledge_base = [
-        "Python was created by Guido van Rossum in 1991.",
-        "The Eiffel Tower is 330 meters tall.",
-        "Transformers were introduced in the 2017 paper Attention Is All You Need.",
-        "Water boils at 100 degrees Celsius at sea level.",
-    ]
-    # Simulate embeddings (dim=16)
-    doc_embeddings = rng.standard_normal((len(knowledge_base)), 16)
-    # Normalize for cosine similarity
-    doc_embeddings = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
+    def _run():
+        # --- Minimal RAG: embed, index, retrieve with cosine similarity ---
+        # Fake embeddings (in practice you'd use a real embedding model)
+        rng = np.random.default_rng(99)
+        knowledge_base = [
+            "Python was created by Guido van Rossum in 1991.",
+            "The Eiffel Tower is 330 meters tall.",
+            "Transformers were introduced in the 2017 paper Attention Is All You Need.",
+            "Water boils at 100 degrees Celsius at sea level.",
+        ]
+        # Simulate embeddings (dim=16)
+        doc_embeddings = rng.standard_normal((len(knowledge_base)), 16)
+        # Normalize for cosine similarity
+        doc_embeddings = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
 
-    # Query embedding (simulated — biased toward doc 2)
-    query = "What paper introduced transformers?"
-    query_emb = doc_embeddings[2] + rng.standard_normal(16) * 0.3
-    query_emb = query_emb / np.linalg.norm(query_emb)
+        # Query embedding (simulated — biased toward doc 2)
+        query = "What paper introduced transformers?"
+        query_emb = doc_embeddings[2] + rng.standard_normal(16) * 0.3
+        query_emb = query_emb / np.linalg.norm(query_emb)
 
-    # Retrieve: cosine similarity = dot product (since normalized)
-    similarities = doc_embeddings @ query_emb
-    top_k = 2
-    top_indices = np.argsort(similarities)[::-1][:top_k]
+        # Retrieve: cosine similarity = dot product (since normalized)
+        similarities = doc_embeddings @ query_emb
+        top_k = 2
+        top_indices = np.argsort(similarities)[::-1][:top_k]
 
-    print(f"Query: '{query}'")
-    print(f"\nTop-{top_k} retrieved documents:")
-    for idx in top_indices:
-        print(f"  [{similarities[idx]:.3f}] {knowledge_base[idx]}")
+        print(f"Query: '{query}'")
+        print(f"\nTop-{top_k} retrieved documents:")
+        for idx in top_indices:
+            print(f"  [{similarities[idx]:.3f}] {knowledge_base[idx]}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

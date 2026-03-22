@@ -293,40 +293,43 @@ def _(mo):
 
 @app.cell
 def _(PCA, X_scaled_digits, load_digits, np, pca_slider, plt):
-    # PCA with selected number of components
-    pca_k = PCA(n_components=pca_slider.value)
-    X_reduced = pca_k.fit_transform(X_scaled_digits)
-    X_reconstructed = pca_k.inverse_transform(X_reduced)
+    def _run():
+        # PCA with selected number of components
+        pca_k = PCA(n_components=pca_slider.value)
+        X_reduced = pca_k.fit_transform(X_scaled_digits)
+        X_reconstructed = pca_k.inverse_transform(X_reduced)
 
-    total_var = pca_k.explained_variance_ratio_.sum()
+        total_var = pca_k.explained_variance_ratio_.sum()
 
-    fig, axes = plt.subplots(2, 5, figsize=(12, 5))
-    fig.suptitle(f"PCA with {pca_slider.value} components — {total_var*100:.1f}% variance explained\n"
-                 f"Top: Original | Bottom: Reconstructed", fontsize=12)
+        fig, axes = plt.subplots(2, 5, figsize=(12, 5))
+        fig.suptitle(f"PCA with {pca_slider.value} components — {total_var*100:.1f}% variance explained\n"
+                     f"Top: Original | Bottom: Reconstructed", fontsize=12)
 
-    digits_data = load_digits()
-    # Show 5 sample digits
-    indices = [0, 100, 200, 500, 1000]
-    scaler_mean = X_scaled_digits.mean(axis=0)
-    scaler_std = X_scaled_digits.std(axis=0)
+        digits_data = load_digits()
+        # Show 5 sample digits
+        indices = [0, 100, 200, 500, 1000]
+        scaler_mean = X_scaled_digits.mean(axis=0)
+        scaler_std = X_scaled_digits.std(axis=0)
 
-    for i, idx in enumerate(indices):
-        axes[0, i].imshow(digits_data.images[idx], cmap='gray')
-        axes[0, i].axis('off')
-        axes[0, i].set_title(f"Label: {digits_data.target[idx]}")
+        for i, idx in enumerate(indices):
+            axes[0, i].imshow(digits_data.images[idx], cmap='gray')
+            axes[0, i].axis('off')
+            axes[0, i].set_title(f"Label: {digits_data.target[idx]}")
 
-        # Reconstruct (undo standardization for display)
-        recon = X_reconstructed[idx] * scaler_std + scaler_mean
-        recon_img = recon.reshape(8, 8)
-        axes[1, i].imshow(recon_img, cmap='gray')
-        axes[1, i].axis('off')
-        mse = np.mean((digits_data.data[idx] - recon) ** 2)
-        axes[1, i].set_title(f"MSE: {mse:.1f}")
+            # Reconstruct (undo standardization for display)
+            recon = X_reconstructed[idx] * scaler_std + scaler_mean
+            recon_img = recon.reshape(8, 8)
+            axes[1, i].imshow(recon_img, cmap='gray')
+            axes[1, i].axis('off')
+            mse = np.mean((digits_data.data[idx] - recon) ** 2)
+            axes[1, i].set_title(f"MSE: {mse:.1f}")
 
-    plt.tight_layout()
-    fig
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -399,22 +402,25 @@ def _(np):
 
 @app.cell
 def _(kmeans_scratch, make_blobs, np, plt):
-    # Run our from-scratch K-Means on synthetic data
-    X_ks, y_ks_true = make_blobs(n_samples=200, centers=3, cluster_std=1.0, random_state=0)
+    def _run():
+        # Run our from-scratch K-Means on synthetic data
+        X_ks, y_ks_true = make_blobs(n_samples=200, centers=3, cluster_std=1.0, random_state=0)
 
-    labels_ks, centroids_ks, inertia_ks, iters_ks = kmeans_scratch(X_ks, K=3)
+        labels_ks, centroids_ks, inertia_ks, iters_ks = kmeans_scratch(X_ks, K=3)
 
-    fig_ks, ax_ks = plt.subplots(figsize=(6, 5))
-    for c in range(3):
-        mask = labels_ks == c
-        ax_ks.scatter(X_ks[mask, 0], X_ks[mask, 1], s=20, alpha=0.7, label=f"Cluster {c}")
-    ax_ks.scatter(centroids_ks[:, 0], centroids_ks[:, 1], c='black', marker='X',
-                  s=200, edgecolors='white', linewidths=2, label='Centroids')
-    ax_ks.set_title(f"K-Means from scratch | Inertia={inertia_ks:.1f} | {iters_ks} iterations")
-    ax_ks.legend(fontsize=8)
-    fig_ks
+        fig_ks, ax_ks = plt.subplots(figsize=(6, 5))
+        for c in range(3):
+            mask = labels_ks == c
+            ax_ks.scatter(X_ks[mask, 0], X_ks[mask, 1], s=20, alpha=0.7, label=f"Cluster {c}")
+        ax_ks.scatter(centroids_ks[:, 0], centroids_ks[:, 1], c='black', marker='X',
+                      s=200, edgecolors='white', linewidths=2, label='Centroids')
+        ax_ks.set_title(f"K-Means from scratch | Inertia={inertia_ks:.1f} | {iters_ks} iterations")
+        ax_ks.legend(fontsize=8)
+        fig_ks
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -445,32 +451,35 @@ def _(mo):
 
 @app.cell
 def _(kmeans_scratch, make_blobs, np, plt):
-    # Silhouette score from scratch for one K value
-    X_sil, _ = make_blobs(n_samples=150, centers=3, cluster_std=1.0, random_state=42)
-    labels_sil, _, _, _ = kmeans_scratch(X_sil, K=3, seed=42)
+    def _run():
+        # Silhouette score from scratch for one K value
+        X_sil, _ = make_blobs(n_samples=150, centers=3, cluster_std=1.0, random_state=42)
+        labels_sil, _, _, _ = kmeans_scratch(X_sil, K=3, seed=42)
 
-    def silhouette_scratch(X, labels):
-        """Compute mean silhouette score: s(i) = (b(i) - a(i)) / max(a(i), b(i))"""
-        n = len(X)
-        sil_vals = np.zeros(n)
-        for i in range(n):
-            # a(i): mean distance to same-cluster points
-            same = labels == labels[i]
-            same[i] = False
-            a_i = np.mean(np.linalg.norm(X[same] - X[i], axis=1)) if same.sum() > 0 else 0
-            # b(i): min over other clusters of mean distance
-            b_i = np.inf
-            for k in set(labels):
-                if k == labels[i]:
-                    continue
-                other = labels == k
-                b_i = min(b_i, np.mean(np.linalg.norm(X[other] - X[i], axis=1)))
-            sil_vals[i] = (b_i - a_i) / max(a_i, b_i) if max(a_i, b_i) > 0 else 0
-        return np.mean(sil_vals)
+        def silhouette_scratch(X, labels):
+            """Compute mean silhouette score: s(i) = (b(i) - a(i)) / max(a(i), b(i))"""
+            n = len(X)
+            sil_vals = np.zeros(n)
+            for i in range(n):
+                # a(i): mean distance to same-cluster points
+                same = labels == labels[i]
+                same[i] = False
+                a_i = np.mean(np.linalg.norm(X[same] - X[i], axis=1)) if same.sum() > 0 else 0
+                # b(i): min over other clusters of mean distance
+                b_i = np.inf
+                for k in set(labels):
+                    if k == labels[i]:
+                        continue
+                    other = labels == k
+                    b_i = min(b_i, np.mean(np.linalg.norm(X[other] - X[i], axis=1)))
+                sil_vals[i] = (b_i - a_i) / max(a_i, b_i) if max(a_i, b_i) > 0 else 0
+            return np.mean(sil_vals)
 
-    print(f"Silhouette score (from scratch): {silhouette_scratch(X_sil, labels_sil):.3f}")
+        print(f"Silhouette score (from scratch): {silhouette_scratch(X_sil, labels_sil):.3f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -491,58 +500,61 @@ def _(mo):
 
 @app.cell
 def _(KMeans, k_slider, make_blobs, np, plt, silhouette_score):
-    # Generate synthetic data with known structure
-    X_km, y_km_true = make_blobs(
-        n_samples=300, centers=4, cluster_std=1.0, random_state=42
-    )
+    def _run():
+        # Generate synthetic data with known structure
+        X_km, y_km_true = make_blobs(
+            n_samples=300, centers=4, cluster_std=1.0, random_state=42
+        )
 
-    # Run K-means with selected K
-    km = KMeans(n_clusters=k_slider.value, init='k-means++', n_init=10, random_state=42)
-    labels_km = km.fit_predict(X_km)
-    centroids = km.cluster_centers_
+        # Run K-means with selected K
+        km = KMeans(n_clusters=k_slider.value, init='k-means++', n_init=10, random_state=42)
+        labels_km = km.fit_predict(X_km)
+        centroids = km.cluster_centers_
 
-    sil_score = silhouette_score(X_km, labels_km)
+        sil_score = silhouette_score(X_km, labels_km)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
-    # Cluster plot
-    for c in range(k_slider.value):
-        mask = labels_km == c
-        ax1.scatter(X_km[mask, 0], X_km[mask, 1], s=20, alpha=0.7, label=f'Cluster {c}')
-    ax1.scatter(centroids[:, 0], centroids[:, 1], c='black', marker='X', s=200,
-                edgecolors='white', linewidths=2, label='Centroids')
-    ax1.set_title(f"K-Means with k={k_slider.value}\n"
-                  f"Silhouette: {sil_score:.3f} | Inertia: {km.inertia_:.0f}")
-    ax1.legend(fontsize=8)
-    ax1.set_xlabel("$x_1$")
-    ax1.set_ylabel("$x_2$")
+        # Cluster plot
+        for c in range(k_slider.value):
+            mask = labels_km == c
+            ax1.scatter(X_km[mask, 0], X_km[mask, 1], s=20, alpha=0.7, label=f'Cluster {c}')
+        ax1.scatter(centroids[:, 0], centroids[:, 1], c='black', marker='X', s=200,
+                    edgecolors='white', linewidths=2, label='Centroids')
+        ax1.set_title(f"K-Means with k={k_slider.value}\n"
+                      f"Silhouette: {sil_score:.3f} | Inertia: {km.inertia_:.0f}")
+        ax1.legend(fontsize=8)
+        ax1.set_xlabel("$x_1$")
+        ax1.set_ylabel("$x_2$")
 
-    # Elbow + Silhouette across K values
-    K_range = range(2, 11)
-    inertias = []
-    silhouettes = []
-    for k_val in K_range:
-        km_temp = KMeans(n_clusters=k_val, init='k-means++', n_init=10, random_state=42)
-        labs = km_temp.fit_predict(X_km)
-        inertias.append(km_temp.inertia_)
-        silhouettes.append(silhouette_score(X_km, labs))
+        # Elbow + Silhouette across K values
+        K_range = range(2, 11)
+        inertias = []
+        silhouettes = []
+        for k_val in K_range:
+            km_temp = KMeans(n_clusters=k_val, init='k-means++', n_init=10, random_state=42)
+            labs = km_temp.fit_predict(X_km)
+            inertias.append(km_temp.inertia_)
+            silhouettes.append(silhouette_score(X_km, labs))
 
-    ax2_twin = ax2.twinx()
-    l1 = ax2.plot(list(K_range), inertias, 'bo-', label='Inertia')
-    l2 = ax2_twin.plot(list(K_range), silhouettes, 'rs-', label='Silhouette')
-    ax2.axvline(x=k_slider.value, color='green', linestyle='--', alpha=0.5, label=f'Current k={k_slider.value}')
-    ax2.set_xlabel('K')
-    ax2.set_ylabel('Inertia', color='b')
-    ax2_twin.set_ylabel('Silhouette Score', color='r')
-    ax2.set_title('Elbow & Silhouette Analysis')
-    lines = l1 + l2
-    labels_legend = [l.get_label() for l in lines]
-    ax2.legend(lines, labels_legend, fontsize=8)
+        ax2_twin = ax2.twinx()
+        l1 = ax2.plot(list(K_range), inertias, 'bo-', label='Inertia')
+        l2 = ax2_twin.plot(list(K_range), silhouettes, 'rs-', label='Silhouette')
+        ax2.axvline(x=k_slider.value, color='green', linestyle='--', alpha=0.5, label=f'Current k={k_slider.value}')
+        ax2.set_xlabel('K')
+        ax2.set_ylabel('Inertia', color='b')
+        ax2_twin.set_ylabel('Silhouette Score', color='r')
+        ax2.set_title('Elbow & Silhouette Analysis')
+        lines = l1 + l2
+        labels_legend = [l.get_label() for l in lines]
+        ax2.legend(lines, labels_legend, fontsize=8)
 
-    plt.tight_layout()
-    fig
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -585,23 +597,26 @@ def _(mo):
 
 @app.cell
 def _(make_blobs, plt):
-    from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
+    def _run():
+        from scipy.cluster.hierarchy import dendrogram, linkage, fcluster
 
-    X_hc, _ = make_blobs(n_samples=50, centers=3, cluster_std=1.0, random_state=42)
+        X_hc, _ = make_blobs(n_samples=50, centers=3, cluster_std=1.0, random_state=42)
 
-    # Compute linkage matrix (Ward's method)
-    Z = linkage(X_hc, method='ward')
+        # Compute linkage matrix (Ward's method)
+        Z = linkage(X_hc, method='ward')
 
-    # Plot dendrogram
-    fig, ax = plt.subplots(figsize=(12, 5))
-    dendrogram(Z, truncate_mode='lastp', p=30, leaf_rotation=90, ax=ax)
-    ax.set_xlabel('Cluster Size')
-    ax.set_ylabel('Distance')
-    ax.set_title("Hierarchical Clustering Dendrogram (Ward's Linkage)")
-    plt.tight_layout()
-    fig
+        # Plot dendrogram
+        fig, ax = plt.subplots(figsize=(12, 5))
+        dendrogram(Z, truncate_mode='lastp', p=30, leaf_rotation=90, ax=ax)
+        ax.set_xlabel('Cluster Size')
+        ax.set_ylabel('Distance')
+        ax.set_title("Hierarchical Clustering Dendrogram (Ward's Linkage)")
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -702,21 +717,24 @@ def _(gaussian_pdf, np):
 
 @app.cell
 def _(em_gmm, make_blobs, plt):
-    # Test our EM-GMM on synthetic data
-    X_em_test, _ = make_blobs(n_samples=300, centers=3, cluster_std=0.8, random_state=0)
-    mus_fit, Sigmas_fit, pis_fit, resp_fit, labels_em_fit = em_gmm(X_em_test, K=3)
+    def _run():
+        # Test our EM-GMM on synthetic data
+        X_em_test, _ = make_blobs(n_samples=300, centers=3, cluster_std=0.8, random_state=0)
+        mus_fit, Sigmas_fit, pis_fit, resp_fit, labels_em_fit = em_gmm(X_em_test, K=3)
 
-    print("Recovered mixing weights:", pis_fit.round(3))
-    print("Recovered means:\n", mus_fit.round(2))
+        print("Recovered mixing weights:", pis_fit.round(3))
+        print("Recovered means:\n", mus_fit.round(2))
 
-    fig_em, ax_em = plt.subplots(figsize=(6, 5))
-    ax_em.scatter(X_em_test[:, 0], X_em_test[:, 1], c=labels_em_fit, cmap='viridis', s=15, alpha=0.6)
-    ax_em.scatter(mus_fit[:, 0], mus_fit[:, 1], c='red', marker='*', s=300, edgecolors='black', label='Fitted means')
-    ax_em.set_title("EM-GMM from scratch")
-    ax_em.legend()
-    fig_em
+        fig_em, ax_em = plt.subplots(figsize=(6, 5))
+        ax_em.scatter(X_em_test[:, 0], X_em_test[:, 1], c=labels_em_fit, cmap='viridis', s=15, alpha=0.6)
+        ax_em.scatter(mus_fit[:, 0], mus_fit[:, 1], c='red', marker='*', s=300, edgecolors='black', label='Fitted means')
+        ax_em.set_title("EM-GMM from scratch")
+        ax_em.legend()
+        fig_em
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -750,50 +768,53 @@ def _(mo):
 
 @app.cell
 def _(StandardScaler, make_blobs, np, plt):
-    from sklearn.mixture import GaussianMixture
+    def _run():
+        from sklearn.mixture import GaussianMixture
 
-    X_gmm, _ = make_blobs(n_samples=300, centers=4, cluster_std=1.0, random_state=42)
-    X_gmm_scaled = StandardScaler().fit_transform(X_gmm)
+        X_gmm, _ = make_blobs(n_samples=300, centers=4, cluster_std=1.0, random_state=42)
+        X_gmm_scaled = StandardScaler().fit_transform(X_gmm)
 
-    # Fit GMMs with different numbers of components
-    bics = []
-    K_range = range(1, 11)
-    for k in K_range:
-        gmm = GaussianMixture(n_components=k, covariance_type='full',
-                               n_init=5, random_state=42)
-        gmm.fit(X_gmm_scaled)
-        bics.append(gmm.bic(X_gmm_scaled))
+        # Fit GMMs with different numbers of components
+        bics = []
+        K_range = range(1, 11)
+        for k in K_range:
+            gmm = GaussianMixture(n_components=k, covariance_type='full',
+                                   n_init=5, random_state=42)
+            gmm.fit(X_gmm_scaled)
+            bics.append(gmm.bic(X_gmm_scaled))
 
-    best_k = list(K_range)[np.argmin(bics)]
+        best_k = list(K_range)[np.argmin(bics)]
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
 
-    ax1.plot(list(K_range), bics, 'o-')
-    ax1.axvline(x=best_k, color='r', linestyle='--', label=f'Best K={best_k}')
-    ax1.set_xlabel('Number of Components')
-    ax1.set_ylabel('BIC')
-    ax1.set_title('BIC for GMM Model Selection')
-    ax1.legend()
+        ax1.plot(list(K_range), bics, 'o-')
+        ax1.axvline(x=best_k, color='r', linestyle='--', label=f'Best K={best_k}')
+        ax1.set_xlabel('Number of Components')
+        ax1.set_ylabel('BIC')
+        ax1.set_title('BIC for GMM Model Selection')
+        ax1.legend()
 
-    # Fit the best model
-    gmm_best = GaussianMixture(n_components=best_k, covariance_type='full',
-                                n_init=5, random_state=42)
-    gmm_best.fit(X_gmm_scaled)
-    labels_gmm = gmm_best.predict(X_gmm_scaled)
-    responsibilities = gmm_best.predict_proba(X_gmm_scaled)
+        # Fit the best model
+        gmm_best = GaussianMixture(n_components=best_k, covariance_type='full',
+                                    n_init=5, random_state=42)
+        gmm_best.fit(X_gmm_scaled)
+        labels_gmm = gmm_best.predict(X_gmm_scaled)
+        responsibilities = gmm_best.predict_proba(X_gmm_scaled)
 
-    for c in range(best_k):
-        mask = labels_gmm == c
-        ax2.scatter(X_gmm_scaled[mask, 0], X_gmm_scaled[mask, 1], s=20, alpha=0.7, label=f'Component {c}')
-    ax2.set_title(f'GMM Clustering (K={best_k})')
-    ax2.legend(fontsize=8)
-    ax2.set_xlabel("$x_1$")
-    ax2.set_ylabel("$x_2$")
+        for c in range(best_k):
+            mask = labels_gmm == c
+            ax2.scatter(X_gmm_scaled[mask, 0], X_gmm_scaled[mask, 1], s=20, alpha=0.7, label=f'Component {c}')
+        ax2.set_title(f'GMM Clustering (K={best_k})')
+        ax2.legend(fontsize=8)
+        ax2.set_xlabel("$x_1$")
+        ax2.set_ylabel("$x_2$")
 
-    plt.tight_layout()
-    fig
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -850,35 +871,38 @@ def _(mo):
 
 @app.cell
 def _(PCA, StandardScaler, load_digits, plt):
-    from sklearn.manifold import TSNE
+    def _run():
+        from sklearn.manifold import TSNE
 
-    digits_tsne = load_digits()
-    X_tsne = StandardScaler().fit_transform(digits_tsne.data)
+        digits_tsne = load_digits()
+        X_tsne = StandardScaler().fit_transform(digits_tsne.data)
 
-    # Reduce dimensions with PCA first (speeds up t-SNE significantly)
-    pca_50 = PCA(n_components=50)
-    X_pca50 = pca_50.fit_transform(X_tsne)
+        # Reduce dimensions with PCA first (speeds up t-SNE significantly)
+        pca_50 = PCA(n_components=50)
+        X_pca50 = pca_50.fit_transform(X_tsne)
 
-    # t-SNE
-    tsne = TSNE(n_components=2, perplexity=30, n_iter=1000, random_state=42)
-    X_tsne_2d = tsne.fit_transform(X_pca50)
+        # t-SNE
+        tsne = TSNE(n_components=2, perplexity=30, n_iter=1000, random_state=42)
+        X_tsne_2d = tsne.fit_transform(X_pca50)
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    scatter = ax.scatter(X_tsne_2d[:, 0], X_tsne_2d[:, 1],
-                         c=digits_tsne.target, cmap='tab10', s=5, alpha=0.7)
-    ax.set_title('t-SNE Visualization of Handwritten Digits')
-    ax.set_xlabel('t-SNE 1')
-    ax.set_ylabel('t-SNE 2')
-    plt.colorbar(scatter, ax=ax, label='Digit')
-    plt.tight_layout()
-    fig
+        fig, ax = plt.subplots(figsize=(8, 6))
+        scatter = ax.scatter(X_tsne_2d[:, 0], X_tsne_2d[:, 1],
+                             c=digits_tsne.target, cmap='tab10', s=5, alpha=0.7)
+        ax.set_title('t-SNE Visualization of Handwritten Digits')
+        ax.set_xlabel('t-SNE 1')
+        ax.set_ylabel('t-SNE 2')
+        plt.colorbar(scatter, ax=ax, label='Digit')
+        plt.tight_layout()
+        fig
 
-    # UMAP (requires: pip install umap-learn)
-    # import umap
-    # reducer = umap.UMAP(n_components=2, n_neighbors=15, min_dist=0.1)
-    # X_umap = reducer.fit_transform(X_pca50)
+        # UMAP (requires: pip install umap-learn)
+        # import umap
+        # reducer = umap.UMAP(n_components=2, n_neighbors=15, min_dist=0.1)
+        # X_umap = reducer.fit_transform(X_pca50)
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -910,78 +934,84 @@ def _(mo):
 
 @app.cell
 def _(gaussian_pdf, np):
-    # Anomaly detection via GMM density — from scratch
-    # Compute p(x) = sum_k pi_k * N(x|mu_k, Sigma_k), flag low-density points
-    rng_anom = np.random.default_rng(0)
-    X_normal = rng_anom.randn(200, 2)  # normal data
-    X_anom_pts = rng_anom.uniform(-5, 5, size=(10, 2))  # outliers
-    X_all = np.vstack([X_normal, X_anom_pts])
+    def _run():
+        # Anomaly detection via GMM density — from scratch
+        # Compute p(x) = sum_k pi_k * N(x|mu_k, Sigma_k), flag low-density points
+        rng_anom = np.random.default_rng(0)
+        X_normal = rng_anom.randn(200, 2)  # normal data
+        X_anom_pts = rng_anom.uniform(-5, 5, size=(10, 2))  # outliers
+        X_all = np.vstack([X_normal, X_anom_pts])
 
-    # Fit a single Gaussian (simplest density model)
-    mu_fit = X_all.mean(axis=0)
-    Sigma_fit = np.cov(X_all.T)
-    densities = gaussian_pdf(X_all, mu_fit, Sigma_fit)
+        # Fit a single Gaussian (simplest density model)
+        mu_fit = X_all.mean(axis=0)
+        Sigma_fit = np.cov(X_all.T)
+        densities = gaussian_pdf(X_all, mu_fit, Sigma_fit)
 
-    # Flag bottom 5% as anomalies
-    threshold_pct = np.percentile(densities, 5)
-    is_anomaly = densities < threshold_pct
-    print(f"Threshold density: {threshold_pct:.6f}")
-    print(f"Anomalies detected: {is_anomaly.sum()} / {len(X_all)}")
+        # Flag bottom 5% as anomalies
+        threshold_pct = np.percentile(densities, 5)
+        is_anomaly = densities < threshold_pct
+        print(f"Threshold density: {threshold_pct:.6f}")
+        print(f"Anomalies detected: {is_anomaly.sum()} / {len(X_all)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(StandardScaler, make_blobs, np, plt):
-    from sklearn.ensemble import IsolationForest
-    from sklearn.mixture import GaussianMixture as GM_anom
+    def _run():
+        from sklearn.ensemble import IsolationForest
+        from sklearn.mixture import GaussianMixture as GM_anom
 
-    # Create data with some outliers
-    X_anom, _ = make_blobs(n_samples=280, centers=3, cluster_std=0.8, random_state=42)
-    rng = np.random.default_rng(42)
-    X_outliers = rng.uniform(low=-10, high=10, size=(20, 2))
-    X_anom_full = np.vstack([X_anom, X_outliers])
-    X_anom_scaled = StandardScaler().fit_transform(X_anom_full)
+        # Create data with some outliers
+        X_anom, _ = make_blobs(n_samples=280, centers=3, cluster_std=0.8, random_state=42)
+        rng = np.random.default_rng(42)
+        X_outliers = rng.uniform(low=-10, high=10, size=(20, 2))
+        X_anom_full = np.vstack([X_anom, X_outliers])
+        X_anom_scaled = StandardScaler().fit_transform(X_anom_full)
 
-    # Fit Isolation Forest
-    iso = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
-    anomaly_labels = iso.fit_predict(X_anom_scaled)  # -1 for anomalies, 1 for normal
+        # Fit Isolation Forest
+        iso = IsolationForest(n_estimators=100, contamination=0.05, random_state=42)
+        anomaly_labels = iso.fit_predict(X_anom_scaled)  # -1 for anomalies, 1 for normal
 
-    # Anomaly scores (lower = more anomalous)
-    scores = iso.decision_function(X_anom_scaled)
+        # Anomaly scores (lower = more anomalous)
+        scores = iso.decision_function(X_anom_scaled)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
-    # Isolation Forest results
-    normal = anomaly_labels == 1
-    anomalous = anomaly_labels == -1
-    ax1.scatter(X_anom_full[normal, 0], X_anom_full[normal, 1], c='blue', s=20, alpha=0.5, label='Normal')
-    ax1.scatter(X_anom_full[anomalous, 0], X_anom_full[anomalous, 1], c='red', s=50, marker='x',
-                linewidths=2, label='Anomaly')
-    ax1.set_title(f'Isolation Forest\n({anomalous.sum()} anomalies detected)')
-    ax1.legend()
-    ax1.set_xlabel("$x_1$")
-    ax1.set_ylabel("$x_2$")
+        # Isolation Forest results
+        normal = anomaly_labels == 1
+        anomalous = anomaly_labels == -1
+        ax1.scatter(X_anom_full[normal, 0], X_anom_full[normal, 1], c='blue', s=20, alpha=0.5, label='Normal')
+        ax1.scatter(X_anom_full[anomalous, 0], X_anom_full[anomalous, 1], c='red', s=50, marker='x',
+                    linewidths=2, label='Anomaly')
+        ax1.set_title(f'Isolation Forest\n({anomalous.sum()} anomalies detected)')
+        ax1.legend()
+        ax1.set_xlabel("$x_1$")
+        ax1.set_ylabel("$x_2$")
 
-    # GMM-based anomaly detection
-    gmm_anom = GM_anom(n_components=3, covariance_type='full', random_state=42)
-    gmm_anom.fit(X_anom_scaled)
-    log_probs = gmm_anom.score_samples(X_anom_scaled)  # log-likelihood per sample
-    threshold = np.percentile(log_probs, 5)  # flag bottom 5%
-    gmm_anomalies = log_probs < threshold
+        # GMM-based anomaly detection
+        gmm_anom = GM_anom(n_components=3, covariance_type='full', random_state=42)
+        gmm_anom.fit(X_anom_scaled)
+        log_probs = gmm_anom.score_samples(X_anom_scaled)  # log-likelihood per sample
+        threshold = np.percentile(log_probs, 5)  # flag bottom 5%
+        gmm_anomalies = log_probs < threshold
 
-    normal_gmm = ~gmm_anomalies
-    ax2.scatter(X_anom_full[normal_gmm, 0], X_anom_full[normal_gmm, 1], c='blue', s=20, alpha=0.5, label='Normal')
-    ax2.scatter(X_anom_full[gmm_anomalies, 0], X_anom_full[gmm_anomalies, 1], c='red', s=50, marker='x',
-                linewidths=2, label='Anomaly')
-    ax2.set_title(f'GMM Density-Based\n({gmm_anomalies.sum()} anomalies detected)')
-    ax2.legend()
-    ax2.set_xlabel("$x_1$")
-    ax2.set_ylabel("$x_2$")
+        normal_gmm = ~gmm_anomalies
+        ax2.scatter(X_anom_full[normal_gmm, 0], X_anom_full[normal_gmm, 1], c='blue', s=20, alpha=0.5, label='Normal')
+        ax2.scatter(X_anom_full[gmm_anomalies, 0], X_anom_full[gmm_anomalies, 1], c='red', s=50, marker='x',
+                    linewidths=2, label='Anomaly')
+        ax2.set_title(f'GMM Density-Based\n({gmm_anomalies.sum()} anomalies detected)')
+        ax2.legend()
+        ax2.set_xlabel("$x_1$")
+        ax2.set_ylabel("$x_2$")
 
-    plt.tight_layout()
-    fig
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1087,34 +1117,37 @@ def _(mo):
 
 @app.cell
 def _(np, load_digits, StandardScaler, PCA):
-    # EXERCISE 1: PCA from scratch on digits
-    _digits_ex = load_digits()
-    X_ex1 = StandardScaler().fit_transform(_digits_ex.data)
+    def _run():
+        # EXERCISE 1: PCA from scratch on digits
+        _digits_ex = load_digits()
+        X_ex1 = StandardScaler().fit_transform(_digits_ex.data)
 
-    # Step 1: Center the data
-    # X_c = ...
+        # Step 1: Center the data
+        # X_c = ...
 
-    # Step 2: Covariance matrix S = X^T X / (N-1)
-    # S_ex1 = ...
+        # Step 2: Covariance matrix S = X^T X / (N-1)
+        # S_ex1 = ...
 
-    # Step 3: Eigendecompose (use np.linalg.eigh, then sort descending)
-    # evals_ex1, evecs_ex1 = ...
+        # Step 3: Eigendecompose (use np.linalg.eigh, then sort descending)
+        # evals_ex1, evecs_ex1 = ...
 
-    # Step 4: Project onto top 2 components
-    # Z_ex1 = ...
+        # Step 4: Project onto top 2 components
+        # Z_ex1 = ...
 
-    # Step 5: Explained variance ratio
-    # evr_ex1 = evals_ex1 / evals_ex1.sum()
+        # Step 5: Explained variance ratio
+        # evr_ex1 = evals_ex1 / evals_ex1.sum()
 
-    # Verify: compare with sklearn
-    # pca_check = PCA(n_components=2).fit(X_ex1)
-    # print("Your explained variance ratio (top 2):", evr_ex1[:2])
-    # print("Sklearn explained variance ratio:     ", pca_check.explained_variance_ratio_)
+        # Verify: compare with sklearn
+        # pca_check = PCA(n_components=2).fit(X_ex1)
+        # print("Your explained variance ratio (top 2):", evr_ex1[:2])
+        # print("Sklearn explained variance ratio:     ", pca_check.explained_variance_ratio_)
 
-    # Placeholder so cell runs
-    print("Fill in the code above, then uncomment the verification block.")
+        # Placeholder so cell runs
+        print("Fill in the code above, then uncomment the verification block.")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1133,27 +1166,30 @@ def _(mo):
 
 @app.cell
 def _(np, load_digits, StandardScaler):
-    # EXERCISE 2: PCA via SVD
-    _digits_ex2 = load_digits()
-    X_ex2 = StandardScaler().fit_transform(_digits_ex2.data)
-    X_c_ex2 = X_ex2 - X_ex2.mean(axis=0)
-    N_ex2 = X_c_ex2.shape[0]
+    def _run():
+        # EXERCISE 2: PCA via SVD
+        _digits_ex2 = load_digits()
+        X_ex2 = StandardScaler().fit_transform(_digits_ex2.data)
+        X_c_ex2 = X_ex2 - X_ex2.mean(axis=0)
+        N_ex2 = X_c_ex2.shape[0]
 
-    # SVD: X = U @ diag(sigma) @ Vt
-    # U_ex2, sigma_ex2, Vt_ex2 = ...
+        # SVD: X = U @ diag(sigma) @ Vt
+        # U_ex2, sigma_ex2, Vt_ex2 = ...
 
-    # Eigenvalues from singular values
-    # evals_svd = sigma_ex2**2 / (N_ex2 - 1)
+        # Eigenvalues from singular values
+        # evals_svd = sigma_ex2**2 / (N_ex2 - 1)
 
-    # Project onto top 2: Z = X_c @ V[:, :2]  (V = Vt.T)
-    # Z_svd = ...
+        # Project onto top 2: Z = X_c @ V[:, :2]  (V = Vt.T)
+        # Z_svd = ...
 
-    # Compare with eigendecomposition approach from Exercise 1
-    # print("Top 2 eigenvalues (SVD):", evals_svd[:2])
+        # Compare with eigendecomposition approach from Exercise 1
+        # print("Top 2 eigenvalues (SVD):", evals_svd[:2])
 
-    print("Fill in the SVD-based PCA code above.")
+        print("Fill in the SVD-based PCA code above.")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1171,34 +1207,37 @@ def _(mo):
 
 @app.cell
 def _(np, make_blobs, plt):
-    # EXERCISE 3: K-Means++ initialization + K-Means
-    X_ex3, _ = make_blobs(n_samples=300, centers=4, cluster_std=1.0, random_state=42)
+    def _run():
+        # EXERCISE 3: K-Means++ initialization + K-Means
+        X_ex3, _ = make_blobs(n_samples=300, centers=4, cluster_std=1.0, random_state=42)
 
-    def kmeans_pp_init(X, K, seed=42):
-        """K-means++ initialization. Returns (K, D) array of centroids."""
-        rng = np.random.default_rng(seed)
-        N, D = X.shape
-        centroids = np.empty((K, D))
+        def kmeans_pp_init(X, K, seed=42):
+            """K-means++ initialization. Returns (K, D) array of centroids."""
+            rng = np.random.default_rng(seed)
+            N, D = X.shape
+            centroids = np.empty((K, D))
 
-        # Pick first centroid uniformly at random
-        centroids[0] = X[rng.randint(N)]
+            # Pick first centroid uniformly at random
+            centroids[0] = X[rng.randint(N)]
 
-        for k in range(1, K):
-            # Compute D(x)^2 = min distance^2 to any existing centroid
-            # dists_sq = ...
-            # probs = dists_sq / dists_sq.sum()
-            # centroids[k] = X[rng.choice(N, p=probs)]
-            pass  # Replace with your implementation
+            for k in range(1, K):
+                # Compute D(x)^2 = min distance^2 to any existing centroid
+                # dists_sq = ...
+                # probs = dists_sq / dists_sq.sum()
+                # centroids[k] = X[rng.choice(N, p=probs)]
+                pass  # Replace with your implementation
 
-        return centroids
+            return centroids
 
-    # Then run K-Means using these centroids
-    # centroids_init = kmeans_pp_init(X_ex3, K=4)
-    # ... assignment + update loop ...
+        # Then run K-Means using these centroids
+        # centroids_init = kmeans_pp_init(X_ex3, K=4)
+        # ... assignment + update loop ...
 
-    print("Implement kmeans_pp_init, then run K-Means with it.")
+        print("Implement kmeans_pp_init, then run K-Means with it.")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1218,31 +1257,34 @@ def _(mo):
 
 @app.cell
 def _(np, load_digits, StandardScaler, plt):
-    # EXERCISE 4: Reconstruction error curve
-    _digits_ex4 = load_digits()
-    X_ex4 = StandardScaler().fit_transform(_digits_ex4.data)
-    X_mean_ex4 = X_ex4.mean(axis=0)
-    X_c_ex4 = X_ex4 - X_mean_ex4
+    def _run():
+        # EXERCISE 4: Reconstruction error curve
+        _digits_ex4 = load_digits()
+        X_ex4 = StandardScaler().fit_transform(_digits_ex4.data)
+        X_mean_ex4 = X_ex4.mean(axis=0)
+        X_c_ex4 = X_ex4 - X_mean_ex4
 
-    # SVD once
-    # U4, s4, Vt4 = np.linalg.svd(X_c_ex4, full_matrices=False)
+        # SVD once
+        # U4, s4, Vt4 = np.linalg.svd(X_c_ex4, full_matrices=False)
 
-    # mse_list = []
-    # for K in range(1, 21):
-    #     # Project to K dims and reconstruct
-    #     # Z_k = X_c_ex4 @ Vt4[:K].T
-    #     # X_hat = Z_k @ Vt4[:K]
-    #     # mse = np.mean((X_c_ex4 - X_hat)**2)
-    #     # mse_list.append(mse)
+        # mse_list = []
+        # for K in range(1, 21):
+        #     # Project to K dims and reconstruct
+        #     # Z_k = X_c_ex4 @ Vt4[:K].T
+        #     # X_hat = Z_k @ Vt4[:K]
+        #     # mse = np.mean((X_c_ex4 - X_hat)**2)
+        #     # mse_list.append(mse)
 
-    # plt.plot(range(1, 21), mse_list, 'o-')
-    # plt.xlabel("Number of components K")
-    # plt.ylabel("Mean Squared Reconstruction Error")
-    # plt.title("Reconstruction Error vs. K")
+        # plt.plot(range(1, 21), mse_list, 'o-')
+        # plt.xlabel("Number of components K")
+        # plt.ylabel("Mean Squared Reconstruction Error")
+        # plt.title("Reconstruction Error vs. K")
 
-    print("Uncomment and fill in the reconstruction error computation.")
+        print("Uncomment and fill in the reconstruction error computation.")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1258,37 +1300,40 @@ def _(mo):
 
 @app.cell
 def _(np, plt):
-    # EXERCISE 5: 1D EM for a 2-component Gaussian mixture
-    rng_ex5 = np.random.default_rng(42)
-    # True parameters
-    X1_ex5 = rng_ex5.normal(-3, 1.0, size=100)
-    X2_ex5 = rng_ex5.normal(3, 1.5, size=100)
-    X_ex5 = np.concatenate([X1_ex5, X2_ex5])
+    def _run():
+        # EXERCISE 5: 1D EM for a 2-component Gaussian mixture
+        rng_ex5 = np.random.default_rng(42)
+        # True parameters
+        X1_ex5 = rng_ex5.normal(-3, 1.0, size=100)
+        X2_ex5 = rng_ex5.normal(3, 1.5, size=100)
+        X_ex5 = np.concatenate([X1_ex5, X2_ex5])
 
-    # Initialize parameters
-    # mu1, mu2 = -1.0, 1.0         # initial guesses for means
-    # sig1, sig2 = 1.0, 1.0        # initial guesses for std devs
-    # pi1, pi2 = 0.5, 0.5          # initial mixing weights
+        # Initialize parameters
+        # mu1, mu2 = -1.0, 1.0         # initial guesses for means
+        # sig1, sig2 = 1.0, 1.0        # initial guesses for std devs
+        # pi1, pi2 = 0.5, 0.5          # initial mixing weights
 
-    # for _ in range(50):
-    #     # E-step: compute responsibilities
-    #     # r1 = pi1 * N(X_ex5 | mu1, sig1^2) / (pi1*N(...) + pi2*N(...))
-    #     # r2 = 1 - r1
-    #
-    #     # M-step: update parameters
-    #     # N1, N2 = r1.sum(), r2.sum()
-    #     # mu1 = (r1 * X_ex5).sum() / N1
-    #     # mu2 = (r2 * X_ex5).sum() / N2
-    #     # sig1 = np.sqrt((r1 * (X_ex5 - mu1)**2).sum() / N1)
-    #     # sig2 = np.sqrt((r2 * (X_ex5 - mu2)**2).sum() / N2)
-    #     # pi1, pi2 = N1/len(X_ex5), N2/len(X_ex5)
+        # for _ in range(50):
+        #     # E-step: compute responsibilities
+        #     # r1 = pi1 * N(X_ex5 | mu1, sig1^2) / (pi1*N(...) + pi2*N(...))
+        #     # r2 = 1 - r1
+        #
+        #     # M-step: update parameters
+        #     # N1, N2 = r1.sum(), r2.sum()
+        #     # mu1 = (r1 * X_ex5).sum() / N1
+        #     # mu2 = (r2 * X_ex5).sum() / N2
+        #     # sig1 = np.sqrt((r1 * (X_ex5 - mu1)**2).sum() / N1)
+        #     # sig2 = np.sqrt((r2 * (X_ex5 - mu2)**2).sum() / N2)
+        #     # pi1, pi2 = N1/len(X_ex5), N2/len(X_ex5)
 
-    # print(f"Recovered: mu1={mu1:.2f}, mu2={mu2:.2f}, sig1={sig1:.2f}, sig2={sig2:.2f}")
-    # print(f"True:      mu1=-3.00, mu2=3.00, sig1=1.00, sig2=1.50")
+        # print(f"Recovered: mu1={mu1:.2f}, mu2={mu2:.2f}, sig1={sig1:.2f}, sig2={sig2:.2f}")
+        # print(f"True:      mu1=-3.00, mu2=3.00, sig1=1.00, sig2=1.50")
 
-    print("Uncomment the EM loop and fill in the E-step computation.")
+        print("Uncomment the EM loop and fill in the E-step computation.")
+
+
+    if __name__ == "__main__":
+        app.run()
+
+    _run()
     return
-
-
-if __name__ == "__main__":
-    app.run()

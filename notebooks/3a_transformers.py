@@ -215,21 +215,24 @@ def _(mo):
 
 @app.cell
 def _(np, softmax):
-    # Show softmax saturation without scaling
-    d_k_demo = 512
-    q_demo = rng.standard_normal((1, d_k_demo))
-    K_demo = rng.standard_normal((8, d_k_demo))
+    def _run():
+        # Show softmax saturation without scaling
+        d_k_demo = 512
+        q_demo = rng.standard_normal((1, d_k_demo))
+        K_demo = rng.standard_normal((8, d_k_demo))
 
-    raw_dots = q_demo @ K_demo.T  # variance ~ d_k
-    scaled_dots = raw_dots / np.sqrt(d_k_demo)
+        raw_dots = q_demo @ K_demo.T  # variance ~ d_k
+        scaled_dots = raw_dots / np.sqrt(d_k_demo)
 
-    print(f"Unscaled dot products — std: {raw_dots.std():.1f}")
-    print(f"  softmax: {np.round(softmax(raw_dots), 4)}")
-    print(f"\nScaled dot products — std: {scaled_dots.std():.1f}")
-    print(f"  softmax: {np.round(softmax(scaled_dots), 4)}")
-    print("\nNotice: unscaled softmax is nearly one-hot (peaked).")
+        print(f"Unscaled dot products — std: {raw_dots.std():.1f}")
+        print(f"  softmax: {np.round(softmax(raw_dots), 4)}")
+        print(f"\nScaled dot products — std: {scaled_dots.std():.1f}")
+        print(f"  softmax: {np.round(softmax(scaled_dots), 4)}")
+        print("\nNotice: unscaled softmax is nearly one-hot (peaked).")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -273,25 +276,28 @@ def _(mo):
 
 @app.cell
 def _(np, softmax):
-    # Exact matrices from the worked example
-    X_ex = np.array([[1,0,1,0],[0,1,0,1],[1,1,0,0]], dtype=float)
-    W_Q_ex = np.array([[1,0],[0,1],[1,0],[0,1]], dtype=float)
-    W_K_ex = np.array([[0,1],[1,0],[0,1],[1,0]], dtype=float)
-    W_V_ex = np.array([[1,1],[1,0],[0,1],[0,1]], dtype=float)
+    def _run():
+        # Exact matrices from the worked example
+        X_ex = np.array([[1,0,1,0],[0,1,0,1],[1,1,0,0]], dtype=float)
+        W_Q_ex = np.array([[1,0],[0,1],[1,0],[0,1]], dtype=float)
+        W_K_ex = np.array([[0,1],[1,0],[0,1],[1,0]], dtype=float)
+        W_V_ex = np.array([[1,1],[1,0],[0,1],[0,1]], dtype=float)
 
-    Q_ex = X_ex @ W_Q_ex;  K_ex = X_ex @ W_K_ex;  V_ex = X_ex @ W_V_ex
-    scores_ex = Q_ex @ K_ex.T                       # raw scores
-    scaled_ex = scores_ex / np.sqrt(2)               # scale by sqrt(d_k)
-    alpha_ex = softmax(scaled_ex, axis=-1)           # attention weights
-    out_ex = alpha_ex @ V_ex                         # final output
+        Q_ex = X_ex @ W_Q_ex;  K_ex = X_ex @ W_K_ex;  V_ex = X_ex @ W_V_ex
+        scores_ex = Q_ex @ K_ex.T                       # raw scores
+        scaled_ex = scores_ex / np.sqrt(2)               # scale by sqrt(d_k)
+        alpha_ex = softmax(scaled_ex, axis=-1)           # attention weights
+        out_ex = alpha_ex @ V_ex                         # final output
 
-    print("Q:\n", Q_ex)
-    print("K:\n", K_ex)
-    print("Scores (QK^T):\n", scores_ex)
-    print("Attention weights:\n", np.round(alpha_ex, 2))
-    print("Output (alpha @ V):\n", np.round(out_ex, 2))
+        print("Q:\n", Q_ex)
+        print("K:\n", K_ex)
+        print("Scores (QK^T):\n", scores_ex)
+        print("Attention weights:\n", np.round(alpha_ex, 2))
+        print("Output (alpha @ V):\n", np.round(out_ex, 2))
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -798,37 +804,40 @@ def _(mo):
 
 @app.cell
 def _(np, softmax):
-    # Simulate autoregressive generation with a KV cache
-    _d_kv = 4
-    _W_Q_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
-    _W_K_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
-    _W_V_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
+    def _run():
+        # Simulate autoregressive generation with a KV cache
+        _d_kv = 4
+        _W_Q_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
+        _W_K_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
+        _W_V_kv = rng.standard_normal((_d_kv, _d_kv)) * 0.3
 
-    K_cache = np.empty((0, _d_kv))  # start empty
-    V_cache = np.empty((0, _d_kv))
+        K_cache = np.empty((0, _d_kv))  # start empty
+        V_cache = np.empty((0, _d_kv))
 
-    # Pretend we generate 5 tokens
-    embeddings = rng.standard_normal((5, _d_kv))
-    for t in range(5):
-        x_t = embeddings[t:t+1]       # current token embedding (1, d)
-        q_t = x_t @ _W_Q_kv           # query for this step only
-        k_t = x_t @ _W_K_kv
-        v_t = x_t @ _W_V_kv
+        # Pretend we generate 5 tokens
+        embeddings = rng.standard_normal((5, _d_kv))
+        for t in range(5):
+            x_t = embeddings[t:t+1]       # current token embedding (1, d)
+            q_t = x_t @ _W_Q_kv           # query for this step only
+            k_t = x_t @ _W_K_kv
+            v_t = x_t @ _W_V_kv
 
-        # Append to cache
-        K_cache = np.vstack([K_cache, k_t])
-        V_cache = np.vstack([V_cache, v_t])
+            # Append to cache
+            K_cache = np.vstack([K_cache, k_t])
+            V_cache = np.vstack([V_cache, v_t])
 
-        # Attend: q_t against all cached keys
-        scores_kv = (q_t @ K_cache.T) / np.sqrt(_d_kv)  # (1, t+1)
-        attn_kv = softmax(scores_kv, axis=-1)
-        out_kv = attn_kv @ V_cache  # (1, d)
+            # Attend: q_t against all cached keys
+            scores_kv = (q_t @ K_cache.T) / np.sqrt(_d_kv)  # (1, t+1)
+            attn_kv = softmax(scores_kv, axis=-1)
+            out_kv = attn_kv @ V_cache  # (1, d)
 
-        print(f"Step {t}: attend over {K_cache.shape[0]} cached positions")
+            print(f"Step {t}: attend over {K_cache.shape[0]} cached positions")
 
-    print(f"\nFinal KV cache size: {K_cache.shape}")
+        print(f"\nFinal KV cache size: {K_cache.shape}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -880,12 +889,16 @@ def _(mo):
 
 @app.cell
 def _():
-    import torch
-    import torch.nn as nn
-    import torch.nn.functional as F
-    import math
-    return F, math, nn, torch
+    def _run():
+        import torch
+        import torch.nn as nn
+        import torch.nn.functional as F
+        import math
+        return F, math, nn, torch
 
+
+    _run()
+    return
 
 @app.cell
 def _(F, math, nn):
@@ -1012,23 +1025,26 @@ def _(torch):
 
 @app.cell
 def _(TransformerBlock, create_causal_mask, torch):
-    # Quick test
-    batch_size, seq_len, d_model, n_heads, d_ff = 2, 10, 64, 8, 256
+    def _run():
+        # Quick test
+        batch_size, seq_len, d_model, n_heads, d_ff = 2, 10, 64, 8, 256
 
-    x = torch.randn(batch_size, seq_len, d_model)
-    block = TransformerBlock(d_model, n_heads, d_ff)
+        x = torch.randn(batch_size, seq_len, d_model)
+        block = TransformerBlock(d_model, n_heads, d_ff)
 
-    # Without mask (encoder-style, bidirectional)
-    out = block(x)
-    print(f"Input shape:  {x.shape}")
-    print(f"Output shape: {out.shape}")
+        # Without mask (encoder-style, bidirectional)
+        out = block(x)
+        print(f"Input shape:  {x.shape}")
+        print(f"Output shape: {out.shape}")
 
-    # With causal mask (decoder-style)
-    mask = create_causal_mask(seq_len)
-    out_masked = block(x, mask)
-    print(f"Masked output shape: {out_masked.shape}")
+        # With causal mask (decoder-style)
+        mask = create_causal_mask(seq_len)
+        out_masked = block(x, mask)
+        print(f"Masked output shape: {out_masked.shape}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):

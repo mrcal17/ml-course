@@ -54,19 +54,22 @@ See [DLBook §8.2.1](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) for 
 
 @app.cell
 def _(np, plt):
-    # Convex vs non-convex: a 1D illustration
-    x_landscape = np.linspace(-3, 3, 500)
-    convex_f = x_landscape ** 2                          # single global min
-    nonconvex_f = x_landscape ** 4 - 3 * x_landscape ** 2 + 1  # multiple local minima
+    def _run():
+        # Convex vs non-convex: a 1D illustration
+        x_landscape = np.linspace(-3, 3, 500)
+        convex_f = x_landscape ** 2                          # single global min
+        nonconvex_f = x_landscape ** 4 - 3 * x_landscape ** 2 + 1  # multiple local minima
 
-    fig_cvx, axes_cvx = plt.subplots(1, 2, figsize=(9, 3))
-    axes_cvx[0].plot(x_landscape, convex_f); axes_cvx[0].set_title("Convex loss")
-    axes_cvx[1].plot(x_landscape, nonconvex_f); axes_cvx[1].set_title("Non-convex loss (neural-net-like)")
-    for ax in axes_cvx: ax.set_xlabel("θ"); ax.set_ylabel("L(θ)")
-    fig_cvx.tight_layout()
-    fig_cvx
+        fig_cvx, axes_cvx = plt.subplots(1, 2, figsize=(9, 3))
+        axes_cvx[0].plot(x_landscape, convex_f); axes_cvx[0].set_title("Convex loss")
+        axes_cvx[1].plot(x_landscape, nonconvex_f); axes_cvx[1].set_title("Non-convex loss (neural-net-like)")
+        for ax in axes_cvx: ax.set_xlabel("θ"); ax.set_ylabel("L(θ)")
+        fig_cvx.tight_layout()
+        fig_cvx
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -106,43 +109,49 @@ You can't visualize a million-dimensional surface directly, but you can project 
 
 @app.cell
 def _(np, plt):
-    # Saddle point vs local minimum in 2D
-    u = np.linspace(-2, 2, 200)
-    v = np.linspace(-2, 2, 200)
-    U, V = np.meshgrid(u, v)
+    def _run():
+        # Saddle point vs local minimum in 2D
+        u = np.linspace(-2, 2, 200)
+        v = np.linspace(-2, 2, 200)
+        U, V = np.meshgrid(u, v)
 
-    # Saddle: f = x^2 - y^2 (positive curvature in x, negative in y)
-    saddle = U ** 2 - V ** 2
-    # Local min: f = x^2 + y^2
-    bowl = U ** 2 + V ** 2
+        # Saddle: f = x^2 - y^2 (positive curvature in x, negative in y)
+        saddle = U ** 2 - V ** 2
+        # Local min: f = x^2 + y^2
+        bowl = U ** 2 + V ** 2
 
-    fig_sp, axes_sp = plt.subplots(1, 2, figsize=(9, 3.5))
-    axes_sp[0].contourf(U, V, bowl, levels=30, cmap="viridis")
-    axes_sp[0].set_title("Local minimum (all curvatures +)")
-    axes_sp[1].contourf(U, V, saddle, levels=30, cmap="RdBu_r")
-    axes_sp[1].set_title("Saddle point (mixed curvatures)")
-    for ax in axes_sp: ax.set_xlabel("θ₁"); ax.set_ylabel("θ₂")
-    fig_sp.tight_layout()
-    fig_sp
+        fig_sp, axes_sp = plt.subplots(1, 2, figsize=(9, 3.5))
+        axes_sp[0].contourf(U, V, bowl, levels=30, cmap="viridis")
+        axes_sp[0].set_title("Local minimum (all curvatures +)")
+        axes_sp[1].contourf(U, V, saddle, levels=30, cmap="RdBu_r")
+        axes_sp[1].set_title("Saddle point (mixed curvatures)")
+        for ax in axes_sp: ax.set_xlabel("θ₁"); ax.set_ylabel("θ₂")
+        fig_sp.tight_layout()
+        fig_sp
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np, plt):
-    # Flat vs sharp minima: same loss value, different curvature
-    x_fs = np.linspace(-3, 3, 500)
-    sharp_min = 10 * x_fs ** 2             # high curvature → sharp
-    flat_min = 0.3 * x_fs ** 2             # low curvature  → flat
+    def _run():
+        # Flat vs sharp minima: same loss value, different curvature
+        x_fs = np.linspace(-3, 3, 500)
+        sharp_min = 10 * x_fs ** 2             # high curvature → sharp
+        flat_min = 0.3 * x_fs ** 2             # low curvature  → flat
 
-    fig_fs, ax_fs = plt.subplots(figsize=(6, 3))
-    ax_fs.plot(x_fs, sharp_min, label="Sharp minimum (high curvature)")
-    ax_fs.plot(x_fs, flat_min, label="Flat minimum (low curvature)")
-    ax_fs.set_ylim(-0.5, 5); ax_fs.set_xlabel("θ"); ax_fs.set_ylabel("L(θ)")
-    ax_fs.legend(); ax_fs.set_title("Flat minima → more robust to weight perturbations")
-    fig_fs.tight_layout()
-    fig_fs
+        fig_fs, ax_fs = plt.subplots(figsize=(6, 3))
+        ax_fs.plot(x_fs, sharp_min, label="Sharp minimum (high curvature)")
+        ax_fs.plot(x_fs, flat_min, label="Flat minimum (low curvature)")
+        ax_fs.set_ylim(-0.5, 5); ax_fs.set_xlabel("θ"); ax_fs.set_ylabel("L(θ)")
+        ax_fs.legend(); ax_fs.set_title("Flat minima → more robust to weight perturbations")
+        fig_fs.tight_layout()
+        fig_fs
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -181,41 +190,47 @@ When you increase the batch size by a factor of $k$, you should increase the lea
 
 @app.cell
 def _(np, plt):
-    # Mini-batch gradient noise: full-batch vs mini-batch gradient estimates
-    rng = np.random.default_rng(0)
-    N_data = 1000
-    # Synthetic: true gradient is 2*theta for L = theta^2
-    theta_val = 3.0
-    true_grad = 2 * theta_val  # = 6.0
+    def _run():
+        # Mini-batch gradient noise: full-batch vs mini-batch gradient estimates
+        rng = np.random.default_rng(0)
+        N_data = 1000
+        # Synthetic: true gradient is 2*theta for L = theta^2
+        theta_val = 3.0
+        true_grad = 2 * theta_val  # = 6.0
 
-    # Simulate per-sample gradients with noise
-    per_sample_grads = true_grad + rng.standard_normal(N_data) * 4.0
+        # Simulate per-sample gradients with noise
+        per_sample_grads = true_grad + rng.standard_normal(N_data) * 4.0
 
-    batch_sizes_demo = [1, 8, 32, 128, 512]
-    fig_mb, ax_mb = plt.subplots(figsize=(7, 3))
-    for bs in batch_sizes_demo:
-        estimates = [per_sample_grads[i:i+bs].mean() for i in range(0, N_data - bs, bs)]
-        ax_mb.hist(estimates, bins=20, alpha=0.5, label=f"BS={bs}", density=True)
-    ax_mb.axvline(true_grad, color="k", ls="--", label="True gradient")
-    ax_mb.set_xlabel("Gradient estimate"); ax_mb.legend(fontsize=8)
-    ax_mb.set_title("Larger batches → less noisy gradient estimates")
-    fig_mb.tight_layout()
-    fig_mb
+        batch_sizes_demo = [1, 8, 32, 128, 512]
+        fig_mb, ax_mb = plt.subplots(figsize=(7, 3))
+        for bs in batch_sizes_demo:
+            estimates = [per_sample_grads[i:i+bs].mean() for i in range(0, N_data - bs, bs)]
+            ax_mb.hist(estimates, bins=20, alpha=0.5, label=f"BS={bs}", density=True)
+        ax_mb.axvline(true_grad, color="k", ls="--", label="True gradient")
+        ax_mb.set_xlabel("Gradient estimate"); ax_mb.legend(fontsize=8)
+        ax_mb.set_title("Larger batches → less noisy gradient estimates")
+        fig_mb.tight_layout()
+        fig_mb
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Linear scaling rule: scale LR proportional to batch size
-    base_lr = 0.01
-    base_bs = 32
-    batch_sizes_lr = np.array([32, 64, 128, 256, 512, 1024])
-    # Scaled LR = base_lr * (bs / base_bs)
-    scaled_lrs = base_lr * (batch_sizes_lr / base_bs)
-    for bs, lr in zip(batch_sizes_lr, scaled_lrs):
-        print(f"  Batch size {bs:>5d} → LR = {lr:.4f}")
-    return
+    def _run():
+        # Linear scaling rule: scale LR proportional to batch size
+        base_lr = 0.01
+        base_bs = 32
+        batch_sizes_lr = np.array([32, 64, 128, 256, 512, 1024])
+        # Scaled LR = base_lr * (bs / base_bs)
+        scaled_lrs = base_lr * (batch_sizes_lr / base_bs)
+        for bs, lr in zip(batch_sizes_lr, scaled_lrs):
+            print(f"  Batch size {bs:>5d} → LR = {lr:.4f}")
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -263,62 +278,68 @@ Smith's full recipe: use a single cycle of learning rate that goes from low -> h
 
 @app.cell
 def _(np, plt):
-    # Learning rate schedules: warmup + cosine, step decay, exponential decay
-    T_total = 1000
-    warmup_steps = 100
-    eta_max, eta_min = 1e-3, 1e-6
-    t_steps = np.arange(T_total)
+    def _run():
+        # Learning rate schedules: warmup + cosine, step decay, exponential decay
+        T_total = 1000
+        warmup_steps = 100
+        eta_max, eta_min = 1e-3, 1e-6
+        t_steps = np.arange(T_total)
 
-    # Cosine annealing with linear warmup
-    cosine_lr = np.where(
-        t_steps < warmup_steps,
-        eta_max * t_steps / warmup_steps,                              # warmup phase
-        eta_min + 0.5 * (eta_max - eta_min) * (1 + np.cos(np.pi * (t_steps - warmup_steps) / (T_total - warmup_steps)))
-    )
+        # Cosine annealing with linear warmup
+        cosine_lr = np.where(
+            t_steps < warmup_steps,
+            eta_max * t_steps / warmup_steps,                              # warmup phase
+            eta_min + 0.5 * (eta_max - eta_min) * (1 + np.cos(np.pi * (t_steps - warmup_steps) / (T_total - warmup_steps)))
+        )
 
-    # Step decay: drop by 0.1 at 30%, 60%, 90% of training
-    step_lr = np.full(T_total, eta_max)
-    for frac in [0.3, 0.6, 0.9]:
-        step_lr[int(frac * T_total):] *= 0.1
+        # Step decay: drop by 0.1 at 30%, 60%, 90% of training
+        step_lr = np.full(T_total, eta_max)
+        for frac in [0.3, 0.6, 0.9]:
+            step_lr[int(frac * T_total):] *= 0.1
 
-    # Exponential decay: gamma^t
-    gamma_exp = 0.995
-    exp_lr = eta_max * gamma_exp ** t_steps
+        # Exponential decay: gamma^t
+        gamma_exp = 0.995
+        exp_lr = eta_max * gamma_exp ** t_steps
 
-    fig_lr, ax_lr = plt.subplots(figsize=(8, 3.5))
-    ax_lr.plot(t_steps, cosine_lr, label="Cosine + warmup")
-    ax_lr.plot(t_steps, step_lr, label="Step decay")
-    ax_lr.plot(t_steps, exp_lr, label="Exponential decay", alpha=0.7)
-    ax_lr.set_xlabel("Step"); ax_lr.set_ylabel("Learning rate")
-    ax_lr.set_yscale("log"); ax_lr.legend(); ax_lr.set_title("Common LR Schedules")
-    fig_lr.tight_layout()
-    fig_lr
+        fig_lr, ax_lr = plt.subplots(figsize=(8, 3.5))
+        ax_lr.plot(t_steps, cosine_lr, label="Cosine + warmup")
+        ax_lr.plot(t_steps, step_lr, label="Step decay")
+        ax_lr.plot(t_steps, exp_lr, label="Exponential decay", alpha=0.7)
+        ax_lr.set_xlabel("Step"); ax_lr.set_ylabel("Learning rate")
+        ax_lr.set_yscale("log"); ax_lr.legend(); ax_lr.set_title("Common LR Schedules")
+        fig_lr.tight_layout()
+        fig_lr
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np, plt):
-    # One-cycle policy: LR goes low → high → very low
-    T_onecycle = 1000
-    peak_frac = 0.3  # peak at 30% of training
-    t_oc = np.arange(T_onecycle)
-    lr_max_oc, lr_init_oc, lr_final_oc = 1e-3, 1e-4, 1e-6
-    peak_step = int(peak_frac * T_onecycle)
+    def _run():
+        # One-cycle policy: LR goes low → high → very low
+        T_onecycle = 1000
+        peak_frac = 0.3  # peak at 30% of training
+        t_oc = np.arange(T_onecycle)
+        lr_max_oc, lr_init_oc, lr_final_oc = 1e-3, 1e-4, 1e-6
+        peak_step = int(peak_frac * T_onecycle)
 
-    oc_lr = np.where(
-        t_oc < peak_step,
-        lr_init_oc + (lr_max_oc - lr_init_oc) * t_oc / peak_step,               # ramp up
-        lr_max_oc - (lr_max_oc - lr_final_oc) * (t_oc - peak_step) / (T_onecycle - peak_step)  # anneal down
-    )
+        oc_lr = np.where(
+            t_oc < peak_step,
+            lr_init_oc + (lr_max_oc - lr_init_oc) * t_oc / peak_step,               # ramp up
+            lr_max_oc - (lr_max_oc - lr_final_oc) * (t_oc - peak_step) / (T_onecycle - peak_step)  # anneal down
+        )
 
-    fig_oc, ax_oc = plt.subplots(figsize=(7, 3))
-    ax_oc.plot(t_oc, oc_lr)
-    ax_oc.set_xlabel("Step"); ax_oc.set_ylabel("LR")
-    ax_oc.set_title("One-Cycle Policy: low → high → very low")
-    fig_oc.tight_layout()
-    fig_oc
+        fig_oc, ax_oc = plt.subplots(figsize=(7, 3))
+        ax_oc.plot(t_oc, oc_lr)
+        ax_oc.set_xlabel("Step"); ax_oc.set_ylabel("LR")
+        ax_oc.set_title("One-Cycle Policy: low → high → very low")
+        fig_oc.tight_layout()
+        fig_oc
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -374,87 +395,93 @@ For truly large-batch training (batch sizes in the thousands or tens of thousand
 
 @app.cell
 def _(np, plt):
-    # SGD vs Momentum vs Adam on a toy 2D surface: f(x, y) = x^2 + 10*y^2
-    # Elongated bowl — momentum helps traverse the narrow valley faster
-    def toy_loss(p):
-        return p[0]**2 + 10 * p[1]**2
-    def toy_grad(p):
-        return np.array([2*p[0], 20*p[1]])
+    def _run():
+        # SGD vs Momentum vs Adam on a toy 2D surface: f(x, y) = x^2 + 10*y^2
+        # Elongated bowl — momentum helps traverse the narrow valley faster
+        def toy_loss(p):
+            return p[0]**2 + 10 * p[1]**2
+        def toy_grad(p):
+            return np.array([2*p[0], 20*p[1]])
 
-    def run_sgd(lr, steps, beta=0.0):
-        """SGD with optional momentum (beta=0 → vanilla SGD)."""
-        pos = np.array([-4.0, 3.0])
-        vel = np.zeros(2)
-        traj = [pos.copy()]
-        for _ in range(steps):
-            g = toy_grad(pos)
-            vel = beta * vel + g        # v_t = β v_{t-1} + ∇L
-            pos = pos - lr * vel        # θ_{t+1} = θ_t - η v_t
-            traj.append(pos.copy())
-        return np.array(traj)
+        def run_sgd(lr, steps, beta=0.0):
+            """SGD with optional momentum (beta=0 → vanilla SGD)."""
+            pos = np.array([-4.0, 3.0])
+            vel = np.zeros(2)
+            traj = [pos.copy()]
+            for _ in range(steps):
+                g = toy_grad(pos)
+                vel = beta * vel + g        # v_t = β v_{t-1} + ∇L
+                pos = pos - lr * vel        # θ_{t+1} = θ_t - η v_t
+                traj.append(pos.copy())
+            return np.array(traj)
 
-    def run_adam(lr, steps, b1=0.9, b2=0.999, eps=1e-8):
-        pos = np.array([-4.0, 3.0])
-        m, v_ad = np.zeros(2), np.zeros(2)
-        traj = [pos.copy()]
-        for t_ad in range(1, steps + 1):
-            g = toy_grad(pos)
-            m = b1 * m + (1 - b1) * g           # first moment
-            v_ad = b2 * v_ad + (1 - b2) * g**2  # second moment
-            m_hat = m / (1 - b1**t_ad)           # bias correction
-            v_hat = v_ad / (1 - b2**t_ad)
-            pos = pos - lr * m_hat / (np.sqrt(v_hat) + eps)
-            traj.append(pos.copy())
-        return np.array(traj)
+        def run_adam(lr, steps, b1=0.9, b2=0.999, eps=1e-8):
+            pos = np.array([-4.0, 3.0])
+            m, v_ad = np.zeros(2), np.zeros(2)
+            traj = [pos.copy()]
+            for t_ad in range(1, steps + 1):
+                g = toy_grad(pos)
+                m = b1 * m + (1 - b1) * g           # first moment
+                v_ad = b2 * v_ad + (1 - b2) * g**2  # second moment
+                m_hat = m / (1 - b1**t_ad)           # bias correction
+                v_hat = v_ad / (1 - b2**t_ad)
+                pos = pos - lr * m_hat / (np.sqrt(v_hat) + eps)
+                traj.append(pos.copy())
+            return np.array(traj)
 
-    n_steps = 50
-    traj_sgd = run_sgd(lr=0.02, steps=n_steps, beta=0.0)
-    traj_mom = run_sgd(lr=0.02, steps=n_steps, beta=0.9)
-    traj_adam = run_adam(lr=0.3, steps=n_steps)
+        n_steps = 50
+        traj_sgd = run_sgd(lr=0.02, steps=n_steps, beta=0.0)
+        traj_mom = run_sgd(lr=0.02, steps=n_steps, beta=0.9)
+        traj_adam = run_adam(lr=0.3, steps=n_steps)
 
-    # Plot trajectories over contour
-    xs_opt = np.linspace(-5, 5, 200)
-    ys_opt = np.linspace(-4, 4, 200)
-    Xo, Yo = np.meshgrid(xs_opt, ys_opt)
-    Zo = Xo**2 + 10*Yo**2
+        # Plot trajectories over contour
+        xs_opt = np.linspace(-5, 5, 200)
+        ys_opt = np.linspace(-4, 4, 200)
+        Xo, Yo = np.meshgrid(xs_opt, ys_opt)
+        Zo = Xo**2 + 10*Yo**2
 
-    fig_opt, ax_opt = plt.subplots(figsize=(7, 4.5))
-    ax_opt.contour(Xo, Yo, Zo, levels=30, cmap="Blues", alpha=0.6)
-    ax_opt.plot(*traj_sgd.T, "o-", ms=2, label="Vanilla SGD", alpha=0.8)
-    ax_opt.plot(*traj_mom.T, "s-", ms=2, label="SGD + Momentum (β=0.9)", alpha=0.8)
-    ax_opt.plot(*traj_adam.T, "^-", ms=2, label="Adam", alpha=0.8)
-    ax_opt.set_title("Optimizer trajectories on f(x,y) = x² + 10y²")
-    ax_opt.legend(fontsize=8); ax_opt.set_xlabel("θ₁"); ax_opt.set_ylabel("θ₂")
-    fig_opt.tight_layout()
-    fig_opt
+        fig_opt, ax_opt = plt.subplots(figsize=(7, 4.5))
+        ax_opt.contour(Xo, Yo, Zo, levels=30, cmap="Blues", alpha=0.6)
+        ax_opt.plot(*traj_sgd.T, "o-", ms=2, label="Vanilla SGD", alpha=0.8)
+        ax_opt.plot(*traj_mom.T, "s-", ms=2, label="SGD + Momentum (β=0.9)", alpha=0.8)
+        ax_opt.plot(*traj_adam.T, "^-", ms=2, label="Adam", alpha=0.8)
+        ax_opt.set_title("Optimizer trajectories on f(x,y) = x² + 10y²")
+        ax_opt.legend(fontsize=8); ax_opt.set_xlabel("θ₁"); ax_opt.set_ylabel("θ₂")
+        fig_opt.tight_layout()
+        fig_opt
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Adam vs AdamW: the weight decay difference
-    # Adam with L2: gradient includes λθ, which gets scaled by adaptive LR
-    # AdamW: weight decay applied directly to θ, outside adaptive scaling
+    def _run():
+        # Adam vs AdamW: the weight decay difference
+        # Adam with L2: gradient includes λθ, which gets scaled by adaptive LR
+        # AdamW: weight decay applied directly to θ, outside adaptive scaling
 
-    theta_aw = 2.0
-    grad_aw = 0.5
-    lr_aw = 0.01
-    lam_aw = 0.1
-    # Assume m_hat=grad, v_hat=grad^2 (steady state, one param)
+        theta_aw = 2.0
+        grad_aw = 0.5
+        lr_aw = 0.01
+        lam_aw = 0.1
+        # Assume m_hat=grad, v_hat=grad^2 (steady state, one param)
 
-    # Adam + L2 reg: gradient becomes (grad + λ*θ), then divided by sqrt(v)
-    g_l2 = grad_aw + lam_aw * theta_aw  # 0.5 + 0.2 = 0.7
-    # Effective update ∝ g_l2 / sqrt(g_l2^2) = sign(g_l2) — decay gets swallowed!
-    print("Adam + L2: effective gradient =", g_l2)
-    print("  → adaptive scaling makes weight decay strength depend on gradient magnitude")
+        # Adam + L2 reg: gradient becomes (grad + λ*θ), then divided by sqrt(v)
+        g_l2 = grad_aw + lam_aw * theta_aw  # 0.5 + 0.2 = 0.7
+        # Effective update ∝ g_l2 / sqrt(g_l2^2) = sign(g_l2) — decay gets swallowed!
+        print("Adam + L2: effective gradient =", g_l2)
+        print("  → adaptive scaling makes weight decay strength depend on gradient magnitude")
 
-    # AdamW: adaptive step on grad only, then subtract λ*θ separately
-    adam_step = grad_aw / abs(grad_aw)  # sign
-    adamw_update = lr_aw * adam_step + lam_aw * theta_aw  # adaptive + explicit decay
-    print(f"\nAdamW: adaptive step = {lr_aw * adam_step:.4f}, weight decay = {lam_aw * theta_aw:.4f}")
-    print("  → weight decay applied uniformly, independent of gradient history")
+        # AdamW: adaptive step on grad only, then subtract λ*θ separately
+        adam_step = grad_aw / abs(grad_aw)  # sign
+        adamw_update = lr_aw * adam_step + lam_aw * theta_aw  # adaptive + explicit decay
+        print(f"\nAdamW: adaptive step = {lr_aw * adam_step:.4f}, weight decay = {lam_aw * theta_aw:.4f}")
+        print("  → weight decay applied uniformly, independent of gradient history")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -511,53 +538,59 @@ A middle ground: divide channels into groups and normalize within each group. Gr
 
 @app.cell
 def _(np):
-    # Batch Normalization from scratch (forward pass)
-    rng = np.random.default_rng(42)
-    # Simulated mini-batch: 4 samples, 3 features
-    X_bn = rng.standard_normal((4, 3)) * 5 + 10  # mean ≈ 10, std ≈ 5
-    eps_bn = 1e-5
+    def _run():
+        # Batch Normalization from scratch (forward pass)
+        rng = np.random.default_rng(42)
+        # Simulated mini-batch: 4 samples, 3 features
+        X_bn = rng.standard_normal((4, 3)) * 5 + 10  # mean ≈ 10, std ≈ 5
+        eps_bn = 1e-5
 
-    # Step 1-2: batch mean and variance
-    mu_B = X_bn.mean(axis=0)                             # (3,)
-    var_B = X_bn.var(axis=0)                              # (3,)
+        # Step 1-2: batch mean and variance
+        mu_B = X_bn.mean(axis=0)                             # (3,)
+        var_B = X_bn.var(axis=0)                              # (3,)
 
-    # Step 3: normalize
-    X_hat = (X_bn - mu_B) / np.sqrt(var_B + eps_bn)      # zero mean, unit var
+        # Step 3: normalize
+        X_hat = (X_bn - mu_B) / np.sqrt(var_B + eps_bn)      # zero mean, unit var
 
-    # Step 4: scale and shift (learnable γ, β — initialized to 1 and 0)
-    gamma_bn, beta_bn = np.ones(3), np.zeros(3)
-    Y_bn = gamma_bn * X_hat + beta_bn                    # γ * x̂ + β
+        # Step 4: scale and shift (learnable γ, β — initialized to 1 and 0)
+        gamma_bn, beta_bn = np.ones(3), np.zeros(3)
+        Y_bn = gamma_bn * X_hat + beta_bn                    # γ * x̂ + β
 
-    print("Input X (before BN):")
-    print(f"  mean = {X_bn.mean(axis=0).round(2)},  std = {X_bn.std(axis=0).round(2)}")
-    print("Output Y (after BN):")
-    print(f"  mean = {Y_bn.mean(axis=0).round(4)},  std = {Y_bn.std(axis=0).round(4)}")
+        print("Input X (before BN):")
+        print(f"  mean = {X_bn.mean(axis=0).round(2)},  std = {X_bn.std(axis=0).round(2)}")
+        print("Output Y (after BN):")
+        print(f"  mean = {Y_bn.mean(axis=0).round(4)},  std = {Y_bn.std(axis=0).round(4)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Layer Norm vs Batch Norm: which axis do we normalize over?
-    rng = np.random.default_rng(7)
-    X_norm = rng.standard_normal((4, 5)) * 3 + 2  # (batch=4, features=5)
-    eps_ln = 1e-5
+    def _run():
+        # Layer Norm vs Batch Norm: which axis do we normalize over?
+        rng = np.random.default_rng(7)
+        X_norm = rng.standard_normal((4, 5)) * 3 + 2  # (batch=4, features=5)
+        eps_ln = 1e-5
 
-    # Batch norm: normalize across batch dim (axis=0), per feature
-    bn_mean = X_norm.mean(axis=0)   # shape (5,)
-    bn_var = X_norm.var(axis=0)
-    X_batchnorm = (X_norm - bn_mean) / np.sqrt(bn_var + eps_ln)
+        # Batch norm: normalize across batch dim (axis=0), per feature
+        bn_mean = X_norm.mean(axis=0)   # shape (5,)
+        bn_var = X_norm.var(axis=0)
+        X_batchnorm = (X_norm - bn_mean) / np.sqrt(bn_var + eps_ln)
 
-    # Layer norm: normalize across feature dim (axis=1), per sample
-    ln_mean = X_norm.mean(axis=1, keepdims=True)  # shape (4, 1)
-    ln_var = X_norm.var(axis=1, keepdims=True)
-    X_layernorm = (X_norm - ln_mean) / np.sqrt(ln_var + eps_ln)
+        # Layer norm: normalize across feature dim (axis=1), per sample
+        ln_mean = X_norm.mean(axis=1, keepdims=True)  # shape (4, 1)
+        ln_var = X_norm.var(axis=1, keepdims=True)
+        X_layernorm = (X_norm - ln_mean) / np.sqrt(ln_var + eps_ln)
 
-    print("Batch Norm — each feature has mean≈0 across batch:")
-    print(f"  Column means: {X_batchnorm.mean(axis=0).round(6)}")
-    print("Layer Norm — each sample has mean≈0 across features:")
-    print(f"  Row means:    {X_layernorm.mean(axis=1).round(6)}")
+        print("Batch Norm — each feature has mean≈0 across batch:")
+        print(f"  Column means: {X_batchnorm.mean(axis=0).round(6)}")
+        print("Layer Norm — each sample has mean≈0 across features:")
+        print(f"  Row means:    {X_layernorm.mean(axis=1).round(6)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -606,76 +639,85 @@ A practical memory optimization. Normally, during the forward pass, you store al
 
 @app.cell
 def _(np, plt):
-    # Vanishing gradients: multiply through many layers
-    # Gradient at layer k = product of per-layer derivatives
-    n_layers = 30
+    def _run():
+        # Vanishing gradients: multiply through many layers
+        # Gradient at layer k = product of per-layer derivatives
+        n_layers = 30
 
-    # Sigmoid derivative max is 0.25; ReLU derivative is 1 (for positive inputs)
-    sigmoid_factor = 0.25   # worst-case sigmoid derivative
-    relu_factor = 1.0       # ReLU derivative (positive region)
-    tanh_factor = 0.65      # typical tanh derivative
+        # Sigmoid derivative max is 0.25; ReLU derivative is 1 (for positive inputs)
+        sigmoid_factor = 0.25   # worst-case sigmoid derivative
+        relu_factor = 1.0       # ReLU derivative (positive region)
+        tanh_factor = 0.65      # typical tanh derivative
 
-    layers = np.arange(1, n_layers + 1)
-    grad_sigmoid = sigmoid_factor ** layers
-    grad_relu = relu_factor ** layers
-    grad_tanh = tanh_factor ** layers
+        layers = np.arange(1, n_layers + 1)
+        grad_sigmoid = sigmoid_factor ** layers
+        grad_relu = relu_factor ** layers
+        grad_tanh = tanh_factor ** layers
 
-    fig_vg, ax_vg = plt.subplots(figsize=(7, 3.5))
-    ax_vg.plot(layers, grad_sigmoid, label=f"Sigmoid (factor={sigmoid_factor})")
-    ax_vg.plot(layers, grad_tanh, label=f"Tanh (factor={tanh_factor})")
-    ax_vg.plot(layers, grad_relu, label=f"ReLU (factor={relu_factor})", ls="--")
-    ax_vg.set_xlabel("Depth (layers)"); ax_vg.set_ylabel("Gradient magnitude")
-    ax_vg.set_yscale("log"); ax_vg.legend()
-    ax_vg.set_title("Gradient magnitude vs depth — sigmoid/tanh vanish, ReLU preserves")
-    fig_vg.tight_layout()
-    fig_vg
+        fig_vg, ax_vg = plt.subplots(figsize=(7, 3.5))
+        ax_vg.plot(layers, grad_sigmoid, label=f"Sigmoid (factor={sigmoid_factor})")
+        ax_vg.plot(layers, grad_tanh, label=f"Tanh (factor={tanh_factor})")
+        ax_vg.plot(layers, grad_relu, label=f"ReLU (factor={relu_factor})", ls="--")
+        ax_vg.set_xlabel("Depth (layers)"); ax_vg.set_ylabel("Gradient magnitude")
+        ax_vg.set_yscale("log"); ax_vg.legend()
+        ax_vg.set_title("Gradient magnitude vs depth — sigmoid/tanh vanish, ReLU preserves")
+        fig_vg.tight_layout()
+        fig_vg
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Gradient clipping: norm clipping preserves direction
-    gradient = np.array([3.0, 4.0])  # norm = 5.0
-    max_norm = 2.0
+    def _run():
+        # Gradient clipping: norm clipping preserves direction
+        gradient = np.array([3.0, 4.0])  # norm = 5.0
+        max_norm = 2.0
 
-    grad_norm = np.linalg.norm(gradient)
-    if grad_norm > max_norm:
-        clipped = gradient * (max_norm / grad_norm)  # rescale to max_norm
-    else:
-        clipped = gradient
+        grad_norm = np.linalg.norm(gradient)
+        if grad_norm > max_norm:
+            clipped = gradient * (max_norm / grad_norm)  # rescale to max_norm
+        else:
+            clipped = gradient
 
-    print(f"Original gradient: {gradient},  norm = {grad_norm:.1f}")
-    print(f"Clipped gradient:  {clipped.round(4)},  norm = {np.linalg.norm(clipped):.1f}")
-    print(f"Direction preserved: {(gradient / grad_norm).round(4)} == {(clipped / np.linalg.norm(clipped)).round(4)}")
+        print(f"Original gradient: {gradient},  norm = {grad_norm:.1f}")
+        print(f"Clipped gradient:  {clipped.round(4)},  norm = {np.linalg.norm(clipped):.1f}")
+        print(f"Direction preserved: {(gradient / grad_norm).round(4)} == {(clipped / np.linalg.norm(clipped)).round(4)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Residual connection: y = F(x) + x
-    # During backprop: dy/dx = dF/dx + 1 (the +1 ensures gradient flows!)
-    rng = np.random.default_rng(3)
-    x_res = rng.standard_normal(4)
+    def _run():
+        # Residual connection: y = F(x) + x
+        # During backprop: dy/dx = dF/dx + 1 (the +1 ensures gradient flows!)
+        rng = np.random.default_rng(3)
+        x_res = rng.standard_normal(4)
 
-    # Simulate a "layer" F that shrinks its input (bad for gradient flow)
-    W_res = rng.standard_normal((4, 4)) * 0.3  # small weights → small Jacobian
-    F_x = np.tanh(W_res @ x_res)
+        # Simulate a "layer" F that shrinks its input (bad for gradient flow)
+        W_res = rng.standard_normal((4, 4)) * 0.3  # small weights → small Jacobian
+        F_x = np.tanh(W_res @ x_res)
 
-    # Without residual: output = F(x)
-    y_no_skip = F_x
-    # With residual: output = F(x) + x
-    y_skip = F_x + x_res
+        # Without residual: output = F(x)
+        y_no_skip = F_x
+        # With residual: output = F(x) + x
+        y_skip = F_x + x_res
 
-    # Jacobian norms (approximate gradient magnitude)
-    J_F = np.diag(1 - np.tanh(W_res @ x_res)**2) @ W_res  # dF/dx
-    J_no_skip = np.linalg.norm(J_F)
-    J_skip = np.linalg.norm(J_F + np.eye(4))  # dF/dx + I
+        # Jacobian norms (approximate gradient magnitude)
+        J_F = np.diag(1 - np.tanh(W_res @ x_res)**2) @ W_res  # dF/dx
+        J_no_skip = np.linalg.norm(J_F)
+        J_skip = np.linalg.norm(J_F + np.eye(4))  # dF/dx + I
 
-    print(f"Jacobian norm without skip: {J_no_skip:.4f}")
-    print(f"Jacobian norm with skip:    {J_skip:.4f}")
-    print("→ Skip connection keeps gradient magnitude closer to 1")
+        print(f"Jacobian norm without skip: {J_no_skip:.4f}")
+        print(f"Jacobian norm with skip:    {J_skip:.4f}")
+        print("→ Skip connection keeps gradient magnitude closer to 1")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -728,64 +770,70 @@ This is not the only recipe, but it's a solid default. The specific choices (opt
 
 @app.cell
 def _(np):
-    # Weight initialization: Xavier vs He — variance preservation across layers
-    rng = np.random.default_rng(0)
-    n_in, n_out = 256, 256
-    n_forward_layers = 10
-    x_init = rng.standard_normal((1, n_in))  # single sample
+    def _run():
+        # Weight initialization: Xavier vs He — variance preservation across layers
+        rng = np.random.default_rng(0)
+        n_in, n_out = 256, 256
+        n_forward_layers = 10
+        x_init = rng.standard_normal((1, n_in))  # single sample
 
-    # Xavier init: Var(W) = 2 / (n_in + n_out) — designed for tanh
-    print("=== Xavier init + tanh ===")
-    h = x_init.copy()
-    for _ in range(n_forward_layers):
-        W = rng.standard_normal((n_in, n_out)) * np.sqrt(2.0 / (n_in + n_out))
-        h = np.tanh(h @ W)
-    print(f"  Activation std after {n_forward_layers} layers: {h.std():.6f}")
+        # Xavier init: Var(W) = 2 / (n_in + n_out) — designed for tanh
+        print("=== Xavier init + tanh ===")
+        h = x_init.copy()
+        for _ in range(n_forward_layers):
+            W = rng.standard_normal((n_in, n_out)) * np.sqrt(2.0 / (n_in + n_out))
+            h = np.tanh(h @ W)
+        print(f"  Activation std after {n_forward_layers} layers: {h.std():.6f}")
 
-    # He init: Var(W) = 2 / n_in — designed for ReLU
-    print("=== He init + ReLU ===")
-    h = x_init.copy()
-    for _ in range(n_forward_layers):
-        W = rng.standard_normal((n_in, n_out)) * np.sqrt(2.0 / n_in)
-        h = np.maximum(0, h @ W)  # ReLU
-    print(f"  Activation std after {n_forward_layers} layers: {h.std():.6f}")
+        # He init: Var(W) = 2 / n_in — designed for ReLU
+        print("=== He init + ReLU ===")
+        h = x_init.copy()
+        for _ in range(n_forward_layers):
+            W = rng.standard_normal((n_in, n_out)) * np.sqrt(2.0 / n_in)
+            h = np.maximum(0, h @ W)  # ReLU
+        print(f"  Activation std after {n_forward_layers} layers: {h.std():.6f}")
 
-    # Bad init (too large): activations explode
-    print("=== Bad init (std=1.0) + ReLU ===")
-    h = x_init.copy()
-    for _ in range(n_forward_layers):
-        W = rng.standard_normal((n_in, n_out)) * 1.0
-        h = np.maximum(0, h @ W)
-    print(f"  Activation std after {n_forward_layers} layers: {h.std():.2e}  (exploded!)")
+        # Bad init (too large): activations explode
+        print("=== Bad init (std=1.0) + ReLU ===")
+        h = x_init.copy()
+        for _ in range(n_forward_layers):
+            W = rng.standard_normal((n_in, n_out)) * 1.0
+            h = np.maximum(0, h @ W)
+        print(f"  Activation std after {n_forward_layers} layers: {h.std():.2e}  (exploded!)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Gradient accumulation pseudocode in numpy
-    # Simulate: logical batch=256, physical batch=64, accumulation steps=4
-    logical_bs = 256
-    physical_bs = 64
-    accum_steps = logical_bs // physical_bs  # = 4
+    def _run():
+        # Gradient accumulation pseudocode in numpy
+        # Simulate: logical batch=256, physical batch=64, accumulation steps=4
+        logical_bs = 256
+        physical_bs = 64
+        accum_steps = logical_bs // physical_bs  # = 4
 
-    rng = np.random.default_rng(1)
-    # Fake per-sample gradients for a single parameter
-    all_grads = rng.standard_normal(logical_bs)
+        rng = np.random.default_rng(1)
+        # Fake per-sample gradients for a single parameter
+        all_grads = rng.standard_normal(logical_bs)
 
-    # Method 1: single big batch
-    full_batch_grad = all_grads.mean()
+        # Method 1: single big batch
+        full_batch_grad = all_grads.mean()
 
-    # Method 2: accumulate over mini-batches (divide each by accum_steps)
-    accumulated_grad = 0.0
-    for step in range(accum_steps):
-        mini_batch = all_grads[step * physical_bs : (step + 1) * physical_bs]
-        accumulated_grad += mini_batch.mean() / accum_steps  # scale by 1/k
+        # Method 2: accumulate over mini-batches (divide each by accum_steps)
+        accumulated_grad = 0.0
+        for step in range(accum_steps):
+            mini_batch = all_grads[step * physical_bs : (step + 1) * physical_bs]
+            accumulated_grad += mini_batch.mean() / accum_steps  # scale by 1/k
 
-    print(f"Full-batch gradient:    {full_batch_grad:.6f}")
-    print(f"Accumulated gradient:   {accumulated_grad:.6f}")
-    print(f"Match: {np.isclose(full_batch_grad, accumulated_grad)}")
+        print(f"Full-batch gradient:    {full_batch_grad:.6f}")
+        print(f"Accumulated gradient:   {accumulated_grad:.6f}")
+        print(f"Match: {np.isclose(full_batch_grad, accumulated_grad)}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

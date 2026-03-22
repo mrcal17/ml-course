@@ -90,26 +90,29 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Regression tree split loss: try every threshold on 1D data
-    # and pick the one minimizing total RSS across both regions
-    y_demo = np.array([2.1, 2.5, 3.8, 4.0, 7.1, 7.9, 8.2])
-    x_demo = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
+    def _run():
+        # Regression tree split loss: try every threshold on 1D data
+        # and pick the one minimizing total RSS across both regions
+        y_demo = np.array([2.1, 2.5, 3.8, 4.0, 7.1, 7.9, 8.2])
+        x_demo = np.array([1, 2, 3, 4, 5, 6, 7], dtype=float)
 
-    best_loss, best_t = np.inf, None
-    for t in x_demo[:-1]:  # candidate thresholds between consecutive points
-        left = y_demo[x_demo <= t]
-        right = y_demo[x_demo > t]
-        # RSS = sum of squared deviations from the region mean
-        loss = np.sum((left - left.mean())**2) + np.sum((right - right.mean())**2)
-        if loss < best_loss:
-            best_loss, best_t = loss, t
+        best_loss, best_t = np.inf, None
+        for t in x_demo[:-1]:  # candidate thresholds between consecutive points
+            left = y_demo[x_demo <= t]
+            right = y_demo[x_demo > t]
+            # RSS = sum of squared deviations from the region mean
+            loss = np.sum((left - left.mean())**2) + np.sum((right - right.mean())**2)
+            if loss < best_loss:
+                best_loss, best_t = loss, t
 
-    print(f"Best split: x <= {best_t}")
-    print(f"Left mean:  {y_demo[x_demo <= best_t].mean():.2f}")
-    print(f"Right mean: {y_demo[x_demo > best_t].mean():.2f}")
-    print(f"RSS:        {best_loss:.2f}")
+        print(f"Best split: x <= {best_t}")
+        print(f"Left mean:  {y_demo[x_demo <= best_t].mean():.2f}")
+        print(f"Right mean: {y_demo[x_demo > best_t].mean():.2f}")
+        print(f"RSS:        {best_loss:.2f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -157,47 +160,53 @@ def _(np):
 
 @app.cell
 def _(entropy, gini, np, plt):
-    # Visualize Gini and entropy as functions of p for binary classification
-    p_range = np.linspace(0.001, 0.999, 200)
-    gini_vals = [gini(np.array([p, 1 - p])) for p in p_range]
-    entropy_vals = [entropy(np.array([p, 1 - p])) for p in p_range]
+    def _run():
+        # Visualize Gini and entropy as functions of p for binary classification
+        p_range = np.linspace(0.001, 0.999, 200)
+        gini_vals = [gini(np.array([p, 1 - p])) for p in p_range]
+        entropy_vals = [entropy(np.array([p, 1 - p])) for p in p_range]
 
-    fig_imp, ax_imp = plt.subplots(figsize=(6, 3.5))
-    ax_imp.plot(p_range, gini_vals, label="Gini impurity")
-    ax_imp.plot(p_range, entropy_vals, label="Entropy (bits)")
-    ax_imp.set_xlabel(r"$\hat{p}_1$ (proportion of class 1)")
-    ax_imp.set_ylabel("Impurity")
-    ax_imp.set_title("Gini vs Entropy for binary classification")
-    ax_imp.legend()
-    plt.tight_layout()
-    fig_imp
+        fig_imp, ax_imp = plt.subplots(figsize=(6, 3.5))
+        ax_imp.plot(p_range, gini_vals, label="Gini impurity")
+        ax_imp.plot(p_range, entropy_vals, label="Entropy (bits)")
+        ax_imp.set_xlabel(r"$\hat{p}_1$ (proportion of class 1)")
+        ax_imp.set_ylabel("Impurity")
+        ax_imp.set_title("Gini vs Entropy for binary classification")
+        ax_imp.legend()
+        plt.tight_layout()
+        fig_imp
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Information gain from a candidate split
-    # Parent node: 50 class-0, 50 class-1
-    # Split A -> left (40,10), right (10,40)
-    # Split B -> left (30,20), right (20,30)
-    def ig(parent_counts, left_counts, right_counts):
-        """Weighted entropy reduction (information gain)."""
-        def H(counts):
-            p = counts / counts.sum()
-            p = p[p > 0]
-            return -np.sum(p * np.log2(p))
-        n = parent_counts.sum()
-        n_l, n_r = left_counts.sum(), right_counts.sum()
-        return H(parent_counts) - (n_l/n)*H(left_counts) - (n_r/n)*H(right_counts)
+    def _run():
+        # Information gain from a candidate split
+        # Parent node: 50 class-0, 50 class-1
+        # Split A -> left (40,10), right (10,40)
+        # Split B -> left (30,20), right (20,30)
+        def ig(parent_counts, left_counts, right_counts):
+            """Weighted entropy reduction (information gain)."""
+            def H(counts):
+                p = counts / counts.sum()
+                p = p[p > 0]
+                return -np.sum(p * np.log2(p))
+            n = parent_counts.sum()
+            n_l, n_r = left_counts.sum(), right_counts.sum()
+            return H(parent_counts) - (n_l/n)*H(left_counts) - (n_r/n)*H(right_counts)
 
-    parent = np.array([50, 50])
-    gain_A = ig(parent, np.array([40, 10]), np.array([10, 40]))
-    gain_B = ig(parent, np.array([30, 20]), np.array([20, 30]))
-    print(f"Information gain — Split A: {gain_A:.4f} bits")
-    print(f"Information gain — Split B: {gain_B:.4f} bits")
-    print(f"Split A is better: {gain_A > gain_B}")
+        parent = np.array([50, 50])
+        gain_A = ig(parent, np.array([40, 10]), np.array([10, 40]))
+        gain_B = ig(parent, np.array([30, 20]), np.array([20, 30]))
+        print(f"Information gain — Split A: {gain_A:.4f} bits")
+        print(f"Information gain — Split B: {gain_B:.4f} bits")
+        print(f"Split A is better: {gain_A > gain_B}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -219,28 +228,31 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, make_moons, np, plt):
-    # Cost-complexity pruning: grow full tree, then prune with alpha
-    X_prune, y_prune = make_moons(n_samples=200, noise=0.3, random_state=0)
-    dt_full = DecisionTreeClassifier(random_state=0)
-    # Get the effective alphas from cost-complexity pruning path
-    path = dt_full.cost_complexity_pruning_path(X_prune, y_prune)
-    alphas = path.ccp_alphas[::5]  # subsample for speed
+    def _run():
+        # Cost-complexity pruning: grow full tree, then prune with alpha
+        X_prune, y_prune = make_moons(n_samples=200, noise=0.3, random_state=0)
+        dt_full = DecisionTreeClassifier(random_state=0)
+        # Get the effective alphas from cost-complexity pruning path
+        path = dt_full.cost_complexity_pruning_path(X_prune, y_prune)
+        alphas = path.ccp_alphas[::5]  # subsample for speed
 
-    leaves = []
-    for a in alphas:
-        clf = DecisionTreeClassifier(ccp_alpha=a, random_state=0)
-        clf.fit(X_prune, y_prune)
-        leaves.append(clf.get_n_leaves())
+        leaves = []
+        for a in alphas:
+            clf = DecisionTreeClassifier(ccp_alpha=a, random_state=0)
+            clf.fit(X_prune, y_prune)
+            leaves.append(clf.get_n_leaves())
 
-    fig_prune, ax_prune = plt.subplots(figsize=(6, 3.5))
-    ax_prune.plot(alphas, leaves, "o-", ms=3)
-    ax_prune.set_xlabel(r"$\alpha$ (cost-complexity parameter)")
-    ax_prune.set_ylabel("Number of leaves")
-    ax_prune.set_title(r"Pruning: more $\alpha$ $\rightarrow$ simpler tree")
-    plt.tight_layout()
-    fig_prune
+        fig_prune, ax_prune = plt.subplots(figsize=(6, 3.5))
+        ax_prune.plot(alphas, leaves, "o-", ms=3)
+        ax_prune.set_xlabel(r"$\alpha$ (cost-complexity parameter)")
+        ax_prune.set_ylabel("Number of leaves")
+        ax_prune.set_title(r"Pruning: more $\alpha$ $\rightarrow$ simpler tree")
+        plt.tight_layout()
+        fig_prune
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -284,35 +296,38 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, depth_slider, make_moons, np, plt):
-    # Generate synthetic 2D data
-    X_tree_demo, y_tree_demo = make_moons(n_samples=300, noise=0.3, random_state=42)
+    def _run():
+        # Generate synthetic 2D data
+        X_tree_demo, y_tree_demo = make_moons(n_samples=300, noise=0.3, random_state=42)
 
-    # Train decision tree with selected depth
-    dt = DecisionTreeClassifier(max_depth=depth_slider.value, random_state=42)
-    dt.fit(X_tree_demo, y_tree_demo)
+        # Train decision tree with selected depth
+        dt = DecisionTreeClassifier(max_depth=depth_slider.value, random_state=42)
+        dt.fit(X_tree_demo, y_tree_demo)
 
-    # Create meshgrid for decision boundary
-    x_min, x_max = X_tree_demo[:, 0].min() - 0.5, X_tree_demo[:, 0].max() + 0.5
-    y_min, y_max = X_tree_demo[:, 1].min() - 0.5, X_tree_demo[:, 1].max() + 0.5
-    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
-    Z = dt.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+        # Create meshgrid for decision boundary
+        x_min, x_max = X_tree_demo[:, 0].min() - 0.5, X_tree_demo[:, 0].max() + 0.5
+        y_min, y_max = X_tree_demo[:, 1].min() - 0.5, X_tree_demo[:, 1].max() + 0.5
+        xx, yy = np.meshgrid(np.linspace(x_min, x_max, 200), np.linspace(y_min, y_max, 200))
+        Z = dt.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
 
-    fig, ax = plt.subplots(1, 1, figsize=(8, 5))
-    ax.contourf(xx, yy, Z, alpha=0.3, cmap='RdBu')
-    ax.scatter(X_tree_demo[y_tree_demo == 0, 0], X_tree_demo[y_tree_demo == 0, 1],
-               c='blue', edgecolors='k', s=20, label='Class 0')
-    ax.scatter(X_tree_demo[y_tree_demo == 1, 0], X_tree_demo[y_tree_demo == 1, 1],
-               c='red', edgecolors='k', s=20, label='Class 1')
-    ax.set_title(f"Decision Tree (max_depth={depth_slider.value}) — "
-                 f"Train accuracy: {dt.score(X_tree_demo, y_tree_demo):.3f}, "
-                 f"Leaves: {dt.get_n_leaves()}")
-    ax.legend()
-    ax.set_xlabel("$x_1$")
-    ax.set_ylabel("$x_2$")
-    plt.tight_layout()
-    fig
+        fig, ax = plt.subplots(1, 1, figsize=(8, 5))
+        ax.contourf(xx, yy, Z, alpha=0.3, cmap='RdBu')
+        ax.scatter(X_tree_demo[y_tree_demo == 0, 0], X_tree_demo[y_tree_demo == 0, 1],
+                   c='blue', edgecolors='k', s=20, label='Class 0')
+        ax.scatter(X_tree_demo[y_tree_demo == 1, 0], X_tree_demo[y_tree_demo == 1, 1],
+                   c='red', edgecolors='k', s=20, label='Class 1')
+        ax.set_title(f"Decision Tree (max_depth={depth_slider.value}) — "
+                     f"Train accuracy: {dt.score(X_tree_demo, y_tree_demo):.3f}, "
+                     f"Leaves: {dt.get_n_leaves()}")
+        ax.legend()
+        ax.set_xlabel("$x_1$")
+        ax.set_ylabel("$x_2$")
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -332,24 +347,27 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, make_moons, np):
-    # Demonstrate tree instability: train on slightly different data
-    X_instab, y_instab = make_moons(n_samples=100, noise=0.3, random_state=42)
-    preds_list = []
-    x_test_pt = np.array([[0.5, 0.2]])  # single test point
+    def _run():
+        # Demonstrate tree instability: train on slightly different data
+        X_instab, y_instab = make_moons(n_samples=100, noise=0.3, random_state=42)
+        preds_list = []
+        x_test_pt = np.array([[0.5, 0.2]])  # single test point
 
-    for seed in range(10):
-        # Bootstrap resample (simulating small data perturbation)
-        rng = np.random.default_rng(seed)
-        idx = rng.choice(len(X_instab), len(X_instab), replace=True)
-        dt_inst = DecisionTreeClassifier(random_state=0)
-        dt_inst.fit(X_instab[idx], y_instab[idx])
-        preds_list.append(dt_inst.predict(x_test_pt)[0])
+        for seed in range(10):
+            # Bootstrap resample (simulating small data perturbation)
+            rng = np.random.default_rng(seed)
+            idx = rng.choice(len(X_instab), len(X_instab), replace=True)
+            dt_inst = DecisionTreeClassifier(random_state=0)
+            dt_inst.fit(X_instab[idx], y_instab[idx])
+            preds_list.append(dt_inst.predict(x_test_pt)[0])
 
-    print(f"Predictions from 10 bootstrap trees: {preds_list}")
-    print(f"Variance of predictions: {np.var(preds_list):.3f}")
-    print("High variance = unstable learner")
+        print(f"Predictions from 10 bootstrap trees: {preds_list}")
+        print(f"Variance of predictions: {np.var(preds_list):.3f}")
+        print("High variance = unstable learner")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -386,30 +404,36 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Bagging variance formula: Var = rho*sigma^2 + (1-rho)*sigma^2 / B
-    sigma2 = 1.0  # individual tree variance
+    def _run():
+        # Bagging variance formula: Var = rho*sigma^2 + (1-rho)*sigma^2 / B
+        sigma2 = 1.0  # individual tree variance
 
-    for rho in [0.8, 0.4, 0.1]:
-        for B in [10, 100, 1000]:
-            var = rho * sigma2 + (1 - rho) * sigma2 / B
-            print(f"rho={rho}, B={B:4d} -> ensemble variance = {var:.4f}")
-        print()
+        for rho in [0.8, 0.4, 0.1]:
+            for B in [10, 100, 1000]:
+                var = rho * sigma2 + (1 - rho) * sigma2 / B
+                print(f"rho={rho}, B={B:4d} -> ensemble variance = {var:.4f}")
+            print()
 
-    print("Key insight: reducing rho (correlation) helps more than increasing B (trees)")
+        print("Key insight: reducing rho (correlation) helps more than increasing B (trees)")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # OOB: probability that observation i is NOT in a bootstrap sample
-    # P(not picked in one draw) = 1 - 1/n, repeated n times
-    n = 100
-    p_oob = (1 - 1/n) ** n  # approaches 1/e ~ 0.368
-    print(f"P(observation is OOB) for n={n}: {p_oob:.4f}")
-    print(f"Theoretical limit (1/e):          {np.exp(-1):.4f}")
-    print(f"So ~{100*p_oob:.1f}% of data is OOB per tree — free validation!")
-    return
+    def _run():
+        # OOB: probability that observation i is NOT in a bootstrap sample
+        # P(not picked in one draw) = 1 - 1/n, repeated n times
+        n = 100
+        p_oob = (1 - 1/n) ** n  # approaches 1/e ~ 0.368
+        print(f"P(observation is OOB) for n={n}: {p_oob:.4f}")
+        print(f"Theoretical limit (1/e):          {np.exp(-1):.4f}")
+        print(f"So ~{100*p_oob:.1f}% of data is OOB per tree — free validation!")
 
+
+    _run()
+    return
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -436,13 +460,16 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # mtry defaults: sqrt(p) for classification, p/3 for regression
-    for p in [10, 50, 100, 500]:
-        m_clf = int(np.sqrt(p))
-        m_reg = max(1, int(p / 3))
-        print(f"p={p:3d} features -> mtry_classification={m_clf}, mtry_regression={m_reg}")
-    return
+    def _run():
+        # mtry defaults: sqrt(p) for classification, p/3 for regression
+        for p in [10, 50, 100, 500]:
+            m_clf = int(np.sqrt(p))
+            m_reg = max(1, int(p / 3))
+            print(f"p={p:3d} features -> mtry_classification={m_clf}, mtry_regression={m_reg}")
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -468,33 +495,36 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.ensemble import RandomForestClassifier as RFC_demo
-    from sklearn.inspection import permutation_importance
-    from sklearn.datasets import load_breast_cancer
+    def _run():
+        from sklearn.ensemble import RandomForestClassifier as RFC_demo
+        from sklearn.inspection import permutation_importance
+        from sklearn.datasets import load_breast_cancer
 
-    data_rf = load_breast_cancer()
-    X_rf, y_rf = data_rf.data, data_rf.target
-    feature_names_rf = data_rf.feature_names
+        data_rf = load_breast_cancer()
+        X_rf, y_rf = data_rf.data, data_rf.target
+        feature_names_rf = data_rf.feature_names
 
-    # Classification
-    rf_clf = RFC_demo(
-        n_estimators=500,        # number of trees
-        max_features='sqrt',     # mtry = sqrt(p) for classification
-        min_samples_leaf=5,      # mild regularization
-        oob_score=True,          # compute OOB error
-        n_jobs=-1,               # parallelize across all cores
-        random_state=42
-    )
-    rf_clf.fit(X_rf, y_rf)
-    print(f"OOB accuracy: {rf_clf.oob_score_:.4f}")
+        # Classification
+        rf_clf = RFC_demo(
+            n_estimators=500,        # number of trees
+            max_features='sqrt',     # mtry = sqrt(p) for classification
+            min_samples_leaf=5,      # mild regularization
+            oob_score=True,          # compute OOB error
+            n_jobs=-1,               # parallelize across all cores
+            random_state=42
+        )
+        rf_clf.fit(X_rf, y_rf)
+        print(f"OOB accuracy: {rf_clf.oob_score_:.4f}")
 
-    # Permutation importance (use OOB)
-    perm_imp = permutation_importance(rf_clf, X_rf, y_rf, n_repeats=10, random_state=42)
-    print("\nTop 10 features by permutation importance:")
-    for i in perm_imp.importances_mean.argsort()[::-1][:10]:
-        print(f"  {feature_names_rf[i]}: {perm_imp.importances_mean[i]:.4f}")
+        # Permutation importance (use OOB)
+        perm_imp = permutation_importance(rf_clf, X_rf, y_rf, n_repeats=10, random_state=42)
+        print("\nTop 10 features by permutation importance:")
+        for i in perm_imp.importances_mean.argsort()[::-1][:10]:
+            print(f"  {feature_names_rf[i]}: {perm_imp.importances_mean[i]:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -515,39 +545,42 @@ def _(mo):
 
 @app.cell
 def _(make_classification, n_trees_slider, np, plt):
-    from sklearn.ensemble import RandomForestClassifier as RFC_oob
+    def _run():
+        from sklearn.ensemble import RandomForestClassifier as RFC_oob
 
-    # Generate synthetic data
-    X_oob, y_oob = make_classification(
-        n_samples=500, n_features=20, n_informative=10,
-        n_redundant=5, random_state=42
-    )
-
-    # Compute OOB error for each number of trees from 1 to slider value
-    n_range = list(range(1, n_trees_slider.value + 1))
-    oob_errors = []
-
-    for n in n_range:
-        rf_temp = RFC_oob(
-            n_estimators=n, max_features='sqrt', oob_score=True,
-            random_state=42, n_jobs=-1, warm_start=False
+        # Generate synthetic data
+        X_oob, y_oob = make_classification(
+            n_samples=500, n_features=20, n_informative=10,
+            n_redundant=5, random_state=42
         )
-        rf_temp.fit(X_oob, y_oob)
-        oob_errors.append(1 - rf_temp.oob_score_)
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(n_range, oob_errors, 'b-', linewidth=1.5)
-    ax.set_xlabel("Number of Trees")
-    ax.set_ylabel("OOB Error Rate")
-    ax.set_title(f"Random Forest: OOB Error vs Number of Trees (current: {n_trees_slider.value})")
-    ax.axhline(y=oob_errors[-1], color='r', linestyle='--', alpha=0.5,
-               label=f"Current OOB error: {oob_errors[-1]:.4f}")
-    ax.legend()
-    ax.set_ylim(bottom=0)
-    plt.tight_layout()
-    fig
+        # Compute OOB error for each number of trees from 1 to slider value
+        n_range = list(range(1, n_trees_slider.value + 1))
+        oob_errors = []
+
+        for n in n_range:
+            rf_temp = RFC_oob(
+                n_estimators=n, max_features='sqrt', oob_score=True,
+                random_state=42, n_jobs=-1, warm_start=False
+            )
+            rf_temp.fit(X_oob, y_oob)
+            oob_errors.append(1 - rf_temp.oob_score_)
+
+        fig, ax = plt.subplots(figsize=(8, 4))
+        ax.plot(n_range, oob_errors, 'b-', linewidth=1.5)
+        ax.set_xlabel("Number of Trees")
+        ax.set_ylabel("OOB Error Rate")
+        ax.set_title(f"Random Forest: OOB Error vs Number of Trees (current: {n_trees_slider.value})")
+        ax.axhline(y=oob_errors[-1], color='r', linestyle='--', alpha=0.5,
+                   label=f"Current OOB error: {oob_errors[-1]:.4f}")
+        ax.legend()
+        ax.set_ylim(bottom=0)
+        plt.tight_layout()
+        fig
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -575,29 +608,32 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, make_moons, np):
-    # Mini AdaBoost from scratch (binary classification, 5 stumps)
-    X_ada, y_ada = make_moons(n_samples=200, noise=0.3, random_state=42)
-    y_ada_pm = np.where(y_ada == 0, -1, 1)  # convert to {-1, +1}
-    n_ada = len(X_ada)
-    w = np.ones(n_ada) / n_ada  # step 1: uniform weights
+    def _run():
+        # Mini AdaBoost from scratch (binary classification, 5 stumps)
+        X_ada, y_ada = make_moons(n_samples=200, noise=0.3, random_state=42)
+        y_ada_pm = np.where(y_ada == 0, -1, 1)  # convert to {-1, +1}
+        n_ada = len(X_ada)
+        w = np.ones(n_ada) / n_ada  # step 1: uniform weights
 
-    stumps, alphas = [], []
-    for t in range(5):
-        stump = DecisionTreeClassifier(max_depth=1, random_state=t)
-        stump.fit(X_ada, y_ada_pm, sample_weight=w)              # step 2
-        pred = stump.predict(X_ada)
-        err = np.dot(w, pred != y_ada_pm)                        # weighted error
-        alpha = 0.5 * np.log((1 - err) / max(err, 1e-10))       # learner weight
-        w *= np.exp(-alpha * y_ada_pm * pred)                    # step 3: reweight
-        w /= w.sum()
-        stumps.append(stump); alphas.append(alpha)
-        print(f"Round {t+1}: err={err:.3f}, alpha={alpha:.3f}")
+        stumps, alphas = [], []
+        for t in range(5):
+            stump = DecisionTreeClassifier(max_depth=1, random_state=t)
+            stump.fit(X_ada, y_ada_pm, sample_weight=w)              # step 2
+            pred = stump.predict(X_ada)
+            err = np.dot(w, pred != y_ada_pm)                        # weighted error
+            alpha = 0.5 * np.log((1 - err) / max(err, 1e-10))       # learner weight
+            w *= np.exp(-alpha * y_ada_pm * pred)                    # step 3: reweight
+            w /= w.sum()
+            stumps.append(stump); alphas.append(alpha)
+            print(f"Round {t+1}: err={err:.3f}, alpha={alpha:.3f}")
 
-    # Final ensemble: weighted vote
-    ensemble_pred = np.sign(sum(a * s.predict(X_ada) for s, a in zip(stumps, alphas)))
-    print(f"\nEnsemble accuracy: {np.mean(ensemble_pred == y_ada_pm):.3f}")
+        # Final ensemble: weighted vote
+        ensemble_pred = np.sign(sum(a * s.predict(X_ada) for s, a in zip(stumps, alphas)))
+        print(f"\nEnsemble accuracy: {np.mean(ensemble_pred == y_ada_pm):.3f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -623,25 +659,28 @@ def _(mo):
 
 @app.cell
 def _(DecisionTreeClassifier, np):
-    # Gradient boosting from scratch (regression, squared error loss)
-    # For L2 loss, pseudo-residuals = y - F(x), i.e. literal residuals
-    from sklearn.tree import DecisionTreeRegressor
-    rng_gb = np.random.default_rng(42)
-    X_gb_demo = rng_gb.uniform(0, 10, (100, 1))
-    y_gb_demo = np.sin(X_gb_demo.ravel()) + rng_gb.normal(0, 0.2, 100)
+    def _run():
+        # Gradient boosting from scratch (regression, squared error loss)
+        # For L2 loss, pseudo-residuals = y - F(x), i.e. literal residuals
+        from sklearn.tree import DecisionTreeRegressor
+        rng_gb = np.random.default_rng(42)
+        X_gb_demo = rng_gb.uniform(0, 10, (100, 1))
+        y_gb_demo = np.sin(X_gb_demo.ravel()) + rng_gb.normal(0, 0.2, 100)
 
-    eta = 0.3  # learning rate (shrinkage)
-    F = np.full_like(y_gb_demo, y_gb_demo.mean())  # F_0 = mean(y)
+        eta = 0.3  # learning rate (shrinkage)
+        F = np.full_like(y_gb_demo, y_gb_demo.mean())  # F_0 = mean(y)
 
-    for m in range(5):
-        residuals = y_gb_demo - F             # negative gradient for L2 loss
-        tree_m = DecisionTreeRegressor(max_depth=2, random_state=m)
-        tree_m.fit(X_gb_demo, residuals)       # fit tree to pseudo-residuals
-        F += eta * tree_m.predict(X_gb_demo)   # update: F_m = F_{m-1} + eta * h_m
-        mse = np.mean((y_gb_demo - F) ** 2)
-        print(f"Round {m+1}: MSE = {mse:.4f}")
+        for m in range(5):
+            residuals = y_gb_demo - F             # negative gradient for L2 loss
+            tree_m = DecisionTreeRegressor(max_depth=2, random_state=m)
+            tree_m.fit(X_gb_demo, residuals)       # fit tree to pseudo-residuals
+            F += eta * tree_m.predict(X_gb_demo)   # update: F_m = F_{m-1} + eta * h_m
+            mse = np.mean((y_gb_demo - F) ** 2)
+            print(f"Round {m+1}: MSE = {mse:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -672,43 +711,49 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.ensemble import GradientBoostingClassifier as GBC_demo
-    from sklearn.datasets import load_breast_cancer as lbc_gb
-    from sklearn.model_selection import train_test_split as tts_gb
+    def _run():
+        from sklearn.ensemble import GradientBoostingClassifier as GBC_demo
+        from sklearn.datasets import load_breast_cancer as lbc_gb
+        from sklearn.model_selection import train_test_split as tts_gb
 
-    X_gb, y_gb = lbc_gb(return_X_y=True)
-    X_train_gb, X_test_gb, y_train_gb, y_test_gb = tts_gb(
-        X_gb, y_gb, test_size=0.2, random_state=42, stratify=y_gb
-    )
+        X_gb, y_gb = lbc_gb(return_X_y=True)
+        X_train_gb, X_test_gb, y_train_gb, y_test_gb = tts_gb(
+            X_gb, y_gb, test_size=0.2, random_state=42, stratify=y_gb
+        )
 
-    gb_clf = GBC_demo(
-        n_estimators=1000,       # max number of trees
-        learning_rate=0.05,      # shrinkage
-        max_depth=5,             # shallow trees
-        subsample=0.8,           # stochastic gradient boosting
-        validation_fraction=0.1, # hold out 10% for early stopping
-        n_iter_no_change=20,     # stop if no improvement for 20 rounds
-        random_state=42
-    )
-    gb_clf.fit(X_train_gb, y_train_gb)
-    print(f"Trees used: {gb_clf.n_estimators_}")
-    print(f"Test accuracy: {gb_clf.score(X_test_gb, y_test_gb):.4f}")
+        gb_clf = GBC_demo(
+            n_estimators=1000,       # max number of trees
+            learning_rate=0.05,      # shrinkage
+            max_depth=5,             # shallow trees
+            subsample=0.8,           # stochastic gradient boosting
+            validation_fraction=0.1, # hold out 10% for early stopping
+            n_iter_no_change=20,     # stop if no improvement for 20 rounds
+            random_state=42
+        )
+        gb_clf.fit(X_train_gb, y_train_gb)
+        print(f"Trees used: {gb_clf.n_estimators_}")
+        print(f"Test accuracy: {gb_clf.score(X_test_gb, y_test_gb):.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(np):
-    # Learning rate vs number of trees tradeoff
-    # Smaller eta needs more trees but generalizes better
-    # This is the "slow learning" principle
-    eta_values = [1.0, 0.1, 0.01]
-    for eta_val in eta_values:
-        # Rough rule: n_trees ~ 1/eta to reach same training loss
-        n_trees_needed = int(1.0 / eta_val) * 10
-        print(f"eta={eta_val:5.2f} -> ~{n_trees_needed:5d} trees needed, "
-              f"overfitting risk: {'HIGH' if eta_val > 0.3 else 'LOW'}")
-    return
+    def _run():
+        # Learning rate vs number of trees tradeoff
+        # Smaller eta needs more trees but generalizes better
+        # This is the "slow learning" principle
+        eta_values = [1.0, 0.1, 0.01]
+        for eta_val in eta_values:
+            # Rough rule: n_trees ~ 1/eta to reach same training loss
+            n_trees_needed = int(1.0 / eta_val) * 10
+            print(f"eta={eta_val:5.2f} -> ~{n_trees_needed:5d} trees needed, "
+                  f"overfitting risk: {'HIGH' if eta_val > 0.3 else 'LOW'}")
 
+
+    _run()
+    return
 
 @app.cell
 def _(mo):
@@ -754,19 +799,22 @@ def _(mo):
 
 @app.cell
 def _(np):
-    # Histogram-based splitting: bin continuous features into buckets
-    # This is the core speedup in XGBoost/LightGBM
-    x_cont = np.random.default_rng(0).normal(0, 1, 10000)
+    def _run():
+        # Histogram-based splitting: bin continuous features into buckets
+        # This is the core speedup in XGBoost/LightGBM
+        x_cont = np.random.default_rng(0).normal(0, 1, 10000)
 
-    n_bins = 256  # typical default
-    bin_edges = np.linspace(x_cont.min(), x_cont.max(), n_bins + 1)
-    x_binned = np.digitize(x_cont, bin_edges)
+        n_bins = 256  # typical default
+        bin_edges = np.linspace(x_cont.min(), x_cont.max(), n_bins + 1)
+        x_binned = np.digitize(x_cont, bin_edges)
 
-    print(f"Unique values in raw feature:    {len(np.unique(x_cont))}")
-    print(f"Unique values after binning:     {len(np.unique(x_binned))}")
-    print(f"Speedup: checking {n_bins} thresholds instead of {len(np.unique(x_cont))}")
+        print(f"Unique values in raw feature:    {len(np.unique(x_cont))}")
+        print(f"Unique values after binning:     {len(np.unique(x_binned))}")
+        print(f"Speedup: checking {n_bins} thresholds instead of {len(np.unique(x_cont))}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -839,29 +887,32 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.ensemble import StackingClassifier as SC_demo, RandomForestClassifier as RFC_stack
-    from sklearn.ensemble import GradientBoostingClassifier as GBC_stack
-    from sklearn.linear_model import LogisticRegression as LR_stack
-    from sklearn.datasets import load_breast_cancer as lbc_stack
-    from sklearn.model_selection import train_test_split as tts_stack
+    def _run():
+        from sklearn.ensemble import StackingClassifier as SC_demo, RandomForestClassifier as RFC_stack
+        from sklearn.ensemble import GradientBoostingClassifier as GBC_stack
+        from sklearn.linear_model import LogisticRegression as LR_stack
+        from sklearn.datasets import load_breast_cancer as lbc_stack
+        from sklearn.model_selection import train_test_split as tts_stack
 
-    X_st, y_st = lbc_stack(return_X_y=True)
-    X_train_st, X_test_st, y_train_st, y_test_st = tts_stack(
-        X_st, y_st, test_size=0.2, random_state=42, stratify=y_st
-    )
+        X_st, y_st = lbc_stack(return_X_y=True)
+        X_train_st, X_test_st, y_train_st, y_test_st = tts_stack(
+            X_st, y_st, test_size=0.2, random_state=42, stratify=y_st
+        )
 
-    stacking_clf = SC_demo(
-        estimators=[
-            ('rf', RFC_stack(n_estimators=200, random_state=42)),
-            ('gb', GBC_stack(n_estimators=200, random_state=42)),
-        ],
-        final_estimator=LR_stack(),
-        cv=5  # out-of-fold predictions for training meta-model
-    )
-    stacking_clf.fit(X_train_st, y_train_st)
-    print(f"Stacking test accuracy: {stacking_clf.score(X_test_st, y_test_st):.4f}")
+        stacking_clf = SC_demo(
+            estimators=[
+                ('rf', RFC_stack(n_estimators=200, random_state=42)),
+                ('gb', GBC_stack(n_estimators=200, random_state=42)),
+            ],
+            final_estimator=LR_stack(),
+            cv=5  # out-of-fold predictions for training meta-model
+        )
+        stacking_clf.fit(X_train_st, y_train_st)
+        print(f"Stacking test accuracy: {stacking_clf.score(X_test_st, y_test_st):.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):

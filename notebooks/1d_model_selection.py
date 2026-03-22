@@ -199,45 +199,51 @@ def _(mo):
 
 @app.cell
 def _(X_diabetes, np, y_diabetes):
-    from sklearn.linear_model import Ridge
+    def _run():
+        from sklearn.linear_model import Ridge
 
-    # Manual k-fold cross-validation
-    k = 5
-    n = len(y_diabetes)
-    fold_size = n // k
-    rng_cv = np.random.default_rng(0)
-    perm = rng_cv.permutation(n)
+        # Manual k-fold cross-validation
+        k = 5
+        n = len(y_diabetes)
+        fold_size = n // k
+        rng_cv = np.random.default_rng(0)
+        perm = rng_cv.permutation(n)
 
-    mse_folds_manual = []
-    for i in range(k):
-        # Carve out fold i as validation
-        val_mask = perm[i * fold_size : (i + 1) * fold_size]
-        train_mask = np.concatenate([perm[:i * fold_size], perm[(i + 1) * fold_size:]])
+        mse_folds_manual = []
+        for i in range(k):
+            # Carve out fold i as validation
+            val_mask = perm[i * fold_size : (i + 1) * fold_size]
+            train_mask = np.concatenate([perm[:i * fold_size], perm[(i + 1) * fold_size:]])
 
-        model = Ridge(alpha=1.0)
-        model.fit(X_diabetes[train_mask], y_diabetes[train_mask])
-        y_pred = model.predict(X_diabetes[val_mask])
-        mse = np.mean((y_diabetes[val_mask] - y_pred) ** 2)  # MSE for this fold
-        mse_folds_manual.append(mse)
+            model = Ridge(alpha=1.0)
+            model.fit(X_diabetes[train_mask], y_diabetes[train_mask])
+            y_pred = model.predict(X_diabetes[val_mask])
+            mse = np.mean((y_diabetes[val_mask] - y_pred) ** 2)  # MSE for this fold
+            mse_folds_manual.append(mse)
 
-    print(f"Manual {k}-fold CV  — Mean MSE: {np.mean(mse_folds_manual):.2f} ± {np.std(mse_folds_manual):.2f}")
+        print(f"Manual {k}-fold CV  — Mean MSE: {np.mean(mse_folds_manual):.2f} ± {np.std(mse_folds_manual):.2f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(X_diabetes, y_diabetes):
-    from sklearn.model_selection import cross_val_score
-    from sklearn.linear_model import Ridge as Ridge_cv
+    def _run():
+        from sklearn.model_selection import cross_val_score
+        from sklearn.linear_model import Ridge as Ridge_cv
 
-    # 10-fold CV with Ridge regression
-    scores = cross_val_score(Ridge_cv(alpha=1.0), X_diabetes, y_diabetes, cv=10, scoring='neg_mean_squared_error')
-    mse_per_fold = -scores  # sklearn uses negative MSE (convention: higher = better)
+        # 10-fold CV with Ridge regression
+        scores = cross_val_score(Ridge_cv(alpha=1.0), X_diabetes, y_diabetes, cv=10, scoring='neg_mean_squared_error')
+        mse_per_fold = -scores  # sklearn uses negative MSE (convention: higher = better)
 
-    print(f"Mean MSE: {mse_per_fold.mean():.4f}")
-    print(f"Std MSE:  {mse_per_fold.std():.4f}")
-    print(f"\nPer-fold MSEs: {[f'{m:.1f}' for m in mse_per_fold]}")
+        print(f"Mean MSE: {mse_per_fold.mean():.4f}")
+        print(f"Std MSE:  {mse_per_fold.std():.4f}")
+        print(f"\nPer-fold MSEs: {[f'{m:.1f}' for m in mse_per_fold]}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -264,19 +270,22 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.model_selection import StratifiedKFold
-    from sklearn.datasets import load_breast_cancer
+    def _run():
+        from sklearn.model_selection import StratifiedKFold
+        from sklearn.datasets import load_breast_cancer
 
-    X_bc, y_bc = load_breast_cancer(return_X_y=True)
+        X_bc, y_bc = load_breast_cancer(return_X_y=True)
 
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    for fold_idx, (train_idx, val_idx) in enumerate(skf.split(X_bc, y_bc)):
-        X_train_fold, X_val_fold = X_bc[train_idx], X_bc[val_idx]
-        y_train_fold, y_val_fold = y_bc[train_idx], y_bc[val_idx]
-        print(f"Fold {fold_idx+1}: train={len(train_idx)}, val={len(val_idx)}, "
-              f"class 1 ratio in val={y_val_fold.mean():.3f}")
+        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+        for fold_idx, (train_idx, val_idx) in enumerate(skf.split(X_bc, y_bc)):
+            X_train_fold, X_val_fold = X_bc[train_idx], X_bc[val_idx]
+            y_train_fold, y_val_fold = y_bc[train_idx], y_bc[val_idx]
+            print(f"Fold {fold_idx+1}: train={len(train_idx)}, val={len(val_idx)}, "
+                  f"class 1 ratio in val={y_val_fold.mean():.3f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -312,17 +321,20 @@ def _(mo):
 
 @app.cell
 def _(X_diabetes, y_diabetes):
-    from sklearn.model_selection import cross_val_score as cvs_nested, GridSearchCV as GSV_nested
-    from sklearn.linear_model import Ridge as Ridge_nested
+    def _run():
+        from sklearn.model_selection import cross_val_score as cvs_nested, GridSearchCV as GSV_nested
+        from sklearn.linear_model import Ridge as Ridge_nested
 
-    # Inner CV is handled by GridSearchCV
-    inner_cv = GSV_nested(Ridge_nested(), {'alpha': [0.01, 0.1, 1, 10, 100]}, cv=5)
+        # Inner CV is handled by GridSearchCV
+        inner_cv = GSV_nested(Ridge_nested(), {'alpha': [0.01, 0.1, 1, 10, 100]}, cv=5)
 
-    # Outer CV estimates the performance of the entire tuning procedure
-    outer_scores = cvs_nested(inner_cv, X_diabetes, y_diabetes, cv=5, scoring='neg_mean_squared_error')
-    print(f"Nested CV MSE: {(-outer_scores).mean():.4f} ± {(-outer_scores).std():.4f}")
+        # Outer CV estimates the performance of the entire tuning procedure
+        outer_scores = cvs_nested(inner_cv, X_diabetes, y_diabetes, cv=5, scoring='neg_mean_squared_error')
+        print(f"Nested CV MSE: {(-outer_scores).mean():.4f} ± {(-outer_scores).std():.4f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -380,30 +392,33 @@ def _(mo):
 
 @app.cell
 def _(X_diabetes, np, y_diabetes):
-    from sklearn.linear_model import LinearRegression as LR_boot
+    def _run():
+        from sklearn.linear_model import LinearRegression as LR_boot
 
-    # Bootstrap: estimate std error of the first regression coefficient
-    B = 200  # number of bootstrap samples
-    n_boot = len(y_diabetes)
-    rng_boot = np.random.default_rng(42)
-    coef_samples = []
+        # Bootstrap: estimate std error of the first regression coefficient
+        B = 200  # number of bootstrap samples
+        n_boot = len(y_diabetes)
+        rng_boot = np.random.default_rng(42)
+        coef_samples = []
 
-    for _ in range(B):
-        # Sample n points WITH replacement — P(point not chosen) = (1-1/n)^n ≈ 0.368
-        idx = rng_boot.integers(0, n_boot, size=n_boot)
-        model_b = LR_boot().fit(X_diabetes[idx], y_diabetes[idx])
-        coef_samples.append(model_b.coef_[0])  # first feature's coefficient
+        for _ in range(B):
+            # Sample n points WITH replacement — P(point not chosen) = (1-1/n)^n ≈ 0.368
+            idx = rng_boot.integers(0, n_boot, size=n_boot)
+            model_b = LR_boot().fit(X_diabetes[idx], y_diabetes[idx])
+            coef_samples.append(model_b.coef_[0])  # first feature's coefficient
 
-    coef_samples = np.array(coef_samples)
-    print(f"Bootstrap estimate of coef[0]: {coef_samples.mean():.2f}")
-    print(f"Bootstrap standard error:      {coef_samples.std():.2f}")
+        coef_samples = np.array(coef_samples)
+        print(f"Bootstrap estimate of coef[0]: {coef_samples.mean():.2f}")
+        print(f"Bootstrap standard error:      {coef_samples.std():.2f}")
 
-    # Verify ~63.2% unique points per sample
-    sample_idx = rng_boot.integers(0, n_boot, size=n_boot)
-    pct_unique = len(np.unique(sample_idx)) / n_boot
-    print(f"\nUnique points in one sample:   {pct_unique:.1%} (theory: ~63.2%)")
+        # Verify ~63.2% unique points per sample
+        sample_idx = rng_boot.integers(0, n_boot, size=n_boot)
+        pct_unique = len(np.unique(sample_idx)) / n_boot
+        print(f"\nUnique points in one sample:   {pct_unique:.1%} (theory: ~63.2%)")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -475,30 +490,33 @@ def _(mo):
 
 @app.cell
 def _(X_train_gs, y_train_gs):
-    from sklearn.model_selection import RandomizedSearchCV
-    from sklearn.linear_model import LogisticRegression as LR_rand
-    from scipy.stats import loguniform
+    def _run():
+        from sklearn.model_selection import RandomizedSearchCV
+        from sklearn.linear_model import LogisticRegression as LR_rand
+        from scipy.stats import loguniform
 
-    param_distributions = {
-        'C': loguniform(1e-3, 1e3),    # sample C on a log scale
-        'penalty': ['l1', 'l2'],
-    }
+        param_distributions = {
+            'C': loguniform(1e-3, 1e3),    # sample C on a log scale
+            'penalty': ['l1', 'l2'],
+        }
 
-    random_search = RandomizedSearchCV(
-        LR_rand(solver='saga', max_iter=5000),
-        param_distributions,
-        n_iter=50,               # try 50 random combinations
-        cv=5,
-        scoring='accuracy',
-        n_jobs=-1,
-        random_state=42
-    )
-    random_search.fit(X_train_gs, y_train_gs)
+        random_search = RandomizedSearchCV(
+            LR_rand(solver='saga', max_iter=5000),
+            param_distributions,
+            n_iter=50,               # try 50 random combinations
+            cv=5,
+            scoring='accuracy',
+            n_jobs=-1,
+            random_state=42
+        )
+        random_search.fit(X_train_gs, y_train_gs)
 
-    print(f"Best params (random search): {random_search.best_params_}")
-    print(f"Best CV accuracy (random search): {random_search.best_score_:.4f}")
+        print(f"Best params (random search): {random_search.best_params_}")
+        print(f"Best CV accuracy (random search): {random_search.best_score_:.4f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -512,33 +530,36 @@ def _(mo):
 
 @app.cell
 def _(X_train_gs, np, plt, y_train_gs):
-    from sklearn.model_selection import cross_val_score as cvs_landscape
-    from sklearn.linear_model import LogisticRegression as LR_landscape
+    def _run():
+        from sklearn.model_selection import cross_val_score as cvs_landscape
+        from sklearn.linear_model import LogisticRegression as LR_landscape
 
-    # Sweep C on a log scale and record CV accuracy
-    C_values = np.logspace(-3, 3, 15)  # 15 values from 0.001 to 1000
-    mean_accs = []
-    std_accs = []
-    for C in C_values:
-        scores_c = cvs_landscape(
-            LR_landscape(C=C, solver='saga', max_iter=5000, penalty='l2'),
-            X_train_gs, y_train_gs, cv=5, scoring='accuracy')
-        mean_accs.append(scores_c.mean())
-        std_accs.append(scores_c.std())
+        # Sweep C on a log scale and record CV accuracy
+        C_values = np.logspace(-3, 3, 15)  # 15 values from 0.001 to 1000
+        mean_accs = []
+        std_accs = []
+        for C in C_values:
+            scores_c = cvs_landscape(
+                LR_landscape(C=C, solver='saga', max_iter=5000, penalty='l2'),
+                X_train_gs, y_train_gs, cv=5, scoring='accuracy')
+            mean_accs.append(scores_c.mean())
+            std_accs.append(scores_c.std())
 
-    mean_accs = np.array(mean_accs)
-    std_accs = np.array(std_accs)
+        mean_accs = np.array(mean_accs)
+        std_accs = np.array(std_accs)
 
-    plt.figure(figsize=(7, 3.5))
-    plt.semilogx(C_values, mean_accs, "o-")
-    plt.fill_between(C_values, mean_accs - std_accs, mean_accs + std_accs, alpha=0.2)
-    plt.xlabel("C (inverse regularization)")
-    plt.ylabel("CV Accuracy")
-    plt.title("Hyperparameter landscape — accuracy vs C")
-    plt.tight_layout()
-    plt.gca()
+        plt.figure(figsize=(7, 3.5))
+        plt.semilogx(C_values, mean_accs, "o-")
+        plt.fill_between(C_values, mean_accs - std_accs, mean_accs + std_accs, alpha=0.2)
+        plt.xlabel("C (inverse regularization)")
+        plt.ylabel("CV Accuracy")
+        plt.title("Hyperparameter landscape — accuracy vs C")
+        plt.tight_layout()
+        plt.gca()
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -602,29 +623,32 @@ def _(mo):
 
 @app.cell
 def _(X_diabetes, np, y_diabetes):
-    from sklearn.model_selection import KFold, cross_val_score as cvs_compare
-    from sklearn.linear_model import Ridge as Ridge_cmp, Lasso as Lasso_cmp
-    from scipy.stats import ttest_rel
+    def _run():
+        from sklearn.model_selection import KFold, cross_val_score as cvs_compare
+        from sklearn.linear_model import Ridge as Ridge_cmp, Lasso as Lasso_cmp
+        from scipy.stats import ttest_rel
 
-    # Use the SAME folds for both models — this is what makes the test paired
-    kf = KFold(n_splits=10, shuffle=True, random_state=42)
+        # Use the SAME folds for both models — this is what makes the test paired
+        kf = KFold(n_splits=10, shuffle=True, random_state=42)
 
-    ridge_scores = cvs_compare(Ridge_cmp(alpha=1.0), X_diabetes, y_diabetes,
-                               cv=kf, scoring='neg_mean_squared_error')
-    lasso_scores = cvs_compare(Lasso_cmp(alpha=1.0), X_diabetes, y_diabetes,
-                               cv=kf, scoring='neg_mean_squared_error')
+        ridge_scores = cvs_compare(Ridge_cmp(alpha=1.0), X_diabetes, y_diabetes,
+                                   cv=kf, scoring='neg_mean_squared_error')
+        lasso_scores = cvs_compare(Lasso_cmp(alpha=1.0), X_diabetes, y_diabetes,
+                                   cv=kf, scoring='neg_mean_squared_error')
 
-    # Paired differences: d_i = error_ridge(fold i) - error_lasso(fold i)
-    diff = (-ridge_scores) - (-lasso_scores)  # positive means Ridge is worse
-    t_stat, p_value = ttest_rel(-ridge_scores, -lasso_scores)
+        # Paired differences: d_i = error_ridge(fold i) - error_lasso(fold i)
+        diff = (-ridge_scores) - (-lasso_scores)  # positive means Ridge is worse
+        t_stat, p_value = ttest_rel(-ridge_scores, -lasso_scores)
 
-    print(f"Ridge mean MSE: {(-ridge_scores).mean():.2f}")
-    print(f"Lasso mean MSE: {(-lasso_scores).mean():.2f}")
-    print(f"Mean difference: {diff.mean():.2f} ± {diff.std():.2f}")
-    print(f"Paired t-test:  t={t_stat:.3f}, p={p_value:.4f}")
-    print(f"Significant at 0.05? {'Yes' if p_value < 0.05 else 'No'}")
+        print(f"Ridge mean MSE: {(-ridge_scores).mean():.2f}")
+        print(f"Lasso mean MSE: {(-lasso_scores).mean():.2f}")
+        print(f"Mean difference: {diff.mean():.2f} ± {diff.std():.2f}")
+        print(f"Paired t-test:  t={t_stat:.3f}, p={p_value:.4f}")
+        print(f"Significant at 0.05? {'Yes' if p_value < 0.05 else 'No'}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -676,41 +700,44 @@ def _(mo):
 
 @app.cell
 def _(X_diabetes, np, plt, y_diabetes):
-    from sklearn.linear_model import LinearRegression as LR_ic
-    from sklearn.preprocessing import PolynomialFeatures
+    def _run():
+        from sklearn.linear_model import LinearRegression as LR_ic
+        from sklearn.preprocessing import PolynomialFeatures
 
-    n_ic = len(y_diabetes)
-    # Use just one feature for simplicity
-    X_1d = X_diabetes[:, 2:3]  # BMI feature
+        n_ic = len(y_diabetes)
+        # Use just one feature for simplicity
+        X_1d = X_diabetes[:, 2:3]  # BMI feature
 
-    aic_vals, bic_vals = [], []
-    degrees_ic = range(1, 10)
-    for deg in degrees_ic:
-        # Create polynomial features of degree `deg`
-        X_poly = PolynomialFeatures(deg, include_bias=False).fit_transform(X_1d)
-        model_ic = LR_ic().fit(X_poly, y_diabetes)
-        y_hat = model_ic.predict(X_poly)
-        rss = np.sum((y_diabetes - y_hat) ** 2)
+        aic_vals, bic_vals = [], []
+        degrees_ic = range(1, 10)
+        for deg in degrees_ic:
+            # Create polynomial features of degree `deg`
+            X_poly = PolynomialFeatures(deg, include_bias=False).fit_transform(X_1d)
+            model_ic = LR_ic().fit(X_poly, y_diabetes)
+            y_hat = model_ic.predict(X_poly)
+            rss = np.sum((y_diabetes - y_hat) ** 2)
 
-        k = deg + 1  # number of parameters (coefficients + intercept)
-        # Log-likelihood for Gaussian: -n/2 * ln(RSS/n) + const
-        log_lik = -n_ic / 2 * np.log(rss / n_ic)
-        aic = 2 * k - 2 * log_lik          # AIC = 2k - 2ln(L)
-        bic = k * np.log(n_ic) - 2 * log_lik  # BIC = k*ln(n) - 2ln(L)
-        aic_vals.append(aic)
-        bic_vals.append(bic)
+            k = deg + 1  # number of parameters (coefficients + intercept)
+            # Log-likelihood for Gaussian: -n/2 * ln(RSS/n) + const
+            log_lik = -n_ic / 2 * np.log(rss / n_ic)
+            aic = 2 * k - 2 * log_lik          # AIC = 2k - 2ln(L)
+            bic = k * np.log(n_ic) - 2 * log_lik  # BIC = k*ln(n) - 2ln(L)
+            aic_vals.append(aic)
+            bic_vals.append(bic)
 
-    plt.figure(figsize=(7, 3.5))
-    plt.plot(list(degrees_ic), aic_vals, "o-", label="AIC")
-    plt.plot(list(degrees_ic), bic_vals, "s-", label="BIC")
-    plt.xlabel("Polynomial degree")
-    plt.ylabel("Information criterion (lower is better)")
-    plt.legend()
-    plt.title("AIC vs BIC — BIC penalizes complexity more")
-    plt.tight_layout()
-    plt.gca()
+        plt.figure(figsize=(7, 3.5))
+        plt.plot(list(degrees_ic), aic_vals, "o-", label="AIC")
+        plt.plot(list(degrees_ic), bic_vals, "s-", label="BIC")
+        plt.xlabel("Polynomial degree")
+        plt.ylabel("Information criterion (lower is better)")
+        plt.legend()
+        plt.title("AIC vs BIC — BIC penalizes complexity more")
+        plt.tight_layout()
+        plt.gca()
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -738,29 +765,32 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.feature_selection import SequentialFeatureSelector
-    from sklearn.linear_model import LinearRegression
-    from sklearn.model_selection import train_test_split as tts_fs
-    from sklearn.datasets import load_diabetes as ld_fs
+    def _run():
+        from sklearn.feature_selection import SequentialFeatureSelector
+        from sklearn.linear_model import LinearRegression
+        from sklearn.model_selection import train_test_split as tts_fs
+        from sklearn.datasets import load_diabetes as ld_fs
 
-    data_fs = ld_fs()
-    X_fs, y_fs = data_fs.data, data_fs.target
-    feature_names_fs = data_fs.feature_names
-    X_train_fs, X_test_fs, y_train_fs, y_test_fs = tts_fs(X_fs, y_fs, test_size=0.2, random_state=42)
+        data_fs = ld_fs()
+        X_fs, y_fs = data_fs.data, data_fs.target
+        feature_names_fs = data_fs.feature_names
+        X_train_fs, X_test_fs, y_train_fs, y_test_fs = tts_fs(X_fs, y_fs, test_size=0.2, random_state=42)
 
-    # Forward selection with 5-fold CV
-    sfs = SequentialFeatureSelector(
-        LinearRegression(),
-        n_features_to_select=5,
-        direction='forward',
-        cv=5,
-        scoring='neg_mean_squared_error'
-    )
-    sfs.fit(X_train_fs, y_train_fs)
-    selected_mask = sfs.get_support()
-    print(f"Selected features: {[feature_names_fs[i] for i, s in enumerate(selected_mask) if s]}")
+        # Forward selection with 5-fold CV
+        sfs = SequentialFeatureSelector(
+            LinearRegression(),
+            n_features_to_select=5,
+            direction='forward',
+            cv=5,
+            scoring='neg_mean_squared_error'
+        )
+        sfs.fit(X_train_fs, y_train_fs)
+        selected_mask = sfs.get_support()
+        print(f"Selected features: {[feature_names_fs[i] for i, s in enumerate(selected_mask) if s]}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -790,20 +820,23 @@ def _(mo):
 
 @app.cell
 def _(X_diabetes, np, plt, y_diabetes):
-    from sklearn.linear_model import Lasso as Lasso_fs
-    from sklearn.datasets import load_diabetes as ld_fs2
+    def _run():
+        from sklearn.linear_model import Lasso as Lasso_fs
+        from sklearn.datasets import load_diabetes as ld_fs2
 
-    feature_names_lasso = ld_fs2().feature_names
+        feature_names_lasso = ld_fs2().feature_names
 
-    # Sweep alpha: large alpha → more zeros → fewer features
-    alphas_lasso = [0.01, 0.1, 1.0, 10.0]
-    for alpha in alphas_lasso:
-        lasso = Lasso_fs(alpha=alpha).fit(X_diabetes, y_diabetes)
-        n_nonzero = np.sum(lasso.coef_ != 0)  # L1 drives some coefs to exactly 0
-        print(f"alpha={alpha:>5.2f} → {n_nonzero} non-zero coefficients: "
-              f"{[feature_names_lasso[i] for i in np.where(lasso.coef_ != 0)[0]]}")
+        # Sweep alpha: large alpha → more zeros → fewer features
+        alphas_lasso = [0.01, 0.1, 1.0, 10.0]
+        for alpha in alphas_lasso:
+            lasso = Lasso_fs(alpha=alpha).fit(X_diabetes, y_diabetes)
+            n_nonzero = np.sum(lasso.coef_ != 0)  # L1 drives some coefs to exactly 0
+            print(f"alpha={alpha:>5.2f} → {n_nonzero} non-zero coefficients: "
+                  f"{[feature_names_lasso[i] for i in np.where(lasso.coef_ != 0)[0]]}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -823,30 +856,33 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.pipeline import Pipeline
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.linear_model import LogisticRegression as LR_leak
-    from sklearn.model_selection import cross_val_score as cvs_leak
-    from sklearn.datasets import load_breast_cancer as lbc_leak
+    def _run():
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.linear_model import LogisticRegression as LR_leak
+        from sklearn.model_selection import cross_val_score as cvs_leak
+        from sklearn.datasets import load_breast_cancer as lbc_leak
 
-    X_leak, y_leak = lbc_leak(return_X_y=True)
+        X_leak, y_leak = lbc_leak(return_X_y=True)
 
-    # CORRECT: scaler is fit only on training data within each CV fold
-    pipe_correct = Pipeline([
-        ('scaler', StandardScaler()),
-        ('clf', LR_leak(max_iter=5000))
-    ])
-    scores_correct = cvs_leak(pipe_correct, X_leak, y_leak, cv=5)
-    print(f"CORRECT (pipeline) - Mean accuracy: {scores_correct.mean():.4f}")
+        # CORRECT: scaler is fit only on training data within each CV fold
+        pipe_correct = Pipeline([
+            ('scaler', StandardScaler()),
+            ('clf', LR_leak(max_iter=5000))
+        ])
+        scores_correct = cvs_leak(pipe_correct, X_leak, y_leak, cv=5)
+        print(f"CORRECT (pipeline) - Mean accuracy: {scores_correct.mean():.4f}")
 
-    # WRONG: scaler fit on all data before CV
-    scaler_wrong = StandardScaler()
-    X_scaled_leak = scaler_wrong.fit_transform(X_leak)  # leakage!
-    scores_wrong = cvs_leak(LR_leak(max_iter=5000), X_scaled_leak, y_leak, cv=5)
-    print(f"WRONG (leakage)    - Mean accuracy: {scores_wrong.mean():.4f}")
-    print(f"\nDifference: {(scores_wrong.mean() - scores_correct.mean())*100:.2f} percentage points")
+        # WRONG: scaler fit on all data before CV
+        scaler_wrong = StandardScaler()
+        X_scaled_leak = scaler_wrong.fit_transform(X_leak)  # leakage!
+        scores_wrong = cvs_leak(LR_leak(max_iter=5000), X_scaled_leak, y_leak, cv=5)
+        print(f"WRONG (leakage)    - Mean accuracy: {scores_wrong.mean():.4f}")
+        print(f"\nDifference: {(scores_wrong.mean() - scores_correct.mean())*100:.2f} percentage points")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -895,45 +931,47 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np
-    from sklearn.datasets import load_breast_cancer
-    from sklearn.model_selection import train_test_split, GridSearchCV
-    from sklearn.pipeline import Pipeline
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.metrics import classification_report
+    def _run():
+        from sklearn.datasets import load_breast_cancer
+        from sklearn.model_selection import train_test_split, GridSearchCV
+        from sklearn.pipeline import Pipeline
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.metrics import classification_report
 
-    # Load data
-    X, y = load_breast_cancer(return_X_y=True)
+        # Load data
+        X, y = load_breast_cancer(return_X_y=True)
 
-    # Step 1: Hold out test set
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+        # Step 1: Hold out test set
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42, stratify=y
+        )
 
-    # Steps 3-5: Define pipeline and tune with CV
-    pipe = Pipeline([
-        ('scaler', StandardScaler()),
-        ('clf', LogisticRegression(max_iter=5000))
-    ])
+        # Steps 3-5: Define pipeline and tune with CV
+        pipe = Pipeline([
+            ('scaler', StandardScaler()),
+            ('clf', LogisticRegression(max_iter=5000))
+        ])
 
-    param_grid = {
-        'clf__C': [0.001, 0.01, 0.1, 1, 10, 100],
-        'clf__penalty': ['l1', 'l2'],
-        'clf__solver': ['saga']
-    }
+        param_grid = {
+            'clf__C': [0.001, 0.01, 0.1, 1, 10, 100],
+            'clf__penalty': ['l1', 'l2'],
+            'clf__solver': ['saga']
+        }
 
-    grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
-    grid.fit(X_train, y_train)
+        grid = GridSearchCV(pipe, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+        grid.fit(X_train, y_train)
 
-    print(f"Best CV accuracy: {grid.best_score_:.4f}")
-    print(f"Best params: {grid.best_params_}")
+        print(f"Best CV accuracy: {grid.best_score_:.4f}")
+        print(f"Best params: {grid.best_params_}")
 
-    # Step 7: Final evaluation (only do this once!)
-    print("\n--- Test Set Performance (final, unbiased) ---")
-    print(classification_report(y_test, grid.predict(X_test)))
+        # Step 7: Final evaluation (only do this once!)
+        print("\n--- Test Set Performance (final, unbiased) ---")
+        print(classification_report(y_test, grid.predict(X_test)))
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1014,38 +1052,41 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np_ex1
-    from sklearn.linear_model import Ridge as Ridge_ex1
-    from sklearn.datasets import load_diabetes as ld_ex1
+    def _run():
+        import numpy as np_ex1
+        from sklearn.linear_model import Ridge as Ridge_ex1
+        from sklearn.datasets import load_diabetes as ld_ex1
 
-    X_ex1, y_ex1 = ld_ex1(return_X_y=True)
-    n_ex1 = len(y_ex1)
-    k_ex1 = 5
+        X_ex1, y_ex1 = ld_ex1(return_X_y=True)
+        n_ex1 = len(y_ex1)
+        k_ex1 = 5
 
-    # TODO: Shuffle indices
-    rng_ex1 = np_ex1.random.default_rng(0)
-    indices_ex1 = ...  # rng_ex1.permutation(?)
+        # TODO: Shuffle indices
+        rng_ex1 = np_ex1.random.default_rng(0)
+        indices_ex1 = ...  # rng_ex1.permutation(?)
 
-    fold_size_ex1 = n_ex1 // k_ex1
-    mse_list_ex1 = []
+        fold_size_ex1 = n_ex1 // k_ex1
+        mse_list_ex1 = []
 
-    for i in range(k_ex1):
-        # TODO: Create val_idx and train_idx for fold i
-        val_idx_ex1 = ...  # indices_ex1[? : ?]
-        train_idx_ex1 = ...  # np_ex1.concatenate the parts before and after
+        for i in range(k_ex1):
+            # TODO: Create val_idx and train_idx for fold i
+            val_idx_ex1 = ...  # indices_ex1[? : ?]
+            train_idx_ex1 = ...  # np_ex1.concatenate the parts before and after
 
-        # TODO: Fit Ridge(alpha=1.0) on training indices, predict on val indices
-        model_ex1 = ...
-        y_pred_ex1 = ...
+            # TODO: Fit Ridge(alpha=1.0) on training indices, predict on val indices
+            model_ex1 = ...
+            y_pred_ex1 = ...
 
-        # TODO: Compute MSE = mean((y_true - y_pred)^2)
-        mse_ex1 = ...
-        mse_list_ex1.append(mse_ex1)
+            # TODO: Compute MSE = mean((y_true - y_pred)^2)
+            mse_ex1 = ...
+            mse_list_ex1.append(mse_ex1)
 
-    # Uncomment when done:
-    # print(f"Manual {k_ex1}-fold CV MSE: {np_ex1.mean(mse_list_ex1):.2f} ± {np_ex1.std(mse_list_ex1):.2f}")
+        # Uncomment when done:
+        # print(f"Manual {k_ex1}-fold CV MSE: {np_ex1.mean(mse_list_ex1):.2f} ± {np_ex1.std(mse_list_ex1):.2f}")
+
+
+    _run()
     return
-
 
 @app.cell
 def _(mo):
@@ -1059,36 +1100,39 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np_ex2
-    from sklearn.linear_model import Ridge as Ridge_ex2
-    from sklearn.datasets import load_diabetes as ld_ex2
-    from sklearn.model_selection import train_test_split as tts_ex2
+    def _run():
+        import numpy as np_ex2
+        from sklearn.linear_model import Ridge as Ridge_ex2
+        from sklearn.datasets import load_diabetes as ld_ex2
+        from sklearn.model_selection import train_test_split as tts_ex2
 
-    X_ex2, y_ex2 = ld_ex2(return_X_y=True)
-    X_tr_ex2, X_te_ex2, y_tr_ex2, y_te_ex2 = tts_ex2(X_ex2, y_ex2, test_size=0.2, random_state=42)
+        X_ex2, y_ex2 = ld_ex2(return_X_y=True)
+        X_tr_ex2, X_te_ex2, y_tr_ex2, y_te_ex2 = tts_ex2(X_ex2, y_ex2, test_size=0.2, random_state=42)
 
-    B_ex2 = 200
-    rng_ex2 = np_ex2.random.default_rng(42)
-    mse_bootstrap_ex2 = []
+        B_ex2 = 200
+        rng_ex2 = np_ex2.random.default_rng(42)
+        mse_bootstrap_ex2 = []
 
-    for _ in range(B_ex2):
-        # TODO: Sample training indices WITH replacement
-        idx_ex2 = ...  # rng_ex2.integers(0, len(X_tr_ex2), size=len(X_tr_ex2))
+        for _ in range(B_ex2):
+            # TODO: Sample training indices WITH replacement
+            idx_ex2 = ...  # rng_ex2.integers(0, len(X_tr_ex2), size=len(X_tr_ex2))
 
-        # TODO: Fit Ridge on bootstrap sample
-        model_ex2 = ...
+            # TODO: Fit Ridge on bootstrap sample
+            model_ex2 = ...
 
-        # TODO: Evaluate on the held-out TEST set (not out-of-bag)
-        y_pred_ex2 = ...
-        mse_ex2 = ...
-        mse_bootstrap_ex2.append(mse_ex2)
+            # TODO: Evaluate on the held-out TEST set (not out-of-bag)
+            y_pred_ex2 = ...
+            mse_ex2 = ...
+            mse_bootstrap_ex2.append(mse_ex2)
 
-    # Uncomment when done:
-    # ci_low = np_ex2.percentile(mse_bootstrap_ex2, 2.5)
-    # ci_high = np_ex2.percentile(mse_bootstrap_ex2, 97.5)
-    # print(f"Bootstrap 95% CI for test MSE: [{ci_low:.2f}, {ci_high:.2f}]")
+        # Uncomment when done:
+        # ci_low = np_ex2.percentile(mse_bootstrap_ex2, 2.5)
+        # ci_high = np_ex2.percentile(mse_bootstrap_ex2, 97.5)
+        # print(f"Bootstrap 95% CI for test MSE: [{ci_low:.2f}, {ci_high:.2f}]")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1102,32 +1146,35 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np_ex3
-    from sklearn.pipeline import Pipeline as Pipeline_ex3
-    from sklearn.preprocessing import StandardScaler as Scaler_ex3
-    from sklearn.linear_model import LogisticRegression as LR_ex3
-    from sklearn.model_selection import cross_val_score as cvs_ex3
+    def _run():
+        import numpy as np_ex3
+        from sklearn.pipeline import Pipeline as Pipeline_ex3
+        from sklearn.preprocessing import StandardScaler as Scaler_ex3
+        from sklearn.linear_model import LogisticRegression as LR_ex3
+        from sklearn.model_selection import cross_val_score as cvs_ex3
 
-    # Synthetic data: 50 samples, 500 features (p >> n makes leakage worse)
-    rng_ex3 = np_ex3.random.default_rng(42)
-    X_ex3 = rng_ex3.normal(size=(50, 500))
-    y_ex3 = rng_ex3.integers(0, 2, size=50)  # random labels — no real signal
+        # Synthetic data: 50 samples, 500 features (p >> n makes leakage worse)
+        rng_ex3 = np_ex3.random.default_rng(42)
+        X_ex3 = rng_ex3.normal(size=(50, 500))
+        y_ex3 = rng_ex3.integers(0, 2, size=50)  # random labels — no real signal
 
-    # TODO: WRONG way — scale all data, then cross-validate
-    # scaler_ex3 = Scaler_ex3()
-    # X_scaled_ex3 = ...  # fit_transform on ALL of X_ex3
-    # scores_leak_ex3 = cvs_ex3(LR_ex3(max_iter=1000), X_scaled_ex3, y_ex3, cv=5)
+        # TODO: WRONG way — scale all data, then cross-validate
+        # scaler_ex3 = Scaler_ex3()
+        # X_scaled_ex3 = ...  # fit_transform on ALL of X_ex3
+        # scores_leak_ex3 = cvs_ex3(LR_ex3(max_iter=1000), X_scaled_ex3, y_ex3, cv=5)
 
-    # TODO: RIGHT way — put scaler inside a pipeline
-    # pipe_ex3 = Pipeline_ex3([('scaler', Scaler_ex3()), ('clf', LR_ex3(max_iter=1000))])
-    # scores_clean_ex3 = cvs_ex3(pipe_ex3, X_ex3, y_ex3, cv=5)
+        # TODO: RIGHT way — put scaler inside a pipeline
+        # pipe_ex3 = Pipeline_ex3([('scaler', Scaler_ex3()), ('clf', LR_ex3(max_iter=1000))])
+        # scores_clean_ex3 = cvs_ex3(pipe_ex3, X_ex3, y_ex3, cv=5)
 
-    # print(f"With leakage:    {scores_leak_ex3.mean():.3f}")
-    # print(f"Without leakage: {scores_clean_ex3.mean():.3f}")
-    # print(f"Difference:      {(scores_leak_ex3.mean() - scores_clean_ex3.mean())*100:.1f} pp")
-    # Note: with random labels, accuracy should be ~50%. Leakage inflates it.
+        # print(f"With leakage:    {scores_leak_ex3.mean():.3f}")
+        # print(f"Without leakage: {scores_clean_ex3.mean():.3f}")
+        # print(f"Difference:      {(scores_leak_ex3.mean() - scores_clean_ex3.mean())*100:.1f} pp")
+        # Note: with random labels, accuracy should be ~50%. Leakage inflates it.
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -1141,37 +1188,40 @@ def _(mo):
 
 @app.cell
 def _():
-    import numpy as np_ex4
-    from sklearn.datasets import load_breast_cancer as lbc_ex4
-    from sklearn.model_selection import train_test_split as tts_ex4, GridSearchCV as GS_ex4
-    from sklearn.pipeline import Pipeline as Pipe_ex4
-    from sklearn.preprocessing import StandardScaler as SS_ex4
-    from sklearn.linear_model import LogisticRegression as LR_ex4, RidgeClassifier as RC_ex4
+    def _run():
+        import numpy as np_ex4
+        from sklearn.datasets import load_breast_cancer as lbc_ex4
+        from sklearn.model_selection import train_test_split as tts_ex4, GridSearchCV as GS_ex4
+        from sklearn.pipeline import Pipeline as Pipe_ex4
+        from sklearn.preprocessing import StandardScaler as SS_ex4
+        from sklearn.linear_model import LogisticRegression as LR_ex4, RidgeClassifier as RC_ex4
 
-    X_ex4, y_ex4 = lbc_ex4(return_X_y=True)
+        X_ex4, y_ex4 = lbc_ex4(return_X_y=True)
 
-    # TODO: Step 1 — hold out 20% test set (stratified)
-    # X_train_ex4, X_test_ex4, y_train_ex4, y_test_ex4 = tts_ex4(...)
+        # TODO: Step 1 — hold out 20% test set (stratified)
+        # X_train_ex4, X_test_ex4, y_train_ex4, y_test_ex4 = tts_ex4(...)
 
-    # TODO: Step 2 — define two pipelines
-    # pipe_lr = Pipe_ex4([('scaler', SS_ex4()), ('clf', LR_ex4(max_iter=5000, solver='saga'))])
-    # pipe_rc = Pipe_ex4([('scaler', SS_ex4()), ('clf', RC_ex4())])
+        # TODO: Step 2 — define two pipelines
+        # pipe_lr = Pipe_ex4([('scaler', SS_ex4()), ('clf', LR_ex4(max_iter=5000, solver='saga'))])
+        # pipe_rc = Pipe_ex4([('scaler', SS_ex4()), ('clf', RC_ex4())])
 
-    # TODO: Step 3 — define hyperparameter grids
-    # grid_lr = {'clf__C': [0.01, 0.1, 1, 10], 'clf__penalty': ['l1', 'l2']}
-    # grid_rc = {'clf__alpha': [0.01, 0.1, 1, 10, 100]}
+        # TODO: Step 3 — define hyperparameter grids
+        # grid_lr = {'clf__C': [0.01, 0.1, 1, 10], 'clf__penalty': ['l1', 'l2']}
+        # grid_rc = {'clf__alpha': [0.01, 0.1, 1, 10, 100]}
 
-    # TODO: Step 4 — run GridSearchCV for each, print best CV score
-    # gs_lr = GS_ex4(pipe_lr, grid_lr, cv=5, scoring='accuracy').fit(X_train_ex4, y_train_ex4)
-    # gs_rc = GS_ex4(pipe_rc, grid_rc, cv=5, scoring='accuracy').fit(X_train_ex4, y_train_ex4)
-    # print(f"LogReg best CV: {gs_lr.best_score_:.4f}")
-    # print(f"Ridge  best CV: {gs_rc.best_score_:.4f}")
+        # TODO: Step 4 — run GridSearchCV for each, print best CV score
+        # gs_lr = GS_ex4(pipe_lr, grid_lr, cv=5, scoring='accuracy').fit(X_train_ex4, y_train_ex4)
+        # gs_rc = GS_ex4(pipe_rc, grid_rc, cv=5, scoring='accuracy').fit(X_train_ex4, y_train_ex4)
+        # print(f"LogReg best CV: {gs_lr.best_score_:.4f}")
+        # print(f"Ridge  best CV: {gs_rc.best_score_:.4f}")
 
-    # TODO: Step 5 — pick winner based on CV, evaluate ONCE on test
-    # winner = gs_lr if gs_lr.best_score_ > gs_rc.best_score_ else gs_rc
-    # print(f"Test accuracy: {winner.score(X_test_ex4, y_test_ex4):.4f}")
+        # TODO: Step 5 — pick winner based on CV, evaluate ONCE on test
+        # winner = gs_lr if gs_lr.best_score_ > gs_rc.best_score_ else gs_rc
+        # print(f"Test accuracy: {winner.score(X_test_ex4, y_test_ex4):.4f}")
+
+
+    _run()
     return
-
 
 @app.cell(hide_code=True)
 def _(mo):
