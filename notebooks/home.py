@@ -126,6 +126,18 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Part 5 — Reference
+
+    | # | Module | Description |
+    |---|--------|-------------|
+    | 5A | [Algorithm Study Guide](../5a_study_guide/index.html) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
+    """)
+    return
+
+
 @app.cell
 def _(mo):
     mo.md(r"""
