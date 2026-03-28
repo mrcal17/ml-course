@@ -188,6 +188,7 @@ $$\mathbf{w}^* = (X^\top X + \lambda I)^{-1} X^\top y$$
 
 | | |
 |---|---|
+| **What** | Linear regression with both L1 and L2 penalties, combining Lasso's sparsity with Ridge's stability on correlated features. |
 | **Loss** | $\|y - Xw\|^2 + \lambda_1 \|w\|_1 + \lambda_2 \|w\|^2$ |
 | **Strengths** | Sparsity from L1 + correlated feature handling from L2. |
 | **Weaknesses** | Two hyperparameters. |
@@ -339,10 +340,11 @@ Each builds on the previous one's weakness.
 | **Strengths** | Interpretable. Mixed types. No scaling. Captures interactions. |
 | **Weaknesses** | **High variance.** Axis-aligned only. Overfits without pruning. |
 
-### Bagging
+### Bagging (Bootstrap Aggregating)
 
 | | |
 |---|---|
+| **What** | Ensemble method that trains multiple models on bootstrap samples of the data and averages their predictions. |
 | **How** | $B$ bootstrap samples → full trees → average. |
 | **Variance** | $\rho\sigma^2 + \frac{1-\rho}{B}\sigma^2$ — correlation $\rho$ limits gains. |
 | **Weakness** | Trees correlated (strong features dominate). |
@@ -351,6 +353,7 @@ Each builds on the previous one's weakness.
 
 | | |
 |---|---|
+| **What** | Bagging of decision trees with random feature subsets at each split, decorrelating the ensemble for better variance reduction. |
 | **Innovation** | Random $m$ features at each split → decorrelation. |
 | **Defaults** | $m = \sqrt{p}$ (classification), $p/3$ (regression). |
 | **Strengths** | More trees never overfits. OOB (Out-of-Bag) error. Feature importance. Robust. |
@@ -377,6 +380,7 @@ Each builds on the previous one's weakness.
 
 | | |
 |---|---|
+| **What** | Ensemble method that trains a meta-model on the outputs of diverse base models to learn their optimal combination. |
 | **How** | Diverse base models → out-of-fold predictions → meta-model. |
 | **Gains** | 1–3% marginal. Common in competitions. |
 
@@ -433,9 +437,11 @@ Each builds on the previous one's weakness.
 
 ### Silhouette Score
 
+**What:** Measures how similar a point is to its own cluster versus nearby clusters. Used to evaluate clustering quality and choose $K$.
+
 $$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))} \in [-1, +1]$$
 
-Near +1 = well clustered. Near 0 = boundary. Negative = misassigned.
+where $a$ = average distance to points in same cluster, $b$ = average distance to nearest other cluster. Near +1 = well clustered. Near 0 = boundary. Negative = misassigned.
         """))
 
     # ===================== 7. DIM REDUCTION =====================
@@ -466,14 +472,18 @@ Near +1 = well clustered. Near 0 = boundary. Negative = misassigned.
 
 | | |
 |---|---|
-| **Strengths** | Faster. More global structure. Arbitrary output dims. General DR (Dimensionality Reduction). |
+| **What** | Nonlinear dimensionality reduction that builds a fuzzy topological representation in high-D, then optimizes a low-D layout to match it. |
+| **How** | Construct a weighted nearest-neighbor graph, then minimize cross-entropy between high-D and low-D fuzzy set representations. |
+| **Strengths** | Faster than t-SNE. Preserves more global structure. Arbitrary output dims. Usable for general DR (Dimensionality Reduction), not just visualization. |
+| **Weaknesses** | Hyperparameter-sensitive ($n\_neighbors$, $min\_dist$). Less theoretical grounding than PCA. |
 | **Preferred over t-SNE** in most cases. |
 
 ### Isolation Forest
 
 | | |
 |---|---|
-| **How** | Random splits. Anomalies isolated in fewer splits (shorter path). |
+| **What** | Anomaly detection algorithm that isolates outliers using random decision trees; anomalies require fewer splits to separate. |
+| **How** | Build random trees with random axis-aligned splits. Score each point by average path length; shorter path = more anomalous. |
 | **Use** | Outlier / anomaly detection in tabular data. |
         """))
 
@@ -563,12 +573,15 @@ $$z^{(j)} = W^{(j)} h^{(j-1)} + b^{(j)}, \quad h^{(j)} = \sigma(z^{(j)})$$
 
 ### Weight Decay (L2)
 
+**What:** Penalizes large weights by adding $\lambda\|w\|^2$ to the loss, which shrinks all parameters toward zero each update step.
+
 $\theta \leftarrow (1 - \eta\lambda)\theta - \eta \nabla L$ — weights shrink by $(1 - \eta\lambda)$ each step. Smooths loss landscape. Biases typically not regularized.
 
 ### Dropout
 
 | | |
 |---|---|
+| **What** | Regularization that randomly zeroes out neurons during training, forcing the network to learn redundant representations. |
 | **Training** | Zero neurons with prob $p$. Scale remaining by $1/(1{-}p)$. |
 | **Test** | Off (use all neurons). |
 | **Why** | Ensemble of $2^n$ sub-networks. Forces redundant representations. Bayesian connection (MC Dropout → uncertainty). |
@@ -576,9 +589,13 @@ $\theta \leftarrow (1 - \eta\lambda)\theta - \eta \nabla L$ — weights shrink b
 
 ### Early Stopping
 
+**What:** Regularization that halts training when validation performance stops improving, preventing the model from fitting noise in the training data.
+
 Monitor validation loss → save best checkpoint → stop after $k$ epochs of no improvement. Return **best checkpoint**, not final model. Approximately equivalent to L2 regularization.
 
 ### Batch Normalization
+
+**What:** Normalizes layer inputs to zero mean and unit variance within each mini-batch, then applies a learned scale and shift.
 
 $$\hat{x}_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \varepsilon}}, \quad y_i = \gamma\hat{x}_i + \beta$$
 
@@ -590,17 +607,19 @@ $$\hat{x}_i = \frac{x_i - \mu_B}{\sqrt{\sigma_B^2 + \varepsilon}}, \quad y_i = \
 
 ### Data Augmentation
 
+**What:** Artificially expanding the training set by applying label-preserving transformations to existing data, reducing overfitting.
+
 - **Image:** Flips, rotations, crops, color jitter, Cutout, Mixup, CutMix.
 - **Text:** Synonym replacement, back-translation.
 - **Rule:** Transformation must preserve the label.
 
 ### Label Smoothing
 
-Replace $[0, 1]$ with $[0.05, 0.95]$. Prevents overconfidence. Improves calibration.
+**What:** Regularization that softens hard target labels (e.g., replacing $[0, 1]$ with $[0.05, 0.95]$), preventing the model from becoming overconfident. Improves calibration.
 
 ### Double Descent
 
-Test error decreases → increases (classical) → **decreases again** past interpolation threshold. Very large models generalize well. Challenges classical bias-variance.
+**What:** A phenomenon where test error follows a non-monotonic curve as model complexity grows: it decreases, increases (classical overfitting), then **decreases again** past the interpolation threshold. Very large overparameterized models can generalize well. Challenges the classical bias-variance tradeoff narrative.
         """))
 
     # ===================== 11. CNNs =====================
@@ -652,6 +671,8 @@ Early layers learn universal features (edges, textures) — transfer across doma
 
 ### Vanilla RNN (Recurrent Neural Network)
 
+**What:** Neural network that processes sequences by maintaining a hidden state $h_t$ updated at each timestep, allowing it to model temporal dependencies.
+
 $$h_t = \sigma(W_{hh}h_{t-1} + W_{xh}x_t + b)$$
 
 Fatal weakness: **vanishing/exploding gradients** — $\partial h_t/\partial h_s$ involves $W_{hh}^{t-s}$.
@@ -670,11 +691,11 @@ $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
 
 ### GRU (Gated Recurrent Unit)
 
-2 gates (reset + update) instead of 3. Fewer params, similar performance, faster.
+**What:** Simplified variant of LSTM that uses 2 gates (reset + update) instead of 3. Fewer parameters, similar performance to LSTM, faster to train.
 
 ### Bidirectional RNNs
 
-Forward + backward → concatenate. Full context, but can't do real-time generation.
+**What:** Runs two separate RNNs in forward and backward directions, then concatenates their hidden states. Gives each position full context from both past and future, but cannot be used for real-time generation.
 
 ### Seq2Seq Bottleneck → Attention
 
@@ -744,6 +765,7 @@ $h$ parallel heads with own $Q/K/V$ projections → concat → project. Differen
 
 | | |
 |---|---|
+| **What** | Generative models that learn to reverse a gradual noising process; generate samples by iteratively denoising from pure noise. |
 | **How** | Forward: add noise over $T$ steps. Reverse: learn to denoise. |
 | **Training** | $\|\varepsilon - \varepsilon_\theta(x_t, t)\|^2$ |
 | **Strengths** | Stable training. SOTA (State of the Art) image quality. Principled. |
