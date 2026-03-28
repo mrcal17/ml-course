@@ -92,7 +92,7 @@ These concepts are the atoms everything else is built from.
 | **What** | Average of observed values. Simplest estimator of the true mean. |
 | **Strengths** | Unbiased, consistent, intuitive. |
 | **Weaknesses** | Sensitive to outliers. One extreme value can shift it heavily. |
-| **Used by** | OLS (target prediction), K-Means (centroid update), Batch Norm (batch mean), PCA (centering), Gradient Boosting ($F_0$). |
+| **Used by** | OLS (Ordinary Least Squares) (target prediction), K-Means (centroid update), Batch Norm (batch mean), PCA (Principal Component Analysis) (centering), Gradient Boosting ($F_0$). |
 
 ### Sample Variance: $s^2 = \frac{1}{n-1}\sum(x_i - \bar{x})^2$
 
@@ -101,7 +101,7 @@ These concepts are the atoms everything else is built from.
 | **What** | Spread around the mean. Bessel's correction ($n{-}1$) makes it unbiased. |
 | **Strengths** | Unbiased estimator of true variance. |
 | **Weaknesses** | Sensitive to outliers (squared). Biased version (divide by $n$) is the MLE. |
-| **Used by** | PCA (eigenvalues), Batch Norm (normalize by std), Bias-Variance Decomposition. |
+| **Used by** | PCA (Principal Component Analysis) (eigenvalues), Batch Norm (normalize by std), Bias-Variance Decomposition. |
 
 ### Covariance & Covariance Matrix
 
@@ -110,7 +110,7 @@ $$\text{Cov}(X,Y) = \mathbb{E}[(X - \mu_X)(Y - \mu_Y)], \qquad S = \frac{1}{n-1}
 | | |
 |---|---|
 | **What** | How variables move together. Matrix form captures all pairwise relationships. |
-| **Strengths** | Foundation for PCA, LDA, GPs, all Gaussian models. |
+| **Strengths** | Foundation for PCA (Principal Component Analysis), LDA (Linear Discriminant Analysis), GPs (Gaussian Processes), all Gaussian models. |
 | **Weaknesses** | Only captures linear relationships. $O(p^2)$ storage. |
 
 ### Bias-Variance Decomposition
@@ -130,10 +130,10 @@ $$\hat{\theta} = \arg\max \sum_i \log p(x_i \mid \theta)$$
 | | |
 |---|---|
 | **Strengths** | Consistent, asymptotically efficient, equivariant. |
-| **Weaknesses** | Overfits with small samples. Degenerate solutions possible (GMM collapse). |
-| **Used by** | OLS (MLE under Gaussian noise), Logistic Regression (Bernoulli MLE), GMMs (EM maximizes likelihood). |
+| **Weaknesses** | Overfits with small samples. Degenerate solutions possible (GMM (Gaussian Mixture Model) collapse). |
+| **Used by** | OLS (Ordinary Least Squares) (MLE under Gaussian noise), Logistic Regression (Bernoulli MLE), GMMs (Gaussian Mixture Models) (EM (Expectation-Maximization) maximizes likelihood). |
 
-### MAP Estimation
+### MAP (Maximum A Posteriori) Estimation
 
 $$\hat{\theta} = \arg\max [\log p(D|\theta) + \log p(\theta)]$$
 
@@ -229,10 +229,10 @@ $$P(y{=}k \mid x) = \frac{e^{w_k^\top x}}{\sum_j e^{w_j^\top x}}$$
 
 ## 3. Discriminative vs. Generative Classifiers
 
-**Discriminative** (learn $P(y|x)$ directly): Logistic Regression, SVM, Neural Nets
+**Discriminative** (learn $P(y|x)$ directly): Logistic Regression, SVM (Support Vector Machine), Neural Nets
 — More accurate with enough data. Can't generate.
 
-**Generative** (learn $P(x|y)$ and $P(y)$, use Bayes): LDA, Naive Bayes, GMMs
+**Generative** (learn $P(x|y)$ and $P(y)$, use Bayes): LDA (Linear Discriminant Analysis), Naive Bayes, GMMs (Gaussian Mixture Models)
 — Better with small data. Can generate. Reach lower error faster with limited data.
 
 ### Linear Discriminant Analysis (LDA)
@@ -260,7 +260,7 @@ $$\min \tfrac{1}{2}\|w\|^2 + C\sum \xi_i \quad \text{s.t.} \quad y_i(w^\top x_i 
 | | |
 |---|---|
 | **Loss** | Hinge: $\max(0, 1 - y \cdot f(x))$ |
-| **Strengths** | Maximum margin. Kernel trick (linear, polynomial, RBF=infinite-dim). Only support vectors matter. |
+| **Strengths** | Maximum margin. Kernel trick (linear, polynomial, RBF (Radial Basis Function)=infinite-dim). Only support vectors matter. |
 | **Weaknesses** | No native probabilities. $O(n^2)$–$O(n^3)$ training. Kernel + $C$ tuning. |
 | **Use when** | Medium $n$, clear margin, kernel captures structure. |
         """))
@@ -276,9 +276,9 @@ $$\min \tfrac{1}{2}\|w\|^2 + C\sum \xi_i \quad \text{s.t.} \quad y_i(w^\top x_i 
 
 | Metric | Formula | Notes |
 |--------|---------|-------|
-| **MSE** | $\frac{1}{n}\sum(y_i - \hat{y}_i)^2$ | Penalizes large errors heavily |
-| **RMSE** | $\sqrt{\text{MSE}}$ | Same units as $y$ |
-| **MAE** | $\frac{1}{n}\sum\|y_i - \hat{y}_i\|$ | Robust to outliers |
+| **MSE (Mean Squared Error)** | $\frac{1}{n}\sum(y_i - \hat{y}_i)^2$ | Penalizes large errors heavily |
+| **RMSE (Root Mean Squared Error)** | $\sqrt{\text{MSE}}$ | Same units as $y$ |
+| **MAE (Mean Absolute Error)** | $\frac{1}{n}\sum\|y_i - \hat{y}_i\|$ | Robust to outliers |
 | **R²** | $1 - SS_{res}/SS_{tot}$ | Fraction of variance explained. Can be negative on test. |
 
 ### Classification Metrics
@@ -288,7 +288,7 @@ $$\min \tfrac{1}{2}\|w\|^2 + C\sum \xi_i \quad \text{s.t.} \quad y_i(w^\top x_i 
 | **Precision** | $\text{TP}/(\text{TP}+\text{FP})$ | False positives costly |
 | **Recall** | $\text{TP}/(\text{TP}+\text{FN})$ | Missing positives costly |
 | **F1** | $2PR/(P+R)$ | Imbalanced data |
-| **AUC-ROC** | Area under TPR vs FPR | Overall ranking quality |
+| **AUC-ROC (Area Under the Receiver Operating Characteristic Curve)** | Area under TPR vs FPR | Overall ranking quality |
 
 ### Cross-Validation
 
@@ -296,8 +296,8 @@ $$\min \tfrac{1}{2}\|w\|^2 + C\sum \xi_i \quad \text{s.t.} \quad y_i(w^\top x_i 
 |--------|-----|-----------|
 | **k-Fold** | Each fold is validation once, average $k$ scores | Standard: $k{=}5$ or $10$ |
 | **Stratified** | Preserves class proportions | Critical for imbalanced data |
-| **LOOCV** | $k{=}n$ | Lowest bias, highest variance, very slow |
-| **Nested CV** | Outer evaluates, inner tunes | Only unbiased pipeline estimate |
+| **LOOCV (Leave-One-Out Cross-Validation)** | $k{=}n$ | Lowest bias, highest variance, very slow |
+| **Nested CV (Cross-Validation)** | Outer evaluates, inner tunes | Only unbiased pipeline estimate |
 
 ### Hyperparameter Tuning
 
@@ -311,10 +311,10 @@ $$\min \tfrac{1}{2}\|w\|^2 + C\sum \xi_i \quad \text{s.t.} \quad y_i(w^\top x_i 
 
 | | Formula | Behavior |
 |---|---------|----------|
-| **AIC** | $2k - 2\ln\hat{L}$ | Lighter penalty |
-| **BIC** | $k\ln n - 2\ln\hat{L}$ | Heavier for large $n$, simpler models |
+| **AIC (Akaike Information Criterion)** | $2k - 2\ln\hat{L}$ | Lighter penalty |
+| **BIC (Bayesian Information Criterion)** | $k\ln n - 2\ln\hat{L}$ | Heavier for large $n$, simpler models |
 
-### Bootstrap & OOB
+### Bootstrap & OOB (Out-of-Bag)
 
 - Sample $n$ with replacement → ~63.2% unique. The ~36.8% out-of-bag = free validation.
         """))
@@ -328,7 +328,7 @@ $$\min \tfrac{1}{2}\|w\|^2 + C\sum \xi_i \quad \text{s.t.} \quad y_i(w^\top x_i 
 
 Each builds on the previous one's weakness.
 
-### Decision Tree (CART)
+### Decision Tree (CART — Classification and Regression Trees)
 
 | | |
 |---|---|
@@ -353,7 +353,7 @@ Each builds on the previous one's weakness.
 |---|---|
 | **Innovation** | Random $m$ features at each split → decorrelation. |
 | **Defaults** | $m = \sqrt{p}$ (classification), $p/3$ (regression). |
-| **Strengths** | More trees never overfits. OOB error. Feature importance. Robust. |
+| **Strengths** | More trees never overfits. OOB (Out-of-Bag) error. Feature importance. Robust. |
 | **Weaknesses** | Less interpretable. Doesn't reduce bias. |
 
 ### Gradient Boosting
@@ -405,16 +405,16 @@ Each builds on the previous one's weakness.
 | **K-Means++ init** | Choose centroids with prob $\propto D(x)^2$. |
 | **Strengths** | Fast $O(nK)$. Simple. Spherical clusters. |
 | **Weaknesses** | Specify $K$. Local optima. Spherical assumption. Outlier-sensitive. |
-| **Connection** | K-Means = EM on GMM with $\Sigma_k = \sigma^2 I$, $\sigma \to 0$. |
+| **Connection** | K-Means = EM (Expectation-Maximization) on GMM (Gaussian Mixture Model) with $\Sigma_k = \sigma^2 I$, $\sigma \to 0$. |
 
-### GMM + EM
+### GMM (Gaussian Mixture Model) + EM (Expectation-Maximization)
 
 | | |
 |---|---|
 | **Model** | $p(x) = \sum_k \pi_k \mathcal{N}(x \mid \mu_k, \Sigma_k)$ |
 | **E-step** | Responsibilities $r_{ik}$ = posterior prob of cluster $k$ for point $i$ (Bayes). |
 | **M-step** | Update $\pi_k, \mu_k, \Sigma_k$ using responsibilities as weights. |
-| **Strengths** | Soft assignments. Different shapes/sizes. Probabilistic. BIC for model selection. |
+| **Strengths** | Soft assignments. Different shapes/sizes. Probabilistic. BIC (Bayesian Information Criterion) for model selection. |
 | **Weaknesses** | Slower. Degenerate solutions. Needs $K$. |
 
 ### Hierarchical (Agglomerative)
@@ -445,28 +445,28 @@ Near +1 = well clustered. Near 0 = boundary. Negative = misassigned.
 
 ## 7. Dimensionality Reduction
 
-### PCA
+### PCA (Principal Component Analysis)
 
 | | |
 |---|---|
-| **How** | Eigendecomposition of $S$. Eigenvectors = PCs. Eigenvalues = variance. |
-| **Equivalent** | SVD of centered data: $X = U\Sigma V^\top$, $V$ columns = PCs. |
-| **Strengths** | Optimal linear DR. Fast. Denoising (discard low-variance). |
+| **How** | Eigendecomposition of $S$. Eigenvectors = PCs (Principal Components). Eigenvalues = variance. |
+| **Equivalent** | SVD (Singular Value Decomposition) of centered data: $X = U\Sigma V^\top$, $V$ columns = PCs. |
+| **Strengths** | Optimal linear DR (Dimensionality Reduction). Fast. Denoising (discard low-variance). |
 | **Weaknesses** | Linear only. Assumes variance = importance. Scale-sensitive. |
 
-### t-SNE
+### t-SNE (t-distributed Stochastic Neighbor Embedding)
 
 | | |
 |---|---|
-| **How** | Gaussian similarities (high-D) vs Student-t (low-D). Minimize $KL(P \| Q)$. |
+| **How** | Gaussian similarities (high-D) vs Student-t (low-D). Minimize $KL$ (Kullback-Leibler) divergence $(P \| Q)$. |
 | **Strengths** | Excellent visualization. Preserves local neighborhoods. |
 | **Weaknesses** | **Visualization only** — don't use as features. Non-deterministic. Between-cluster distances meaningless. $O(n^2)$. |
 
-### UMAP
+### UMAP (Uniform Manifold Approximation and Projection)
 
 | | |
 |---|---|
-| **Strengths** | Faster. More global structure. Arbitrary output dims. General DR. |
+| **Strengths** | Faster. More global structure. Arbitrary output dims. General DR (Dimensionality Reduction). |
 | **Preferred over t-SNE** in most cases. |
 
 ### Isolation Forest
@@ -492,10 +492,10 @@ Near +1 = well clustered. Near 0 = boundary. Negative = misassigned.
 | **Leaky ReLU** | $\max(0.01z, z)$ | Dead neuron fix |
 | **GELU** | $z \cdot \Phi(z)$ | Transformers |
 | **Sigmoid** | $1/(1+e^{-z})$ | Binary output |
-| **Tanh** | $(e^z - e^{-z})/(e^z + e^{-z})$ | RNN hidden |
+| **Tanh** | $(e^z - e^{-z})/(e^z + e^{-z})$ | RNN (Recurrent Neural Network) hidden |
 | **Softmax** | $e^{z_k} / \sum e^{z_j}$ | Multiclass output |
 
-### Feedforward Network (MLP)
+### Feedforward Network (MLP — Multi-Layer Perceptron)
 
 $$z^{(j)} = W^{(j)} h^{(j-1)} + b^{(j)}, \quad h^{(j)} = \sigma(z^{(j)})$$
 
@@ -514,7 +514,7 @@ $$z^{(j)} = W^{(j)} h^{(j-1)} + b^{(j)}, \quad h^{(j)} = \sigma(z^{(j)})$$
 | **Huber** | Regression (robust) |
 | **Binary CE** | Binary classification |
 | **Categorical CE** | Multiclass classification |
-| **Hinge** | SVM-style |
+| **Hinge** | SVM (Support Vector Machine)-style |
         """))
 
     # ===================== 9. DL OPTIMIZATION =====================
@@ -528,7 +528,7 @@ $$z^{(j)} = W^{(j)} h^{(j-1)} + b^{(j)}, \quad h^{(j)} = \sigma(z^{(j)})$$
 
 | Optimizer | Update Rule | Key Property |
 |-----------|------------|--------------|
-| **SGD** | $\theta \leftarrow \theta - \eta g$ | Simple, noise helps generalization |
+| **SGD (Stochastic Gradient Descent)** | $\theta \leftarrow \theta - \eta g$ | Simple, noise helps generalization |
 | **Momentum** | $v = \beta v + g; \; \theta \leftarrow \theta - \eta v$ | Accumulates velocity, dampens oscillation |
 | **Adam** | 1st moment (momentum) + 2nd moment (RMSProp) + bias correction | Adaptive per-parameter LR, fast convergence |
 | **AdamW** | Adam with **decoupled** weight decay | Proper L2 behavior. **Modern default.** |
@@ -650,13 +650,13 @@ Early layers learn universal features (edges, textures) — transfer across doma
 
 ## 12. Sequence Models
 
-### Vanilla RNN
+### Vanilla RNN (Recurrent Neural Network)
 
 $$h_t = \sigma(W_{hh}h_{t-1} + W_{xh}x_t + b)$$
 
 Fatal weakness: **vanishing/exploding gradients** — $\partial h_t/\partial h_s$ involves $W_{hh}^{t-s}$.
 
-### LSTM
+### LSTM (Long Short-Term Memory)
 
 | Gate | Controls |
 |------|----------|
@@ -668,7 +668,7 @@ $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
 
 **Key:** Additive cell update (not multiplicative) → gradients flow.
 
-### GRU
+### GRU (Gated Recurrent Unit)
 
 2 gates (reset + update) instead of 3. Fewer params, similar performance, faster.
 
@@ -705,7 +705,7 @@ $h$ parallel heads with own $Q/K/V$ projections → concat → project. Differen
 | **Self-attention** | Every position attends to all others |
 | **Masked self-attention** | Decoder: prevent attending to future |
 | **Cross-attention** | Decoder attends to encoder outputs |
-| **Position-wise FFN** | Same 2-layer MLP at each position |
+| **Position-wise FFN (Feed-Forward Network)** | Same 2-layer MLP (Multi-Layer Perceptron) at each position |
 | **Positional encoding** | Inject sequence order (sinusoidal or learned) |
 | **Residual + LayerNorm** | Gradient flow, stability |
 
@@ -727,7 +727,7 @@ $h$ parallel heads with own $Q/K/V$ projections → concat → project. Differen
 
 | | |
 |---|---|
-| **Loss (ELBO)** | Reconstruction + $\text{KL}(q(z \mid x) \| \mathcal{N}(0,I))$ |
+| **Loss (ELBO — Evidence Lower Bound)** | Reconstruction + $\text{KL}$ (Kullback-Leibler) $(q(z \mid x) \| \mathcal{N}(0,I))$ |
 | **Reparameterization** | $z = \mu + \sigma \odot \varepsilon$ makes sampling differentiable |
 | **Strengths** | Principled. Smooth latent space. Can sample. |
 | **Weaknesses** | **Blurry** (MSE averages plausible outputs). Posterior collapse. |
@@ -746,7 +746,7 @@ $h$ parallel heads with own $Q/K/V$ projections → concat → project. Differen
 |---|---|
 | **How** | Forward: add noise over $T$ steps. Reverse: learn to denoise. |
 | **Training** | $\|\varepsilon - \varepsilon_\theta(x_t, t)\|^2$ |
-| **Strengths** | Stable training. SOTA image quality. Principled. |
+| **Strengths** | Stable training. SOTA (State of the Art) image quality. Principled. |
 | **Weaknesses** | Slow sampling. High compute. |
 | **Status** | Current SOTA (DALL-E, Stable Diffusion, Imagen). |
         """))
@@ -789,16 +789,16 @@ $\gamma$: 0 = greedy, 1 = far-sighted.
 |-----------|------|----------|
 | **Q-Learning** | Off-policy, model-free | $\max_{a'} Q(s',a')$ in update → learns optimal regardless of behavior |
 | **SARSA** | On-policy | Uses actual next action (not max) |
-| **DQN** | Deep Q-Learning | Neural net for $Q$. Experience replay + target network. |
+| **DQN (Deep Q-Network)** | Deep Q-Learning | Neural net for $Q$. Experience replay + target network. |
 | **REINFORCE** | Policy gradient | $\nabla J = \mathbb{E}[\nabla\log\pi(a \mid s) \cdot G_t]$. High variance. |
 | **Actor-Critic** | Hybrid | Actor (policy) + Critic (value baseline). Lower variance. |
-| **PPO** | Policy gradient | Clipped ratio $[1{-}\varepsilon, 1{+}\varepsilon]$. Stable. Widely used (RLHF). |
+| **PPO (Proximal Policy Optimization)** | Policy gradient | Clipped ratio $[1{-}\varepsilon, 1{+}\varepsilon]$. Stable. Widely used (RLHF — Reinforcement Learning from Human Feedback). |
 
 ### Advanced
 
 | | |
 |---|---|
-| **AlphaZero** | Self-play + MCTS, no human data |
+| **AlphaZero** | Self-play + MCTS (Monte Carlo Tree Search), no human data |
 | **Decision Transformer** | RL as sequence modeling — condition on desired return |
 | **Offline RL** | Static dataset. Main challenge: distribution shift. |
 | **Model-based** | Learn world model. More sample-efficient but compounding errors. |
@@ -809,13 +809,13 @@ $\gamma$: 0 = greedy, 1 = far-sighted.
         sections.append(mo.md(r"""
 ---
 
-## 17. NLP
+## 17. NLP (Natural Language Processing)
 
 ### Tokenization
 
 | Method | How |
 |--------|-----|
-| **BPE** | Iteratively merge frequent character pairs. Handles unseen words. |
+| **BPE (Byte Pair Encoding)** | Iteratively merge frequent character pairs. Handles unseen words. |
 | **WordPiece** | Similar, used by BERT. Probabilistic. |
 
 ### Embeddings
@@ -836,10 +836,10 @@ $\gamma$: 0 = greedy, 1 = far-sighted.
 
 ### RLHF Pipeline
 
-1. **SFT** — supervised fine-tuning on instructions.
+1. **SFT (Supervised Fine-Tuning)** — fine-tuning on instructions.
 2. **Reward model** — trained on human preference rankings.
 3. **PPO** — optimize policy against reward model.
-4. **DPO** — alternative: skip reward model, optimize preferences directly.
+4. **DPO (Direct Preference Optimization)** — alternative: skip reward model, optimize preferences directly.
         """))
 
     # ===================== 18. CV =====================
@@ -853,11 +853,11 @@ $\gamma$: 0 = greedy, 1 = far-sighted.
 
 | Method | Type | Trade-off |
 |--------|------|-----------|
-| **Faster R-CNN** | Two-stage (propose + classify) | More accurate, slower |
-| **YOLO** | One-stage (single pass) | Real-time, slightly less accurate |
-| **DETR** | Transformer-based | SOTA |
+| **Faster R-CNN (Region-based Convolutional Neural Network)** | Two-stage (propose + classify) | More accurate, slower |
+| **YOLO (You Only Look Once)** | One-stage (single pass) | Real-time, slightly less accurate |
+| **DETR (Detection Transformer)** | Transformer-based | SOTA (State of the Art) |
 
-**IoU** = intersection / union. > 0.5 = correct detection. **NMS** removes duplicates.
+**IoU (Intersection over Union)** = intersection / union. > 0.5 = correct detection. **NMS (Non-Maximum Suppression)** removes duplicates.
 
 ### Segmentation
 
@@ -865,11 +865,11 @@ $\gamma$: 0 = greedy, 1 = far-sighted.
 |-------------|-----|
 | **U-Net** | Encoder-decoder with skip connections for spatial detail |
 | **DeepLab** | Dilated convolutions for large receptive field without losing resolution |
-| **FCN** | Fully convolutional, no dense layers |
+| **FCN (Fully Convolutional Network)** | Fully convolutional, no dense layers |
 
 ### Vision Transformer (ViT)
 
-Split image into 16×16 patches → embed → position encodings → standard Transformer. Needs more data than CNNs (less inductive bias), but scales better.
+Split image into 16×16 patches → embed → position encodings → standard Transformer. Needs more data than CNNs (Convolutional Neural Networks) (less inductive bias), but scales better.
         """))
 
     # ===================== 19. BAYESIAN =====================
@@ -884,7 +884,7 @@ Split image into 16×16 patches → embed → position encodings → standard Tr
 | | |
 |---|---|
 | **What** | Distribution over functions. Any finite points are jointly Gaussian. |
-| **Kernels** | RBF, Matérn, periodic. Kernel = covariance function. |
+| **Kernels** | RBF (Radial Basis Function), Matérn, periodic. Kernel = covariance function. |
 | **Strengths** | Uncertainty estimates ($\sigma_*$). Nonparametric. Principled. Marginal likelihood for hyperparams. |
 | **Weaknesses** | $O(n^3)$. Kernel design required. |
 | **Use when** | Small $n$ + uncertainty matters. Bayesian optimization surrogate. |
@@ -893,9 +893,9 @@ Split image into 16×16 patches → embed → position encodings → standard Tr
 
 | Method | How | Trade-off |
 |--------|-----|-----------|
-| **Variational Inference** | Approximate posterior with tractable $q(\theta)$, maximize ELBO | Scalable (SGD). Underestimates uncertainty. |
-| **MCMC (HMC/NUTS)** | Sample from posterior using gradients | Asymptotically exact. Slow. Scales poorly. |
-| **MC Dropout** | Dropout on at test time → variance = uncertainty | Cheap. Crude approximation. |
+| **Variational Inference** | Approximate posterior with tractable $q(\theta)$, maximize ELBO (Evidence Lower Bound) | Scalable (SGD). Underestimates uncertainty. |
+| **MCMC (Markov Chain Monte Carlo) (HMC (Hamiltonian Monte Carlo)/NUTS (No-U-Turn Sampler))** | Sample from posterior using gradients | Asymptotically exact. Slow. Scales poorly. |
+| **MC Dropout (Monte Carlo Dropout)** | Dropout on at test time → variance = uncertainty | Cheap. Crude approximation. |
         """))
 
     # ===================== 20. DECISION TABLE =====================
@@ -915,10 +915,10 @@ Split image into 16×16 patches → embed → position encodings → standard Tr
 | Interpretability critical | Single decision tree or linear model |
 | Quick baseline | Random Forest or Logistic Regression |
 | Small labeled + large unlabeled | Self-supervised pretraining + fine-tuning |
-| Uncertainty needed | GP (small $n$) or MC Dropout (neural nets) |
-| Anomaly detection | Isolation Forest or GMM |
+| Uncertainty needed | GP (Gaussian Process) (small $n$) or MC Dropout (neural nets) |
+| Anomaly detection | Isolation Forest or GMM (Gaussian Mixture Model) |
 | Clustering | K-Means (spherical), GMM (flexible), Hierarchical (structure) |
-| Dimensionality reduction | PCA (linear), UMAP (nonlinear), t-SNE (viz only) |
+| Dimensionality reduction | PCA (Principal Component Analysis) (linear), UMAP (Uniform Manifold Approximation and Projection) (nonlinear), t-SNE (t-distributed Stochastic Neighbor Embedding) (viz only) |
         """))
 
     if not sections:
