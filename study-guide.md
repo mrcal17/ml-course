@@ -13,28 +13,28 @@ These concepts are the atoms everything else is built from.
 - **What:** Average of observed values. Simplest estimator of the true mean.
 - **Strengths:** Unbiased, consistent, intuitive.
 - **Weaknesses:** Sensitive to outliers. One extreme value can shift it heavily.
-- **Used by:** OLS (target prediction), K-Means (centroid update), Batch Normalization (batch mean), PCA (centering data), Gradient Boosting (initial prediction F_0).
+- **Used by:** OLS (Ordinary Least Squares) (target prediction), K-Means (centroid update), Batch Normalization (batch mean), PCA (Principal Component Analysis) (centering data), Gradient Boosting (initial prediction F_0).
 
 ### Sample Variance: s^2 = (1/(n-1)) sum(x_i - x-bar)^2
 
 - **What:** Measures spread of data around the mean. Bessel's correction (n-1) makes it unbiased.
 - **Strengths:** Unbiased estimator of true variance.
 - **Weaknesses:** Sensitive to outliers (squared deviations). Biased version (divide by n) is the MLE estimate.
-- **Used by:** PCA (eigenvalues = variance per component), Batch Normalization (normalize by batch std), Bias-Variance Decomposition, all hypothesis testing.
+- **Used by:** PCA (Principal Component Analysis) (eigenvalues = variance per component), Batch Normalization (normalize by batch std), Bias-Variance Decomposition, all hypothesis testing.
 
 ### Covariance: Cov(X,Y) = E[(X - mu_X)(Y - mu_Y)]
 
 - **What:** Measures how two variables move together. Positive = same direction, negative = opposite.
-- **Strengths:** Foundation for correlation, PCA, LDA, Gaussian models.
+- **Strengths:** Foundation for correlation, PCA (Principal Component Analysis), LDA (Linear Discriminant Analysis), Gaussian models.
 - **Weaknesses:** Only captures linear relationships. Sensitive to scale.
-- **Used by:** PCA (covariance matrix S = X^T X / (n-1)), LDA (within-class and between-class scatter), GMMs (each component has its own covariance), GPs (kernel = covariance function).
+- **Used by:** PCA (Principal Component Analysis) (covariance matrix S = X^T X / (n-1)), LDA (Linear Discriminant Analysis) (within-class and between-class scatter), GMMs (Gaussian Mixture Models) (each component has its own covariance), GPs (Gaussian Processes) (kernel = covariance function).
 
 ### Covariance Matrix: S = (1/(n-1)) X^T X
 
 - **What:** p x p matrix where S_ij = covariance between features i and j, diagonal = variances.
 - **Strengths:** Captures all pairwise linear relationships. Symmetric, positive semi-definite.
 - **Weaknesses:** O(p^2) storage. Ill-conditioned when features are correlated.
-- **Used by:** PCA (eigendecomposition of S), LDA (shared covariance assumption), GMMs (per-component covariance), Mahalanobis distance, GPs.
+- **Used by:** PCA (Principal Component Analysis) (eigendecomposition of S), LDA (Linear Discriminant Analysis) (shared covariance assumption), GMMs (Gaussian Mixture Models) (per-component covariance), Mahalanobis distance, GPs (Gaussian Processes).
 
 ### Bias-Variance Decomposition: MSE = Bias^2 + Variance + sigma^2
 
@@ -47,15 +47,15 @@ These concepts are the atoms everything else is built from.
 
 - **What:** Find parameters that make observed data most probable. Write likelihood, take log, differentiate, solve.
 - **Strengths:** Consistent, asymptotically efficient (achieves Cramer-Rao bound), equivariant.
-- **Weaknesses:** Overfits with small samples. Can find degenerate solutions (e.g., GMM component collapsing to a single point).
-- **Used by:** OLS (MLE under Gaussian noise), Logistic Regression (MLE of Bernoulli), GMMs (EM maximizes likelihood), Neural networks (cross-entropy = negative log-likelihood).
+- **Weaknesses:** Overfits with small samples. Can find degenerate solutions (e.g., GMM (Gaussian Mixture Model) component collapsing to a single point).
+- **Used by:** OLS (Ordinary Least Squares) (MLE under Gaussian noise), Logistic Regression (MLE of Bernoulli), GMMs (Gaussian Mixture Models) (EM (Expectation-Maximization) maximizes likelihood), Neural networks (cross-entropy = negative log-likelihood).
 
 ### MAP Estimation: theta-hat = argmax [log p(D|theta) + log p(theta)]
 
 - **What:** MLE plus a prior. Point estimate at posterior mode.
 - **Strengths:** Incorporates prior knowledge. Gaussian prior = Ridge, Laplace prior = Lasso.
-- **Weaknesses:** Still a point estimate — no uncertainty quantification. Loses the full posterior.
-- **Connects to:** Ridge (MAP with Gaussian prior), Lasso (MAP with Laplace prior), Bayesian ML (MAP is the simplest Bayesian approach).
+- **Weaknesses:** Still a point estimate; no uncertainty quantification. Loses the full posterior.
+- **Connects to:** Ridge (MAP with Gaussian prior), Lasso (MAP with Laplace prior), Bayesian ML (MAP (Maximum A Posteriori) is the simplest Bayesian approach).
 
 ---
 
@@ -172,9 +172,9 @@ How you measure and choose models. These aren't algorithms that make predictions
 
 | Metric | Formula | Notes |
 |--------|---------|-------|
-| **MSE** | (1/n) sum(y_i - y-hat_i)^2 | Penalizes large errors heavily (squared) |
-| **RMSE** | sqrt(MSE) | Same units as y |
-| **MAE** | (1/n) sum \|y_i - y-hat_i\| | Robust to outliers |
+| **MSE (Mean Squared Error)** | (1/n) sum(y_i - y-hat_i)^2 | Penalizes large errors heavily (squared) |
+| **RMSE (Root Mean Squared Error)** | sqrt(MSE) | Same units as y |
+| **MAE (Mean Absolute Error)** | (1/n) sum \|y_i - y-hat_i\| | Robust to outliers |
 | **R^2** | 1 - SS_res/SS_tot | Fraction of variance explained. 0 = mean predictor, 1 = perfect. Can be negative on test set. |
 
 ### Classification Metrics
@@ -185,14 +185,14 @@ How you measure and choose models. These aren't algorithms that make predictions
 | **Precision** | TP / (TP+FP) | False positives are costly (spam filter) |
 | **Recall** | TP / (TP+FN) | Missing positives is costly (cancer screening) |
 | **F1** | 2*P*R / (P+R) | Imbalanced data, need balance of P and R |
-| **AUC-ROC** | Area under TPR vs FPR curve | Overall ranking quality across all thresholds |
-| **PR-AUC** | Area under Precision-Recall curve | Better for highly imbalanced data |
+| **AUC-ROC (Area Under the Receiver Operating Characteristic Curve)** | Area under TPR vs FPR curve | Overall ranking quality across all thresholds |
+| **PR-AUC (Precision-Recall Area Under Curve)** | Area under Precision-Recall curve | Better for highly imbalanced data |
 
 ### Cross-Validation
 
 - **k-Fold:** Split into k folds, train k times, each fold is validation once. Average scores.
 - **Stratified k-Fold:** Preserves class proportions in each fold.
-- **LOOCV:** k = n. Lowest bias, highest variance, very slow.
+- **LOOCV (Leave-One-Out Cross-Validation):** k = n. Lowest bias, highest variance, very slow.
 - **Nested CV:** Outer loop evaluates, inner loop tunes. Only way to get unbiased estimate of full pipeline.
 - **Strengths:** More data-efficient than single split. Reduces variance of estimate.
 - **Weaknesses:** k times more expensive. Results still have variance.
@@ -203,19 +203,19 @@ How you measure and choose models. These aren't algorithms that make predictions
 |--------|-----|-----------|------------|
 | **Grid Search** | Try all combos | Exhaustive | Exponential cost, wastes evals on unimportant dims |
 | **Random Search** | Sample randomly | Explores more unique values per dim | Not exhaustive |
-| **Bayesian Optimization** | GP surrogate + acquisition function | Sample-efficient | Complex to implement |
+| **Bayesian Optimization** | GP (Gaussian Process) surrogate + acquisition function | Sample-efficient | Complex to implement |
 
 ### Information Criteria (no CV needed)
 
 | Criterion | Formula | Behavior |
 |-----------|---------|----------|
-| **AIC** | 2k - 2 ln(L-hat) | Lighter penalty, favors complex models |
-| **BIC** | k*ln(n) - 2 ln(L-hat) | Heavier penalty for large n, favors simpler models |
+| **AIC (Akaike Information Criterion)** | 2k - 2 ln(L-hat) | Lighter penalty, favors complex models |
+| **BIC (Bayesian Information Criterion)** | k*ln(n) - 2 ln(L-hat) | Heavier penalty for large n, favors simpler models |
 
 ### Bootstrap
 
 - Sample n points with replacement -> ~63.2% unique.
-- **OOB (out-of-bag):** The ~36.8% not sampled = free validation set.
+- **OOB (Out-of-Bag):** The ~36.8% not sampled = free validation set.
 - **.632 Bootstrap:** Err = 0.368 * Err_train + 0.632 * Err_oob (bias-corrected).
 
 ---
@@ -224,11 +224,11 @@ How you measure and choose models. These aren't algorithms that make predictions
 
 A family of related algorithms built on recursive binary splitting. Each builds on the previous one's weakness.
 
-### Decision Tree (CART)
+### Decision Tree (CART — Classification and Regression Trees)
 
 - **How:** At each node, greedily pick the feature + threshold that most reduces impurity. Recurse.
 - **Splitting criteria:** Gini = 1 - sum(p_k^2). Entropy = -sum(p_k log p_k). Both work similarly.
-- **Regression:** Leaf predicts mean of its training points. Minimize RSS.
+- **Regression:** Leaf predicts mean of its training points. Minimize RSS (Residual Sum of Squares).
 - **Pruning:** Cost-complexity: C_alpha(T) = loss + alpha * |leaves|. Select alpha via CV.
 - **Strengths:** Highly interpretable. Handles mixed types. No scaling needed. Captures interactions. Robust to outliers.
 - **Weaknesses:** **High variance** — small data changes produce completely different trees. Axis-aligned splits only. Overfit without pruning.
@@ -238,7 +238,7 @@ A family of related algorithms built on recursive binary splitting. Each builds 
 
 - **How:** Draw B bootstrap samples. Train full unpruned tree on each. Average predictions (regression) or majority vote (classification).
 - **Variance formula:** Var(avg) = rho*sigma^2 + (1-rho)/B * sigma^2. The rho*sigma^2 term doesn't vanish — correlation between trees limits gains.
-- **Strengths:** Reduces variance by averaging. OOB error is free validation.
+- **Strengths:** Reduces variance by averaging. OOB (Out-of-Bag) error is free validation.
 - **Weaknesses:** Trees are correlated (all from same data, strong features dominate). Doesn't reduce bias.
 - **Connects to:** Random Forest improves on this by decorrelating trees.
 
@@ -295,14 +295,14 @@ No labels. Find structure in data.
 - **Strengths:** Fast O(nK per iteration). Simple. Works well for spherical clusters.
 - **Weaknesses:** Must specify K. Local optima only. Assumes spherical, equal-size clusters. Sensitive to outliers and scale.
 - **Choosing K:** Elbow method, silhouette score, gap statistic, domain knowledge.
-- **Connection:** K-Means = EM on GMM with isotropic covariance and sigma -> 0 (hard assignments).
+- **Connection:** K-Means = EM (Expectation-Maximization) on GMM (Gaussian Mixture Model) with isotropic covariance and sigma -> 0 (hard assignments).
 
-### Gaussian Mixture Models (GMM) + EM
+### Gaussian Mixture Models (GMM) + EM (Expectation-Maximization)
 
 - **Model:** p(x) = sum_k pi_k * N(x | mu_k, Sigma_k)
 - **EM E-step:** Compute responsibilities r_ik = posterior probability point i belongs to cluster k (Bayes' theorem).
 - **EM M-step:** Update pi_k, mu_k, Sigma_k using responsibilities as weights.
-- **Strengths:** Soft assignments (probabilities). Handles different cluster shapes and sizes. Principled probabilistic framework. Can compute likelihood, use BIC for model selection.
+- **Strengths:** Soft assignments (probabilities). Handles different cluster shapes and sizes. Principled probabilistic framework. Can compute likelihood, use BIC (Bayesian Information Criterion) for model selection.
 - **Weaknesses:** Slower than K-Means. Can have degenerate solutions (component collapses to single point). Sensitive to initialization. Requires specifying K.
 - **Use when:** Clusters have different shapes/sizes. You need probabilistic assignments.
 
@@ -328,9 +328,9 @@ Reduce features while preserving information.
 ### PCA (Principal Component Analysis)
 
 - **How:** Eigendecomposition of covariance matrix S. Eigenvectors = principal components. Eigenvalues = variance per component.
-- **Equivalent:** SVD of centered data: X = U Sigma V^T. V columns = PCs.
+- **Equivalent:** SVD (Singular Value Decomposition) of centered data: X = U Sigma V^T. V columns = PCs.
 - **Choosing components:** Scree plot (elbow). Retain 90-95% explained variance.
-- **Strengths:** Optimal linear DR (maximizes variance preserved). Fast. Well-understood. Useful for denoising (discard low-variance components).
+- **Strengths:** Optimal linear DR (Dimensionality Reduction) (maximizes variance preserved). Fast. Well-understood. Useful for denoising (discard low-variance components).
 - **Weaknesses:** Linear only. Assumes variance = importance. Sensitive to scaling (standardize first).
 - **Use when:** Preprocessing, visualization, denoising, reducing multicollinearity.
 
@@ -340,18 +340,18 @@ Reduce features while preserving information.
 - **Strengths:** Captures nonlinear structure.
 - **Weaknesses:** Must choose kernel. More expensive. No simple inverse transform.
 
-### t-SNE
+### t-SNE (t-distributed Stochastic Neighbor Embedding)
 
-- **How:** In high-D, compute Gaussian similarities. In low-D (2-3), compute Student-t similarities. Minimize KL(P||Q).
+- **How:** In high-D, compute Gaussian similarities. In low-D (2-3), compute Student-t similarities. Minimize KL (Kullback-Leibler) divergence KL(P||Q).
 - **Hyperparameter:** Perplexity (5-50, effective number of neighbors).
 - **Strengths:** Excellent for visualization. Preserves local neighborhoods.
 - **Weaknesses:** **Visualization only** — don't use embeddings as features. Non-deterministic. Between-cluster distances and cluster sizes are meaningless. Slow O(n^2).
 - **Use when:** 2D/3D visualization of high-dimensional data.
 
-### UMAP
+### UMAP (Uniform Manifold Approximation and Projection)
 
 - **How:** Based on fuzzy topological structures. Optimizes cross-entropy between high-D and low-D fuzzy sets.
-- **Strengths:** Faster than t-SNE. Preserves more global structure. Can embed to arbitrary dimensions (not just 2-3). Can be used for general DR, not just visualization.
+- **Strengths:** Faster than t-SNE. Preserves more global structure. Can embed to arbitrary dimensions (not just 2-3). Can be used for general DR (Dimensionality Reduction), not just visualization.
 - **Weaknesses:** Hyperparameter-sensitive. Less theoretical grounding than PCA.
 - **Use when:** Visualization or general nonlinear DR. Preferred over t-SNE in most cases.
 
@@ -382,7 +382,7 @@ The foundation of deep learning.
 | **Tanh** | (e^z - e^-z)/(e^z + e^-z) | Zero-centered | Still saturates | RNN hidden layers |
 | **Softmax** | e^z_k / sum e^z_j | Valid probability distribution | — | Multiclass output layer |
 
-### Feedforward Network (MLP)
+### Feedforward Network (MLP — Multi-Layer Perceptron)
 
 - **How:** Stack layers: z^(j) = W^(j) h^(j-1) + b^(j), h^(j) = activation(z^(j)).
 - **Universal Approximation:** Single hidden layer with enough neurons can approximate any continuous function. But depth is exponentially more efficient.
@@ -542,7 +542,7 @@ Specialized for spatial data (images, audio).
 
 For data with temporal/sequential structure.
 
-### Vanilla RNN
+### Vanilla RNN (Recurrent Neural Network)
 
 - **Equation:** h_t = activation(W_hh * h_{t-1} + W_xh * x_t + b)
 - **Strengths:** Variable-length sequences. Parameter sharing across time.
@@ -707,7 +707,7 @@ Learning from rewards through interaction.
 - **Strengths:** Simple. Stable. Very widely used (RLHF for LLMs, robotics).
 - **Weaknesses:** On-policy (sample-inefficient). Hyperparameter-sensitive.
 
-### Advanced RL
+### Advanced RL (Reinforcement Learning)
 
 | Algorithm | Key Idea |
 |-----------|----------|
@@ -720,7 +720,7 @@ Learning from rewards through interaction.
 
 ---
 
-## 17. NLP-Specific Methods
+## 17. NLP (Natural Language Processing)-Specific Methods
 
 ### Tokenization
 
