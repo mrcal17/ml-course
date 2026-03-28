@@ -179,22 +179,22 @@ def _(mo):
 
     ## Textbooks
 
-    Textbook PDFs are stored locally. Click to open:
+    Textbook PDFs are stored locally at `C:\Users\landa\ml-course\textbooks\`. Open from there, or run `start textbooks\<filename>.pdf` from the course directory.
 
-    | Abbrev. | Title | Authors |
-    |---------|-------|---------|
-    | [MML](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) | Mathematics for Machine Learning | Deisenroth, Faisal, Ong |
-    | [ISLR](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) | An Introduction to Statistical Learning | James, Witten, Hastie, Tibshirani |
-    | [ESL](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) | The Elements of Statistical Learning | Hastie, Tibshirani, Friedman |
-    | [Boyd](file:///C:/Users/landa/ml-course/textbooks/Boyd-ConvexOptimization.pdf) | Convex Optimization | Boyd, Vandenberghe |
-    | [DLBook](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) | Deep Learning | Goodfellow, Bengio, Courville |
-    | [Bishop](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) | Pattern Recognition and Machine Learning | Christopher Bishop |
-    | [Sutton](file:///C:/Users/landa/ml-course/textbooks/Sutton-RL.pdf) | Reinforcement Learning | Sutton, Barto |
-    | [Murphy 1](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) | Probabilistic ML: An Introduction | Kevin Murphy |
-    | [Murphy 2](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML2.pdf) | Probabilistic ML: Advanced Topics | Kevin Murphy |
-    | [Chan](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) | Introduction to Probability for Data Science | Stanley Chan |
-    | [Géron](file:///C:/Users/landa/ml-course/textbooks/Geron-HandsOnML.pdf) | Hands-On ML with Scikit-Learn, Keras & TF | Aurélien Géron |
-    | [Wasserman](file:///C:/Users/landa/ml-course/textbooks/Wasserman-AllOfStatistics.pdf) | All of Statistics | Larry Wasserman |
+    | Abbrev. | Filename | Title | Authors |
+    |---------|----------|-------|---------|
+    | MML | `MML.pdf` | Mathematics for Machine Learning | Deisenroth, Faisal, Ong |
+    | ISLR | `ISLR.pdf` | An Introduction to Statistical Learning | James, Witten, Hastie, Tibshirani |
+    | ESL | `ESL.pdf` | The Elements of Statistical Learning | Hastie, Tibshirani, Friedman |
+    | Boyd | `Boyd-ConvexOptimization.pdf` | Convex Optimization | Boyd, Vandenberghe |
+    | DLBook | `DLBook.pdf` | Deep Learning | Goodfellow, Bengio, Courville |
+    | Bishop | `Bishop-PRML.pdf` | Pattern Recognition and Machine Learning | Christopher Bishop |
+    | Sutton | `Sutton-RL.pdf` | Reinforcement Learning | Sutton, Barto |
+    | Murphy 1 | `Murphy-PML1.pdf` | Probabilistic ML: An Introduction | Kevin Murphy |
+    | Murphy 2 | `Murphy-PML2.pdf` | Probabilistic ML: Advanced Topics | Kevin Murphy |
+    | Chan | `Chan-Probability.pdf` | Introduction to Probability for Data Science | Stanley Chan |
+    | Géron | `Geron-HandsOnML.pdf` | Hands-On ML with Scikit-Learn, Keras & TF | Aurélien Géron |
+    | Wasserman | `Wasserman-AllOfStatistics.pdf` | All of Statistics | Larry Wasserman |
     """)
     return
 
