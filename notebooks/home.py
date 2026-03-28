@@ -45,12 +45,12 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 0A | [Python & Data Science Stack](../0a_python/index.html) | NumPy, Pandas, Matplotlib, Jupyter | Executable code throughout |
-    | 0B | [Calculus Refresh](../0b_calculus/index.html) | Gradients, chain rule, Jacobians, Hessians | Finite differences explorer, 2 animations |
-    | 0C | [Linear Algebra Refresh](../0c_linear_algebra/index.html) | Eigendecomposition, SVD, projections | 2 animations |
-    | 0D | [Probability Foundations](../0d_probability/index.html) | Bayes, distributions, expectation, CLT | Distribution explorer, Bayesian updater, 2 animations |
-    | 0E | [Statistical Estimation](../0e_estimation/index.html) | MLE, MAP, confidence intervals, bootstrap | Executable derivations |
-    | 0F | [Optimization](../0f_optimization/index.html) | Gradient descent, SGD, momentum, Adam | Learning rate explorer, optimizer comparison, 2 animations |
+    | 0A | [Python & Data Science Stack](./0a_python/) | NumPy, Pandas, Matplotlib, Jupyter | Executable code throughout |
+    | 0B | [Calculus Refresh](./0b_calculus/) | Gradients, chain rule, Jacobians, Hessians | Finite differences explorer, 2 animations |
+    | 0C | [Linear Algebra Refresh](./0c_linear_algebra/) | Eigendecomposition, SVD, projections | 2 animations |
+    | 0D | [Probability Foundations](./0d_probability/) | Bayes, distributions, expectation, CLT | Distribution explorer, Bayesian updater, 2 animations |
+    | 0E | [Statistical Estimation](./0e_estimation/) | MLE, MAP, confidence intervals, bootstrap | Executable derivations |
+    | 0F | [Optimization](./0f_optimization/) | Gradient descent, SGD, momentum, Adam | Learning rate explorer, optimizer comparison, 2 animations |
     """)
     return
 
@@ -64,12 +64,12 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 1A | [The ML Landscape](../1a_ml_landscape/index.html) | Types of learning, bias-variance, curse of dimensionality | Conceptual |
-    | 1B | [Linear Regression](../1b_linear_regression/index.html) | OLS, regularization (Ridge/Lasso), probabilistic view | Polynomial degree slider, λ slider, 2 animations |
-    | 1C | [Classification](../1c_classification/index.html) | Logistic regression, SVMs, Naive Bayes, metrics | SVM C/kernel explorer, 1 animation |
-    | 1D | [Model Selection & Evaluation](../1d_model_selection/index.html) | Cross-validation, bootstrap, hyperparameter tuning | Executable pipelines |
-    | 1E | [Trees & Ensembles](../1e_trees_ensembles/index.html) | Decision trees, random forests, gradient boosting | Tree depth slider, ensemble size slider, 1 animation |
-    | 1F | [Unsupervised Learning](../1f_unsupervised/index.html) | PCA, K-means, GMMs, t-SNE | K slider, PCA components slider, 1 animation |
+    | 1A | [The ML Landscape](./1a_ml_landscape/) | Types of learning, bias-variance, curse of dimensionality | Conceptual |
+    | 1B | [Linear Regression](./1b_linear_regression/) | OLS, regularization (Ridge/Lasso), probabilistic view | Polynomial degree slider, λ slider, 2 animations |
+    | 1C | [Classification](./1c_classification/) | Logistic regression, SVMs, Naive Bayes, metrics | SVM C/kernel explorer, 1 animation |
+    | 1D | [Model Selection & Evaluation](./1d_model_selection/) | Cross-validation, bootstrap, hyperparameter tuning | Executable pipelines |
+    | 1E | [Trees & Ensembles](./1e_trees_ensembles/) | Decision trees, random forests, gradient boosting | Tree depth slider, ensemble size slider, 1 animation |
+    | 1F | [Unsupervised Learning](./1f_unsupervised/) | PCA, K-means, GMMs, t-SNE | K slider, PCA components slider, 1 animation |
     """)
     return
 
@@ -83,11 +83,11 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 2A | [Neural Networks & Backpropagation](../2a_neural_networks/index.html) | MLPs, activation functions, backprop, autograd | Hidden neurons slider, 1 animation |
-    | 2B | [Optimization for Deep Learning](../2b_dl_optimization/index.html) | Loss landscapes, batch norm, learning rate schedules | Executable code |
-    | 2C | [Regularization](../2c_regularization/index.html) | Dropout, early stopping, data augmentation, double descent | Dropout rate slider |
-    | 2D | [Convolutional Neural Networks](../2d_cnn/index.html) | Convolution, pooling, ResNet, transfer learning | 1 animation |
-    | 2E | [Sequence Models](../2e_sequence_models/index.html) | RNNs, LSTMs, GRUs, seq2seq | 1 animation |
+    | 2A | [Neural Networks & Backpropagation](./2a_neural_networks/) | MLPs, activation functions, backprop, autograd | Hidden neurons slider, 1 animation |
+    | 2B | [Optimization for Deep Learning](./2b_dl_optimization/) | Loss landscapes, batch norm, learning rate schedules | Executable code |
+    | 2C | [Regularization](./2c_regularization/) | Dropout, early stopping, data augmentation, double descent | Dropout rate slider |
+    | 2D | [Convolutional Neural Networks](./2d_cnn/) | Convolution, pooling, ResNet, transfer learning | 1 animation |
+    | 2E | [Sequence Models](./2e_sequence_models/) | RNNs, LSTMs, GRUs, seq2seq | 1 animation |
     """)
     return
 
@@ -101,10 +101,10 @@ def _(mo):
 
     | # | Module | Topics | Interactive Elements |
     |---|--------|--------|---------------------|
-    | 3A | [Attention & Transformers](../3a_transformers/index.html) | Self-attention, multi-head, positional encoding, scaling laws | 1 animation |
-    | 3B | [Generative Models](../3b_generative_models/index.html) | VAEs, GANs, diffusion models, normalizing flows | 1 animation |
-    | 3C | [Self-Supervised Learning](../3c_self_supervised/index.html) | BERT, GPT, contrastive learning, CLIP, LoRA | Conceptual |
-    | 3D | [Reinforcement Learning](../3d_reinforcement_learning/index.html) | MDPs, Q-learning, policy gradients, PPO, RLHF | 1 animation |
+    | 3A | [Attention & Transformers](./3a_transformers/) | Self-attention, multi-head, positional encoding, scaling laws | 1 animation |
+    | 3B | [Generative Models](./3b_generative_models/) | VAEs, GANs, diffusion models, normalizing flows | 1 animation |
+    | 3C | [Self-Supervised Learning](./3c_self_supervised/) | BERT, GPT, contrastive learning, CLIP, LoRA | Conceptual |
+    | 3D | [Reinforcement Learning](./3d_reinforcement_learning/) | MDPs, Q-learning, policy gradients, PPO, RLHF | 1 animation |
     """)
     return
 
@@ -118,10 +118,10 @@ def _(mo):
 
     | Path | Module | Focus |
     |------|--------|-------|
-    | A | [Natural Language Processing](../4a_nlp/index.html) | Tokenization, LLMs, RAG, evaluation |
-    | B | [Computer Vision](../4b_computer_vision/index.html) | Detection, segmentation, ViT, multimodal |
-    | C | [Advanced RL](../4c_advanced_rl/index.html) | Model-based RL, SAC, multi-agent, offline RL |
-    | D | [Bayesian ML](../4d_bayesian_ml/index.html) | Gaussian processes, BNNs, MCMC, Bayesian optimization |
+    | A | [Natural Language Processing](./4a_nlp/) | Tokenization, LLMs, RAG, evaluation |
+    | B | [Computer Vision](./4b_computer_vision/) | Detection, segmentation, ViT, multimodal |
+    | C | [Advanced RL](./4c_advanced_rl/) | Model-based RL, SAC, multi-agent, offline RL |
+    | D | [Bayesian ML](./4d_bayesian_ml/) | Gaussian processes, BNNs, MCMC, Bayesian optimization |
     """)
     return
 
@@ -133,7 +133,7 @@ def _(mo):
 
     | # | Module | Description |
     |---|--------|-------------|
-    | 5A | [Algorithm Study Guide](../5a_study_guide/index.html) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
+    | 5A | [Algorithm Study Guide](./5a_study_guide/) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
     """)
     return
 
@@ -179,22 +179,22 @@ def _(mo):
 
     ## Textbooks
 
-    All textbook PDFs are in the `textbooks/` folder. Click to open:
+    Textbook PDFs are stored locally. Click to open:
 
     | Abbrev. | Title | Authors |
     |---------|-------|---------|
-    | MML | Mathematics for Machine Learning | Deisenroth, Faisal, Ong |
-    | ISLR | An Introduction to Statistical Learning | James, Witten, Hastie, Tibshirani |
-    | ESL | The Elements of Statistical Learning | Hastie, Tibshirani, Friedman |
-    | Boyd | Convex Optimization | Boyd, Vandenberghe |
-    | DLBook | Deep Learning | Goodfellow, Bengio, Courville |
-    | Bishop | Pattern Recognition and Machine Learning | Christopher Bishop |
-    | Sutton | Reinforcement Learning | Sutton, Barto |
-    | Murphy 1 | Probabilistic ML: An Introduction | Kevin Murphy |
-    | Murphy 2 | Probabilistic ML: Advanced Topics | Kevin Murphy |
-    | Chan | Introduction to Probability for Data Science | Stanley Chan |
-    | Géron | Hands-On ML with Scikit-Learn, Keras & TF | Aurélien Géron |
-    | Wasserman | All of Statistics | Larry Wasserman |
+    | [MML](file:///C:/Users/landa/ml-course/textbooks/MML.pdf) | Mathematics for Machine Learning | Deisenroth, Faisal, Ong |
+    | [ISLR](file:///C:/Users/landa/ml-course/textbooks/ISLR.pdf) | An Introduction to Statistical Learning | James, Witten, Hastie, Tibshirani |
+    | [ESL](file:///C:/Users/landa/ml-course/textbooks/ESL.pdf) | The Elements of Statistical Learning | Hastie, Tibshirani, Friedman |
+    | [Boyd](file:///C:/Users/landa/ml-course/textbooks/Boyd-ConvexOptimization.pdf) | Convex Optimization | Boyd, Vandenberghe |
+    | [DLBook](file:///C:/Users/landa/ml-course/textbooks/DLBook.pdf) | Deep Learning | Goodfellow, Bengio, Courville |
+    | [Bishop](file:///C:/Users/landa/ml-course/textbooks/Bishop-PRML.pdf) | Pattern Recognition and Machine Learning | Christopher Bishop |
+    | [Sutton](file:///C:/Users/landa/ml-course/textbooks/Sutton-RL.pdf) | Reinforcement Learning | Sutton, Barto |
+    | [Murphy 1](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML1.pdf) | Probabilistic ML: An Introduction | Kevin Murphy |
+    | [Murphy 2](file:///C:/Users/landa/ml-course/textbooks/Murphy-PML2.pdf) | Probabilistic ML: Advanced Topics | Kevin Murphy |
+    | [Chan](file:///C:/Users/landa/ml-course/textbooks/Chan-Probability.pdf) | Introduction to Probability for Data Science | Stanley Chan |
+    | [Géron](file:///C:/Users/landa/ml-course/textbooks/Geron-HandsOnML.pdf) | Hands-On ML with Scikit-Learn, Keras & TF | Aurélien Géron |
+    | [Wasserman](file:///C:/Users/landa/ml-course/textbooks/Wasserman-AllOfStatistics.pdf) | All of Statistics | Larry Wasserman |
     """)
     return
 
