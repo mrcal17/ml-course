@@ -92,6 +92,14 @@
   .expl { margin-top: 1rem; padding: 1rem; background: var(--surface2); border-radius: 8px;
     font-size: 0.88rem; line-height: 1.5; color: var(--text); display: none; }
   .expl.show { display: block; }
+  .expl.wrong { border-left: 3px solid var(--red); }
+  .expl.right { border-left: 3px solid var(--green); }
+  .expl .expl-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; font-weight: 600; }
+  .expl .expl-label.red { color: var(--red); }
+  .expl .expl-label.green { color: var(--green); }
+  .expl .expl-correct { color: var(--green); font-weight: 600; margin-bottom: 0.4rem; }
+  .expl .expl-picked { color: var(--red); margin-bottom: 0.4rem; font-style: italic; }
+  .expl .expl-why { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); color: var(--muted); }
 
   .nxt { display: none; margin-top: 1rem; padding: 0.65rem 2rem; border: none; border-radius: 8px;
     background: var(--blue); color: var(--bg); font-weight: 600; font-size: 0.95rem; cursor: pointer; }
@@ -185,15 +193,15 @@ const Q = [
 {m:"1B",c:"Weakness",q:"Main weakness of OLS when p (features) is large?",a:"Overfitting and multicollinearity",d:["Underfitting","Slow gradient descent","Can't handle categoricals"],x:"When p >> n, OLS fits noise. Correlated features make X^T X nearly singular."},
 {m:"1B",c:"Algorithm",q:"Ridge regression adds what penalty?",a:"lambda * ||w||^2 (squared L2 norm)",d:["lambda * ||w||_1 (L1 norm)","Constraint that w > 0","Extra bias term"],x:"Shrinks coefficients toward zero but never exactly to zero. Bayesian: Gaussian prior."},
 {m:"1B",c:"Algorithm",q:"Which regularizer drives weights exactly to zero?",a:"Lasso (L1)",d:["Ridge (L2)","Elastic Net only","Polynomial"],x:"L1's diamond constraint has corners on axes, so solutions land at exact zeros."},
-{m:"1B",c:"Concept",q:"Polynomial regression is still linear. Why?",a:"Linear in parameters w, nonlinear in x",d:["Uses linear activation","Features always independent","Only works on linear data"],x:"phi(x)=[1,x,x^2,...] is nonlinear, but y=w^T phi(x) is linear in w."},
+{m:"1B",c:"Concept",q:"Polynomial regression is still linear. Why?",a:"Linear in parameters w, nonlinear in x",d:["Uses linear activation","Features always independent","Only works on linear data"],x:"phi(x)=[1,x,x^2,...] is nonlinear, but y=w^T phi(x) is linear in w.",w:{"Only works on linear data":"It works on nonlinear data — that's the whole point. The features are nonlinear transforms of x.","Uses linear activation":"Activation functions are a neural network concept, not relevant to regression."}},
 {m:"1B",c:"Metric",q:"R^2 = 0.85 means:",a:"Model explains 85% of variance in y",d:["85% accurate","85% within 1 std dev","Correlation is 0.85"],x:"R^2 = 1 - SS_res/SS_tot, comparing to a naive mean predictor."},
 {m:"1B",c:"Complexity",q:"Time complexity of OLS closed-form?",a:"O(p^3) due to matrix inversion",d:["O(np)","O(n^2 p)","O(p^2)"],x:"Inverting the p x p matrix dominates. For large p, use gradient descent."},
-{m:"1B",c:"Concept",q:"Bias-variance decomposition of MSE:",a:"Bias^2 + Variance + irreducible noise",d:["Bias + Variance","Bias^2 + Variance^2","Bias * Variance + noise"],x:"Can't reduce all three. Complex model = low bias, high variance."},
+{m:"1B",c:"Concept",q:"Bias-variance decomposition of MSE:",a:"Bias^2 + Variance + irreducible noise",d:["Bias + Variance","Bias^2 + Variance^2","Bias * Variance + noise"],x:"Can't reduce all three. Complex model = low bias, high variance.",w:{"Bias + Variance":"Close, but bias is squared in the decomposition — the derivation squares (f - E[f-hat]) when expanding the expectation.","Bias^2 + Variance^2":"Variance is already E[(f-hat - E[f-hat])^2], which is a squared quantity. Squaring it again would be wrong."}},
 
 // ---- 1C: Classification ----
 {m:"1C",c:"Equation",q:"The sigmoid function is:",a:"sigma(z) = 1 / (1 + e^(-z))",d:["sigma(z) = e^z / (1+e^z)^2","sigma(z) = tanh(z)","sigma(z) = max(0,z)"],x:"Maps R to (0,1) for probabilities in logistic regression."},
 {m:"1C",c:"Loss",q:"Logistic regression minimizes:",a:"Binary cross-entropy (negative log-likelihood)",d:["MSE","Hinge loss","Huber loss"],x:"NLL = -sum[y log(y-hat) + (1-y)log(1-y-hat)]. From Bernoulli MLE."},
-{m:"1C",c:"Concept",q:"Why is squared error bad for logistic regression?",a:"Non-convex surface with local minima and gradient saturation",d:["Requires matrix inversion","Can't handle binary labels","Always underfits"],x:"When sigmoid saturates, squared error gradient vanishes."},
+{m:"1C",c:"Concept",q:"Why is squared error bad for logistic regression?",a:"Non-convex surface with local minima and gradient saturation",d:["Requires matrix inversion","Can't handle binary labels","Always underfits"],x:"When sigmoid saturates, squared error gradient vanishes.",w:{"Can't handle binary labels":"Squared error can technically handle 0/1 labels — it just creates a non-convex loss surface with sigmoid, making optimization unreliable.","Always underfits":"The issue is the opposite direction — the loss landscape has bad local minima, making optimization unreliable, not that the model is too simple."}},
 {m:"1C",c:"Algorithm",q:"Softmax generalizes sigmoid to:",a:"K classes: P(y=k|x) = e^(w_k^T x) / sum e^(w_j^T x)",d:["Tanh to multi-output","ReLU to probabilities","Step function to fuzzy logic"],x:"For K=2, softmax reduces to sigmoid."},
 {m:"1C",c:"Concept",q:"Naive Bayes' key (usually wrong) assumption:",a:"Features are conditionally independent given the class",d:["Classes equally likely","Features normally distributed","Boundary is linear"],x:"Almost always wrong, yet works because only decision boundary needs to be correct."},
 {m:"1C",c:"Algorithm",q:"Soft-margin SVM minimizes:",a:"(1/2)||w||^2 + C * sum(xi_i) with margin constraints",d:["Cross-entropy + L2","Sum of squared residuals","KL divergence"],x:"C controls tradeoff: large C = hard margin, small C = wider margin."},
@@ -216,7 +224,7 @@ const Q = [
 {m:"1E",c:"Concept",q:"Decision trees are greedy — what does this mean?",a:"Each split is locally optimal without considering future splits",d:["Use all features at once","Always find global optimum","Require sorted data"],x:"No backtracking or lookahead."},
 {m:"1E",c:"Weakness",q:"Primary weakness of a single decision tree:",a:"High variance — small data changes produce different trees",d:["High bias","Slow training","Can't handle categoricals"],x:"Motivates ensembles: bagging averages many unstable trees."},
 {m:"1E",c:"Algorithm",q:"Random Forest's key innovation over bagging:",a:"Random subset of m features considered at each split",d:["Deeper trees","Gradient descent","Post-training pruning"],x:"Decorrelates trees. Default m = sqrt(p) for classification."},
-{m:"1E",c:"Concept",q:"Bagging reduces ___, boosting reduces ___.",a:"Variance; bias",d:["Bias; variance","Both bias","Both variance"],x:"Bagging averages noisy models. Boosting corrects errors sequentially."},
+{m:"1E",c:"Concept",q:"Bagging reduces ___, boosting reduces ___.",a:"Variance; bias",d:["Bias; variance","Both bias","Both variance"],x:"Bagging averages noisy models. Boosting corrects errors sequentially.",w:{"Bias; variance":"Common mix-up. Bagging averages many high-variance models (like deep trees) to stabilize them. Boosting sequentially fixes errors, reducing systematic bias."}},
 {m:"1E",c:"Algorithm",q:"In gradient boosting, each new tree fits:",a:"Negative gradient (pseudo-residuals) of the loss",d:["Original labels","Previous predictions","Random feature subsets"],x:"For MSE, negative gradient = residuals. Generalizes to any loss."},
 {m:"1E",c:"Concept",q:"Why use a small learning rate in gradient boosting?",a:"Shrinkage prevents overfitting each correction",d:["Speeds training","Fewer trees needed","Deeper trees"],x:"Smaller eta = more trees but better generalization. Typical: 0.01-0.1."},
 {m:"1E",c:"Concept",q:"Can adding more trees to a Random Forest overfit?",a:"No — more trees just reduce variance with diminishing returns",d:["Yes always","Only if shallow","Only with boosting"],x:"Unlike boosting, RF averaging can't overfit from more trees."},
@@ -235,14 +243,14 @@ const Q = [
 {m:"1F",c:"Algorithm",q:"Ward's linkage minimizes:",a:"Increase in total within-cluster variance",d:["Max pairwise distance","Number of clusters","Dendrogram entropy"],x:"Produces compact, balanced clusters similar to K-Means."},
 
 // ---- 2A: Neural Networks ----
-{m:"2A",c:"Concept",q:"Why can't a single-layer perceptron solve XOR?",a:"XOR is not linearly separable",d:["Too many parameters","Gradient vanishes","Requires convolution"],x:"Adding a hidden layer creates a nonlinear decision boundary that solves XOR."},
+{m:"2A",c:"Concept",q:"Why can't a single-layer perceptron solve XOR?",a:"XOR is not linearly separable",d:["Too many parameters","Gradient vanishes","Requires convolution"],x:"Adding a hidden layer creates a nonlinear decision boundary that solves XOR.",w:{"Too many parameters":"A single perceptron has very few parameters (just weights + bias). The issue isn't parameter count — it's that no single line can separate the XOR outputs.","Requires convolution":"Convolution is for spatial patterns in images. XOR is a simple logic problem solvable with a 2-layer fully connected network."}},
 {m:"2A",c:"Concept",q:"The Universal Approximation Theorem states:",a:"A single hidden layer with enough neurons can approximate any continuous function",d:["Deep nets are always better","Neural nets find global optima","ReLU is the best activation"],x:"Guarantees existence but not learnability — doesn't say how many neurons or how to train."},
 {m:"2A",c:"Algorithm",q:"Backpropagation computes gradients using:",a:"The chain rule applied through the computational graph",d:["Finite differences","Random perturbations","Matrix inversion"],x:"Reverse-mode autodiff: compute loss, then propagate gradients backward layer by layer."},
-{m:"2A",c:"Concept",q:"ReLU's main advantage over sigmoid/tanh:",a:"No gradient saturation for positive inputs — faster training",d:["Always differentiable","Bounded output","Symmetric around zero"],x:"ReLU(x) = max(0,x). Gradient is 1 for x>0, avoiding the vanishing gradient problem."},
+{m:"2A",c:"Concept",q:"ReLU's main advantage over sigmoid/tanh:",a:"No gradient saturation for positive inputs — faster training",d:["Always differentiable","Bounded output","Symmetric around zero"],x:"ReLU(x) = max(0,x). Gradient is 1 for x>0, avoiding the vanishing gradient problem.",w:{"Always differentiable":"ReLU is NOT differentiable at x=0. Sigmoid and tanh are actually smoother. ReLU wins despite this because its gradient doesn't vanish for positive inputs.","Bounded output":"ReLU is unbounded (outputs can grow to infinity). Sigmoid [0,1] and tanh [-1,1] are bounded. That's actually their weakness — saturation kills gradients.","Symmetric around zero":"Tanh is symmetric around zero, not ReLU. ReLU outputs 0 for all negative inputs."}},
 {m:"2A",c:"Concept",q:"Forward mode vs reverse mode autodiff — when is reverse preferred?",a:"When outputs << inputs (most neural nets: scalar loss, many parameters)",d:["When inputs << outputs","Always","Never"],x:"Reverse mode computes all parameter gradients in one backward pass. Forward mode needs one pass per parameter."},
 
 // ---- 2B: Optimization ----
-{m:"2B",c:"Concept",q:"Why are saddle points more problematic than local minima in high dimensions?",a:"Saddle points are exponentially more common than local minima in high-D",d:["Saddle points have zero gradient","Local minima are rare","Saddle points are global optima"],x:"In high-D, a critical point is a local min only if ALL eigenvalues of the Hessian are positive — extremely unlikely."},
+{m:"2B",c:"Concept",q:"Why are saddle points more problematic than local minima in high dimensions?",a:"Saddle points are exponentially more common than local minima in high-D",d:["Saddle points have zero gradient","Local minima are rare","Saddle points are global optima"],x:"In high-D, a critical point is a local min only if ALL eigenvalues of the Hessian are positive — extremely unlikely.",w:{"Saddle points have zero gradient":"Both saddle points AND local minima have zero gradient — that's what makes them critical points. The difference is frequency: saddle points vastly outnumber local minima in high dimensions.","Local minima are rare":"This is actually true! But the question asks why saddle points are MORE problematic — it's because they're exponentially more common, so gradient descent gets stuck at them more often."}},
 {m:"2B",c:"Algorithm",q:"Adam optimizer combines:",a:"Momentum (1st moment) + RMSProp (2nd moment) with bias correction",d:["SGD + dropout","L1 + L2 penalties","Learning rate + batch size"],x:"Adaptive per-parameter learning rates using running averages of gradient and squared gradient."},
 {m:"2B",c:"Concept",q:"Batch Normalization normalizes across which dimension?",a:"The batch dimension — each feature normalized over the mini-batch",d:["Feature dimension","Time dimension","Layer dimension"],x:"For each feature: subtract batch mean, divide by batch std, then scale and shift with learned params."},
 {m:"2B",c:"Concept",q:"What is the linear scaling rule for learning rate?",a:"When multiplying batch size by k, multiply learning rate by k",d:["Keep LR constant","Divide LR by k","Square the LR"],x:"Larger batches have lower gradient noise, so you can take larger steps."},
@@ -273,7 +281,7 @@ const Q = [
 // ---- 3A: Transformers ----
 {m:"3A",c:"Equation",q:"Scaled dot-product attention formula:",a:"Attention(Q,K,V) = softmax(QK^T / sqrt(d_k)) V",d:["softmax(QV^T / d_k) K","sigmoid(QK^T) V","Q^T K V / n"],x:"Division by sqrt(d_k) prevents softmax saturation for large d_k."},
 {m:"3A",c:"Concept",q:"Why use multi-head attention instead of single-head?",a:"Different heads attend to different relationship types in parallel",d:["Reduces parameters","Eliminates positional encoding","Faster than single head"],x:"Head 1 might capture syntax, head 2 semantics, etc. Concat and project."},
-{m:"3A",c:"Concept",q:"Why do Transformers need positional encoding?",a:"Self-attention is permutation-invariant — no inherent notion of order",d:["To reduce parameters","To handle variable-length input","To normalize activations"],x:"Without position info, 'dog bites man' = 'man bites dog' to the model."},
+{m:"3A",c:"Concept",q:"Why do Transformers need positional encoding?",a:"Self-attention is permutation-invariant — no inherent notion of order",d:["To reduce parameters","To handle variable-length input","To normalize activations"],x:"Without position info, 'dog bites man' = 'man bites dog' to the model.",w:{"To handle variable-length input":"Transformers already handle variable length via padding/masking. Positional encoding adds ORDER information, not length handling.","To normalize activations":"Layer norm handles activation normalization. Positional encoding injects sequence position so the model knows which token comes first, second, etc."}},
 {m:"3A",c:"Algorithm",q:"Transformer decoder uses masked self-attention to:",a:"Prevent attending to future tokens during generation",d:["Speed up training","Reduce memory","Handle missing data"],x:"Causal mask: position i can only attend to positions <= i. Ensures autoregressive generation."},
 {m:"3A",c:"Concept",q:"The position-wise FFN in each Transformer block does:",a:"Applies the same 2-layer MLP independently to each position",d:["Convolves across positions","Attends to neighboring tokens","Pools over the sequence"],x:"expand -> ReLU/GELU -> project back. Same weights at every position; no cross-position interaction."},
 
@@ -544,10 +552,24 @@ function nextQuiz(){
   app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     if(b.classList.contains("lk"))return;
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if(o.dataset.a==="1")o.classList.add("ok");});
-    if(b.dataset.a==="1"){qScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;}
-    else{b.classList.add("no");gStreak=0;}
+    const expl=$("#expl");
+    if(b.dataset.a==="1"){
+      qScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;
+      expl.classList.add("right");
+      expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}`;
+    } else {
+      b.classList.add("no");gStreak=0;
+      const picked=b.textContent;
+      const wrongNote=q.w&&q.w[picked]?`<div class="expl-picked">"${picked}" — ${q.w[picked]}</div>`
+        :`<div class="expl-picked">You picked: "${picked}"</div>`;
+      expl.classList.add("wrong");
+      expl.innerHTML=`<div class="expl-label red">Incorrect</div>
+        <div class="expl-correct">Correct answer: ${q.a}</div>
+        ${wrongNote}
+        <div class="expl-why">${q.x}</div>`;
+    }
     updateStats();$(".sc").textContent=`Score: ${qScore}/${qTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-    $("#expl").classList.add("show");$("#nxt").classList.add("show");
+    expl.classList.add("show");$("#nxt").classList.add("show");
   }));
   $("#nxt").addEventListener("click",nextQuiz);
 }
@@ -570,10 +592,19 @@ function nextTF(){
     if(b.classList.contains("lk"))return;
     const picked=b.dataset.v==="true";
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if((o.dataset.v==="true")===q.a)o.classList.add("ok");});
-    if(picked===q.a){tfScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;}
-    else{b.classList.add("no");gStreak=0;}
+    const expl=$("#expl");
+    if(picked===q.a){
+      tfScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;
+      expl.classList.add("right");
+      expl.innerHTML=`<div class="expl-label green">Correct — ${q.a?"True":"False"}</div>${q.x}`;
+    } else {
+      b.classList.add("no");gStreak=0;
+      expl.classList.add("wrong");
+      expl.innerHTML=`<div class="expl-label red">Incorrect — The answer is ${q.a?"True":"False"}</div>
+        <div class="expl-why">${q.x}</div>`;
+    }
     updateStats();$(".sc").textContent=`Score: ${tfScore}/${tfTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-    $("#expl").classList.add("show");$("#nxt").classList.add("show");
+    expl.classList.add("show");$("#nxt").classList.add("show");
   }));
   $("#nxt").addEventListener("click",nextTF);
 }
@@ -641,15 +672,33 @@ function nextSpeed(){
     if(tLeft<=0){done=true;clearInterval(timer);gStreak=0;updateStats();
       app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if(o.dataset.a==="1")o.classList.add("ok");});
       $(".sc").textContent=`Score: ${sScore}/${sTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-      $("#expl").classList.add("show");$("#nxt").classList.add("show");}
+      const expl=$("#expl");expl.classList.add("wrong");
+      expl.innerHTML=`<div class="expl-label red">Time's up!</div>
+        <div class="expl-correct">Correct answer: ${q.a}</div>
+        <div class="expl-why">${q.x}</div>`;
+      expl.classList.add("show");$("#nxt").classList.add("show");}
   },40);
   app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     if(done)return;done=true;clearInterval(timer);
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if(o.dataset.a==="1")o.classList.add("ok");});
-    if(b.dataset.a==="1"){sScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;}
-    else{b.classList.add("no");gStreak=0;}
+    const expl=$("#expl");
+    if(b.dataset.a==="1"){
+      sScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;
+      expl.classList.add("right");
+      expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}`;
+    } else {
+      b.classList.add("no");gStreak=0;
+      const picked=b.textContent;
+      const wrongNote=q.w&&q.w[picked]?`<div class="expl-picked">"${picked}" — ${q.w[picked]}</div>`
+        :`<div class="expl-picked">You picked: "${picked}"</div>`;
+      expl.classList.add("wrong");
+      expl.innerHTML=`<div class="expl-label red">Incorrect</div>
+        <div class="expl-correct">Correct answer: ${q.a}</div>
+        ${wrongNote}
+        <div class="expl-why">${q.x}</div>`;
+    }
     updateStats();$(".sc").textContent=`Score: ${sScore}/${sTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-    $("#expl").classList.add("show");$("#nxt").classList.add("show");
+    expl.classList.add("show");$("#nxt").classList.add("show");
   }));
   $("#nxt").addEventListener("click",nextSpeed);
 }
