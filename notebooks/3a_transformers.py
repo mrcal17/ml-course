@@ -891,9 +891,13 @@ def _(mo):
 @app.cell
 def _():
     def _run():
-        import torch
-        import torch.nn as nn
-        import torch.nn.functional as F
+        try:
+            import torch
+            import torch.nn as nn
+            import torch.nn.functional as F
+        except ImportError:
+            print("(PyTorch not available in this environment — skip this cell and read the output below)")
+            return
         import math
         return F, math, nn, torch
 

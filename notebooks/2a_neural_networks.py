@@ -647,7 +647,11 @@ PyTorch builds a **dynamic computational graph** as you execute operations on te
 @app.cell
 def _():
     def _run():
-        import torch
+        try:
+            import torch
+        except ImportError:
+            print("(PyTorch not available in this environment — skip this cell and read the output below)")
+            return
 
         # Create tensors with gradient tracking
         x = torch.tensor([1.0, 2.0])
@@ -777,9 +781,13 @@ This is the standard pattern you will use for every neural network you train:
 @app.cell
 def _():
     def _run():
-        import torch as _torch
-        import torch.nn as nn
-        import torch.optim as optim
+        try:
+            import torch as _torch
+            import torch.nn as nn
+            import torch.optim as optim
+        except ImportError:
+            print("(PyTorch not available in this environment — skip this cell and read the output below)")
+            return
 
         # Define model
         model = nn.Sequential(
@@ -904,9 +912,13 @@ def _(mo):
 def _(hidden_neurons_slider):
     def _run():
         from sklearn.datasets import make_moons
-        import torch as _torch2
-        import torch.nn as _nn2
-        import torch.optim as _optim2
+        try:
+            import torch as _torch2
+            import torch.nn as _nn2
+            import torch.optim as _optim2
+        except ImportError:
+            print("(PyTorch not available in this environment — skip this cell and read the output below)")
+            return
 
         n_hidden = hidden_neurons_slider.value
 
