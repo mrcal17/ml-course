@@ -100,6 +100,9 @@
   .expl .expl-correct { color: var(--green); font-weight: 600; margin-bottom: 0.4rem; }
   .expl .expl-picked { color: var(--red); margin-bottom: 0.4rem; font-style: italic; }
   .expl .expl-why { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); color: var(--muted); }
+  .expl .review-link { display: inline-block; margin-top: 0.7rem; padding: 0.35rem 0.8rem; border: 1px solid var(--blue);
+    border-radius: 6px; font-size: 0.8rem; color: var(--blue); transition: all 0.15s; }
+  .expl .review-link:hover { background: #1e3a5f; }
 
   .nxt { display: none; margin-top: 1rem; padding: 0.65rem 2rem; border: none; border-radius: 8px;
     background: var(--blue); color: var(--bg); font-weight: 600; font-size: 0.95rem; cursor: pointer; }
@@ -456,6 +459,24 @@ const MODES = [
   {id:"flash",label:"Flashcards"},{id:"sheet",label:"Cheat Sheet"},
 ];
 
+// Module ID -> page URL slug for review links
+const MOD_URL = {
+  "1B":"1b_linear_regression","1C":"1c_classification","1D":"1d_model_selection",
+  "1E":"1e_trees_ensembles","1F":"1f_unsupervised",
+  "2A":"2a_neural_networks","2B":"2b_dl_optimization","2C":"2c_regularization",
+  "2D":"2d_cnn","2E":"2e_sequence_models",
+  "3A":"3a_transformers","3B":"3b_generative_models","3C":"3c_self_supervised",
+  "3D":"3d_reinforcement_learning",
+  "4A":"4a_nlp","4B":"4b_computer_vision","4C":"4c_advanced_rl","4D":"4d_bayesian_ml",
+};
+function reviewLink(mod){
+  const slug=MOD_URL[mod];
+  if(!slug)return "";
+  const modInfo=PARTS.flatMap(p=>p.mods).find(m=>m.id===mod);
+  const name=modInfo?modInfo.name:mod;
+  return `<a class="review-link" href="./${slug}/" target="_blank">Review: ${mod} — ${name}</a>`;
+}
+
 // ===================== STATE =====================
 let gScore=0, gStreak=0, gBest=0;
 let curMode="quiz", curMod=null, curPart=null;
@@ -534,17 +555,16 @@ function bindBack(){
 }
 
 // ===================== QUIZ =====================
-let qScore=0,qTotal=0;
-function runQuiz(){qScore=0;qTotal=0;nextQuiz();}
+let qScore=0,qTotal=0,qQueue=[];
+function runQuiz(){qScore=0;qTotal=0;qQueue=shuffle(getPool(Q));nextQuiz();}
 function nextQuiz(){
-  const p=getPool(Q),avail=p.filter((_,i)=>!used.has(p.indexOf(_)??"x")).filter(q=>!used.has(Q.indexOf(q)));
-  if(!avail.length){showSummary(qScore,qTotal);return;}
-  const q=avail[Math.floor(Math.random()*avail.length)];
-  used.add(Q.indexOf(q));
+  if(!qQueue.length){showSummary(qScore,qTotal);return;}
+  const q=qQueue.shift();
   const opts=shuffle([q.a,...q.d]);
   qTotal++;
+  const qTotalAll=qTotal+qQueue.length;
   let h=`<div class="game-wrap">${header()}
-    <div class="score-bar"><div class="sb-left"><span class="sc">Score: ${qScore}/${qTotal-1}</span><span class="st">Streak: ${gStreak}</span></div><div class="sb-right">${qTotal}/${p.length}</div></div>
+    <div class="score-bar"><div class="sb-left"><span class="sc">Score: ${qScore}/${qTotal-1}</span><span class="st">Streak: ${gStreak}</span></div><div class="sb-right">${qTotal}/${qTotalAll}</div></div>
     <div class="q-card"><div class="q-cat">${q.m} — ${q.c}</div><div class="q-text">${q.q}</div>
     <div class="opts">${opts.map(o=>`<button class="opt" data-a="${o===q.a?1:0}">${o}</button>`).join("")}</div>
     <div class="expl" id="expl">${q.x}</div></div><button class="nxt" id="nxt">Next</button></div>`;
@@ -553,10 +573,11 @@ function nextQuiz(){
     if(b.classList.contains("lk"))return;
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if(o.dataset.a==="1")o.classList.add("ok");});
     const expl=$("#expl");
+    const rl=reviewLink(q.m);
     if(b.dataset.a==="1"){
       qScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;
       expl.classList.add("right");
-      expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}`;
+      expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}<br>${rl}`;
     } else {
       b.classList.add("no");gStreak=0;
       const picked=b.textContent;
@@ -566,7 +587,7 @@ function nextQuiz(){
       expl.innerHTML=`<div class="expl-label red">Incorrect</div>
         <div class="expl-correct">Correct answer: ${q.a}</div>
         ${wrongNote}
-        <div class="expl-why">${q.x}</div>`;
+        <div class="expl-why">${q.x}</div>${rl}`;
     }
     updateStats();$(".sc").textContent=`Score: ${qScore}/${qTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
     expl.classList.add("show");$("#nxt").classList.add("show");
@@ -575,15 +596,14 @@ function nextQuiz(){
 }
 
 // ===================== TRUE/FALSE =====================
-let tfScore=0,tfTotal=0;
-function runTF(){tfScore=0;tfTotal=0;used.clear();nextTF();}
+let tfScore=0,tfTotal=0,tfQueue=[];
+function runTF(){tfScore=0;tfTotal=0;tfQueue=shuffle(getPool(TF));nextTF();}
 function nextTF(){
-  const p=getPool(TF),avail=p.filter(q=>!used.has(TF.indexOf(q)));
-  if(!avail.length){showSummary(tfScore,tfTotal);return;}
-  const q=avail[Math.floor(Math.random()*avail.length)];
-  used.add(TF.indexOf(q));tfTotal++;
+  if(!tfQueue.length){showSummary(tfScore,tfTotal);return;}
+  const q=tfQueue.shift();tfTotal++;
+  const tfTotalAll=tfTotal+tfQueue.length;
   let h=`<div class="game-wrap">${header()}
-    <div class="score-bar"><div class="sb-left"><span class="sc">Score: ${tfScore}/${tfTotal-1}</span><span class="st">Streak: ${gStreak}</span></div><div class="sb-right">${tfTotal}/${p.length}</div></div>
+    <div class="score-bar"><div class="sb-left"><span class="sc">Score: ${tfScore}/${tfTotal-1}</span><span class="st">Streak: ${gStreak}</span></div><div class="sb-right">${tfTotal}/${tfTotalAll}</div></div>
     <div class="q-card"><div class="q-cat">${q.m} — True or False</div><div class="q-text">${q.q}</div>
     <div class="opts"><button class="opt" data-v="true">True</button><button class="opt" data-v="false">False</button></div>
     <div class="expl" id="expl">${q.x}</div></div><button class="nxt" id="nxt">Next</button></div>`;
@@ -593,15 +613,16 @@ function nextTF(){
     const picked=b.dataset.v==="true";
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if((o.dataset.v==="true")===q.a)o.classList.add("ok");});
     const expl=$("#expl");
+    const rl=reviewLink(q.m);
     if(picked===q.a){
       tfScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;
       expl.classList.add("right");
-      expl.innerHTML=`<div class="expl-label green">Correct — ${q.a?"True":"False"}</div>${q.x}`;
+      expl.innerHTML=`<div class="expl-label green">Correct — ${q.a?"True":"False"}</div>${q.x}<br>${rl}`;
     } else {
       b.classList.add("no");gStreak=0;
       expl.classList.add("wrong");
       expl.innerHTML=`<div class="expl-label red">Incorrect — The answer is ${q.a?"True":"False"}</div>
-        <div class="expl-why">${q.x}</div>`;
+        <div class="expl-why">${q.x}</div>${rl}`;
     }
     updateStats();$(".sc").textContent=`Score: ${tfScore}/${tfTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
     expl.classList.add("show");$("#nxt").classList.add("show");
@@ -610,18 +631,17 @@ function nextTF(){
 }
 
 // ===================== MATCHING =====================
-let mScore=0,mSets=0;
-function runMatch(){mScore=0;mSets=0;used.clear();nextMatch();}
+let mScore=0,mSets=0,mQueue=[];
+function runMatch(){mScore=0;mSets=0;mQueue=shuffle(getPool(MATCH));nextMatch();}
 function nextMatch(){
-  const p=getPool(MATCH),avail=p.filter(m=>!used.has(MATCH.indexOf(m)));
-  if(!avail.length){showSummary(mScore,mSets,true);return;}
-  const m=avail[Math.floor(Math.random()*avail.length)];
-  used.add(MATCH.indexOf(m));mSets++;
+  if(!mQueue.length){showSummary(mScore,mSets,true);return;}
+  const m=mQueue.shift();mSets++;
+  const mTotalAll=mSets+mQueue.length;
   const ls=shuffle(m.p.map(x=>x[0])),rs=shuffle(m.p.map(x=>x[1]));
   const correct=Object.fromEntries(m.p);
   let sel=null,matched=0;
   let h=`<div class="game-wrap">${header()}
-    <div class="score-bar"><div class="sb-left"><span class="sc">Matched: 0/${m.p.length}</span></div><div class="sb-right">Set ${mSets}/${p.length}</div></div>
+    <div class="score-bar"><div class="sb-left"><span class="sc">Matched: 0/${m.p.length}</span></div><div class="sb-right">Set ${mSets}/${mTotalAll}</div></div>
     <div class="q-card"><div class="q-cat">${m.m} — Matching</div><div class="q-text">${m.t}</div>
     <div class="match-grid"><div class="match-col"><h4>Terms</h4>${ls.map(l=>`<div class="mi2 left" data-v="${l}">${l}</div>`).join("")}</div>
     <div class="match-col"><h4>Definitions</h4>${rs.map(r=>`<div class="mi2 right" data-v="${r}">${r}</div>`).join("")}</div></div></div>
@@ -649,16 +669,15 @@ function nextMatch(){
 }
 
 // ===================== SPEED =====================
-let sScore=0,sTotal=0;
-function runSpeed(){sScore=0;sTotal=0;used.clear();nextSpeed();}
+let sScore=0,sTotal=0,sQueue=[];
+function runSpeed(){sScore=0;sTotal=0;sQueue=shuffle(getPool(Q));nextSpeed();}
 function nextSpeed(){
-  const p=getPool(Q),avail=p.filter(q=>!used.has(Q.indexOf(q)));
-  if(!avail.length){showSummary(sScore,sTotal);return;}
-  const q=avail[Math.floor(Math.random()*avail.length)];
-  used.add(Q.indexOf(q));const opts=shuffle([q.a,...q.d]);sTotal++;
+  if(!sQueue.length){showSummary(sScore,sTotal);return;}
+  const q=sQueue.shift();const opts=shuffle([q.a,...q.d]);sTotal++;
+  const sTotalAll=sTotal+sQueue.length;
   let tLeft=12000,done=false;
   let h=`<div class="game-wrap">${header()}
-    <div class="score-bar"><div class="sb-left"><span class="sc">Score: ${sScore}/${sTotal-1}</span><span class="st">Streak: ${gStreak}</span></div><div class="sb-right">${sTotal}/${p.length}</div></div>
+    <div class="score-bar"><div class="sb-left"><span class="sc">Score: ${sScore}/${sTotal-1}</span><span class="st">Streak: ${gStreak}</span></div><div class="sb-right">${sTotal}/${sTotalAll}</div></div>
     <div class="timer-bar"><div class="timer-fill" id="tf2" style="width:100%"></div></div>
     <div class="q-card"><div class="q-cat">${q.m} — ${q.c} (SPEED)</div><div class="q-text">${q.q}</div>
     <div class="opts">${opts.map(o=>`<button class="opt" data-a="${o===q.a?1:0}">${o}</button>`).join("")}</div>
@@ -675,17 +694,18 @@ function nextSpeed(){
       const expl=$("#expl");expl.classList.add("wrong");
       expl.innerHTML=`<div class="expl-label red">Time's up!</div>
         <div class="expl-correct">Correct answer: ${q.a}</div>
-        <div class="expl-why">${q.x}</div>`;
+        <div class="expl-why">${q.x}</div>${reviewLink(q.m)}`;
       expl.classList.add("show");$("#nxt").classList.add("show");}
   },40);
   app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     if(done)return;done=true;clearInterval(timer);
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if(o.dataset.a==="1")o.classList.add("ok");});
     const expl=$("#expl");
+    const rl=reviewLink(q.m);
     if(b.dataset.a==="1"){
       sScore++;gScore++;gStreak++;if(gStreak>gBest)gBest=gStreak;
       expl.classList.add("right");
-      expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}`;
+      expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}<br>${rl}`;
     } else {
       b.classList.add("no");gStreak=0;
       const picked=b.textContent;
@@ -695,7 +715,7 @@ function nextSpeed(){
       expl.innerHTML=`<div class="expl-label red">Incorrect</div>
         <div class="expl-correct">Correct answer: ${q.a}</div>
         ${wrongNote}
-        <div class="expl-why">${q.x}</div>`;
+        <div class="expl-why">${q.x}</div>${rl}`;
     }
     updateStats();$(".sc").textContent=`Score: ${sScore}/${sTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
     expl.classList.add("show");$("#nxt").classList.add("show");
