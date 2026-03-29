@@ -594,9 +594,9 @@ function nextQuiz(){
       expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}<br>${rl}`;
     } else {
       b.classList.add("no");gStreak=0;
-      const picked=b.textContent;
-      const wrongNote=q.w&&q.w[picked]?`<div class="expl-picked">"${picked}" — ${q.w[picked]}</div>`
-        :`<div class="expl-picked">You picked: "${picked}"</div>`;
+      const pickedKey=b.textContent, pickedHtml=b.innerHTML;
+      const wrongNote=q.w&&q.w[pickedKey]?`<div class="expl-picked">${pickedHtml} — ${q.w[pickedKey]}</div>`
+        :`<div class="expl-picked">You picked: ${pickedHtml}</div>`;
       expl.classList.add("wrong");
       expl.innerHTML=`<div class="expl-label red">Incorrect</div>
         <div class="expl-correct">Correct answer: ${q.a}</div>
@@ -722,9 +722,9 @@ function nextSpeed(){
       expl.innerHTML=`<div class="expl-label green">Correct</div>${q.x}<br>${rl}`;
     } else {
       b.classList.add("no");gStreak=0;
-      const picked=b.textContent;
-      const wrongNote=q.w&&q.w[picked]?`<div class="expl-picked">"${picked}" — ${q.w[picked]}</div>`
-        :`<div class="expl-picked">You picked: "${picked}"</div>`;
+      const pickedKey=b.textContent, pickedHtml=b.innerHTML;
+      const wrongNote=q.w&&q.w[pickedKey]?`<div class="expl-picked">${pickedHtml} — ${q.w[pickedKey]}</div>`
+        :`<div class="expl-picked">You picked: ${pickedHtml}</div>`;
       expl.classList.add("wrong");
       expl.innerHTML=`<div class="expl-label red">Incorrect</div>
         <div class="expl-correct">Correct answer: ${q.a}</div>
