@@ -134,6 +134,11 @@ if os.path.exists(home_idx):
     with open(home_idx, "w", encoding="utf-8") as f:
         f.write(html)
 
+# Copy standalone HTML pages (quiz, etc.) to docs root
+for html_file in glob.glob("*.html"):
+    shutil.copy2(html_file, os.path.join(DOCS_DIR, html_file))
+    print(f"Copied {html_file} to docs/")
+
 # Copy .nojekyll to root (prevents GitHub from processing with Jekyll)
 nojekyll = os.path.join(DOCS_DIR, ".nojekyll")
 if not os.path.exists(nojekyll):

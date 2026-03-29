@@ -134,6 +134,7 @@ def _(mo):
     | # | Module | Description |
     |---|--------|-------------|
     | 5A | [Algorithm Study Guide](./5a_study_guide/) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
+    | | [Quiz & Flashcards](./quiz.html) | Interactive study tool with quizzes, flashcards, and spaced repetition across all course modules |
     """)
     return
 
