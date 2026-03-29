@@ -87,8 +87,8 @@ def _(mo, np):
     T = len(rewards)
     G = np.zeros(T)
     G[-1] = rewards[-1]
-    for t in range(T - 2, -1, -1):
-        G[t] = rewards[t] + gamma * G[t + 1]  # G_t = R_t + gamma * G_{t+1}
+    for _t in range(T - 2, -1, -1):
+        G[_t] = rewards[_t] + gamma * G[_t + 1]  # G_t = R_t + gamma * G_{t+1}
 
     mo.md(f"""
     **Code: Discounted Returns**
@@ -176,11 +176,11 @@ def _(mo, np):
     V = np.zeros(n_states)
     for _ in range(100):
         V_new = np.zeros(n_states)
-        for s in range(n_states):
-            for a in range(n_actions):
-                for s_next in range(n_states):
+        for _s in range(n_states):
+            for _a in range(n_actions):
+                for _s_next in range(n_states):
                     # Bellman equation: weighted sum over actions and transitions
-                    V_new[s] += pi[s, a] * P[s, a, s_next] * (R[s, a, s_next] + gamma_bellman * V[s_next])
+                    V_new[_s] += pi[_s, _a] * P[_s, _a, _s_next] * (R[_s, _a, _s_next] + gamma_bellman * V[_s_next])
         V = V_new
 
     mo.md(f"""
@@ -235,22 +235,22 @@ def _(P, R, gamma_bellman, mo, n_actions, n_states, np):
     V_star = np.zeros(n_states)
     for _vi in range(100):
         V_new_vi = np.zeros(n_states)
-        for s in range(n_states):
+        for _s in range(n_states):
             action_values = np.zeros(n_actions)
-            for a in range(n_actions):
-                for s_next in range(n_states):
-                    action_values[a] += P[s, a, s_next] * (R[s, a, s_next] + gamma_bellman * V_star[s_next])
-            V_new_vi[s] = np.max(action_values)  # Bellman optimality: max over actions
+            for _a in range(n_actions):
+                for _s_next in range(n_states):
+                    action_values[_a] += P[_s, _a, _s_next] * (R[_s, _a, _s_next] + gamma_bellman * V_star[_s_next])
+            V_new_vi[_s] = np.max(action_values)  # Bellman optimality: max over actions
         V_star = V_new_vi
 
     # Extract optimal policy: greedy w.r.t. V*
     optimal_policy = np.zeros(n_states, dtype=int)
-    for s in range(n_states):
+    for _s in range(n_states):
         action_values = np.zeros(n_actions)
-        for a in range(n_actions):
-            for s_next in range(n_states):
-                action_values[a] += P[s, a, s_next] * (R[s, a, s_next] + gamma_bellman * V_star[s_next])
-        optimal_policy[s] = np.argmax(action_values)
+        for _a in range(n_actions):
+            for _s_next in range(n_states):
+                action_values[_a] += P[_s, _a, _s_next] * (R[_s, _a, _s_next] + gamma_bellman * V_star[_s_next])
+        optimal_policy[_s] = np.argmax(action_values)
 
     action_names = ["left", "right"]
     mo.md(f"""
@@ -258,7 +258,7 @@ def _(P, R, gamma_bellman, mo, n_actions, n_states, np):
 
     Optimal values: V* = `{np.round(V_star, 3).tolist()}`
 
-    Optimal policy: `{[action_names[a] for a in optimal_policy]}`
+    Optimal policy: `{[action_names[_a] for _a in optimal_policy]}`
 
     The agent learns to go right from every state to reach the reward.
     """)
@@ -297,18 +297,18 @@ def _(mo, np):
     gamma_mc = 0.9
     n_episodes_mc = 500
 
-    returns_per_state = {s: [] for s in range(n_states_mc - 1)}
+    returns_per_state = {_s: [] for _s in range(n_states_mc - 1)}
 
     for _ in range(n_episodes_mc):
         # Generate episode: random walk right with p=0.7, left with p=0.3
-        s = 0
+        _s = 0
         episode = []
-        while s < n_states_mc - 1:
-            a = 1 if rng_mc.random() < 0.7 else 0  # mostly go right
-            s_next = min(s + 1, n_states_mc - 1) if a == 1 else max(s - 1, 0)
-            r = 1.0 if s_next == n_states_mc - 1 else 0.0
-            episode.append((s, r))
-            s = s_next
+        while _s < n_states_mc - 1:
+            _a = 1 if rng_mc.random() < 0.7 else 0  # mostly go right
+            _s_next = min(_s + 1, n_states_mc - 1) if _a == 1 else max(_s - 1, 0)
+            _r = 1.0 if _s_next == n_states_mc - 1 else 0.0
+            episode.append((_s, _r))
+            _s = _s_next
 
         # Compute returns backward and record first visits
         G_mc = 0.0
@@ -319,7 +319,7 @@ def _(mo, np):
                 visited.add(s_ep)
                 returns_per_state[s_ep].append(G_mc)
 
-    V_mc = {s: np.mean(rets) if rets else 0 for s, rets in returns_per_state.items()}
+    V_mc = {_s: np.mean(rets) if rets else 0 for _s, rets in returns_per_state.items()}
 
     mo.md(f"""
     **Code: First-Visit Monte Carlo**
@@ -368,17 +368,17 @@ def _(mo, np):
     td_errors = []
 
     for _ in range(500):
-        s = 0
-        while s < n_states_td - 1:
-            a = 1 if rng_td.random() < 0.7 else 0
-            s_next = min(s + 1, n_states_td - 1) if a == 1 else max(s - 1, 0)
-            r = 1.0 if s_next == n_states_td - 1 else 0.0
+        _s = 0
+        while _s < n_states_td - 1:
+            _a = 1 if rng_td.random() < 0.7 else 0
+            _s_next = min(_s + 1, n_states_td - 1) if _a == 1 else max(_s - 1, 0)
+            _r = 1.0 if _s_next == n_states_td - 1 else 0.0
 
             # TD(0) update: V(s) += alpha * [R + gamma * V(s') - V(s)]
-            td_error = r + gamma_td * V_td[s_next] - V_td[s]
-            V_td[s] += alpha_td * td_error
+            td_error = _r + gamma_td * V_td[_s_next] - V_td[_s]
+            V_td[_s] += alpha_td * td_error
             td_errors.append(td_error)
-            s = s_next
+            _s = _s_next
 
     mo.md(f"""
     **Code: TD(0) Learning**
@@ -431,22 +431,22 @@ def _(mo, np):
     alpha_q, gamma_q, epsilon_q = 0.1, 0.9, 0.1
 
     for _ in range(1000):
-        s = 0
-        while s != n_s - 1:
+        _s = 0
+        while _s != n_s - 1:
             # Epsilon-greedy action selection
             if rng_q.random() < epsilon_q:
-                a = rng_q.integers(n_a)
+                _a = rng_q.integers(n_a)
             else:
-                a = np.argmax(Q_table[s])
+                _a = np.argmax(Q_table[_s])
 
-            s_next = max(0, s - 1) if a == 0 else min(n_s - 1, s + 1)
-            r = 1.0 if s_next == n_s - 1 else -0.01
+            _s_next = max(0, _s - 1) if _a == 0 else min(n_s - 1, _s + 1)
+            _r = 1.0 if _s_next == n_s - 1 else -0.01
 
             # Q-learning update: use max over next actions (off-policy)
-            Q_table[s, a] += alpha_q * (r + gamma_q * np.max(Q_table[s_next]) - Q_table[s, a])
-            s = s_next
+            Q_table[_s, _a] += alpha_q * (_r + gamma_q * np.max(Q_table[_s_next]) - Q_table[_s, _a])
+            _s = _s_next
 
-    learned_policy = ["left" if np.argmax(Q_table[s]) == 0 else "right" for s in range(n_s - 1)]
+    learned_policy = ["left" if np.argmax(Q_table[_s]) == 0 else "right" for _s in range(n_s - 1)]
     mo.md(f"""
     **Code: Tabular Q-Learning**
 
@@ -517,7 +517,7 @@ def _(mo, np):
     rng_buf = np.random.default_rng(42)
     buf = ReplayBuffer(capacity=1000)
     for i in range(50):
-        buf.push((i % 5, i % 2, rng.standard_normal(), (i + 1) % 5, i == 49))
+        buf.push((i % 5, i % 2, rng_buf.standard_normal(), (i + 1) % 5, i == 49))
 
     batch = buf.sample(4, rng_buf)
     mo.md(f"""
@@ -527,7 +527,7 @@ def _(mo, np):
 
     Buffer size: {len(buf.buffer)} transitions. Sample batch of 4:
     ```
-    {chr(10).join(str(t) for t in batch)}
+    {chr(10).join(str(_t) for _t in batch)}
     ```
 
     Random sampling breaks correlations between consecutive transitions.
@@ -615,17 +615,17 @@ def _(mo, np):
     # Compute returns G_t backward
     returns_pg = np.zeros(len(episode_pg))
     returns_pg[-1] = episode_pg[-1][2]
-    for t in range(len(episode_pg) - 2, -1, -1):
-        returns_pg[t] = episode_pg[t][2] + gamma_pg * returns_pg[t + 1]
+    for _t in range(len(episode_pg) - 2, -1, -1):
+        returns_pg[_t] = episode_pg[_t][2] + gamma_pg * returns_pg[_t + 1]
 
     # Compute REINFORCE gradient: sum_t grad_log_pi(a_t|s_t) * G_t
     grad_theta = np.zeros_like(theta_pg)
-    for t, (s, a, r) in enumerate(episode_pg):
-        probs = softmax(theta_pg[s])
+    for _t, (_s, _a, _r) in enumerate(episode_pg):
+        probs = softmax(theta_pg[_s])
         # grad log pi(a|s) = e_a - pi  (for softmax parameterization)
         grad_log_pi = -probs.copy()
-        grad_log_pi[a] += 1.0
-        grad_theta[s] += grad_log_pi * returns_pg[t]  # weight by return
+        grad_log_pi[_a] += 1.0
+        grad_theta[_s] += grad_log_pi * returns_pg[_t]  # weight by return
 
     mo.md(f"""
     **Code: REINFORCE Gradient**

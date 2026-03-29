@@ -77,15 +77,15 @@ def _(np):
     sentence = "the cat sat on the mat"
 
     # Word-level tokenization
-    words = sentence.split()
-    word_vocab = {w: i for i, w in enumerate(sorted(set(words)))}
-    word_ids = [word_vocab[w] for w in words]
+    _words = sentence.split()
+    word_vocab = {_w: _i for _i, _w in enumerate(sorted(set(_words)))}
+    word_ids = [word_vocab[_w] for _w in _words]
 
     # Character-level tokenization
-    char_vocab = {c: i for i, c in enumerate(sorted(set(sentence)))}
+    char_vocab = {c: _i for _i, c in enumerate(sorted(set(sentence)))}
     char_ids = [char_vocab[c] for c in sentence]
 
-    print("Word tokens:", words, "->", word_ids)
+    print("Word tokens:", _words, "->", word_ids)
     print("Char tokens:", list(sentence), "->", char_ids)
     print(f"Word vocab size: {len(word_vocab)}, Char vocab size: {len(char_vocab)}")
     return (word_vocab, char_vocab)
@@ -152,17 +152,17 @@ def _(mo):
 def _(np):
     # --- Word embeddings: co-occurrence matrix and cosine similarity ---
     corpus = ["the cat sat on the mat", "the dog sat on the rug", "the cat chased the dog"]
-    vocab = sorted(set(w for s in corpus for w in s.split()))
-    w2i = {w: i for i, w in enumerate(vocab)}
+    vocab = sorted(set(_w for s in corpus for _w in s.split()))
+    w2i = {_w: _i for _i, _w in enumerate(vocab)}
 
     # Build co-occurrence matrix (window size = 1)
     cooccur = np.zeros((len(vocab), len(vocab)))
     for sent in corpus:
-        tokens = sent.split()
-        for i, tok in enumerate(tokens):
-            for j in range(max(0, i-1), min(len(tokens), i+2)):
-                if i != j:
-                    cooccur[w2i[tok], w2i[tokens[j]]] += 1
+        _tokens = sent.split()
+        for _i, tok in enumerate(_tokens):
+            for _j in range(max(0, _i-1), min(len(_tokens), _i+2)):
+                if _i != _j:
+                    cooccur[w2i[tok], w2i[_tokens[_j]]] += 1
 
     # Cosine similarity: sim(a,b) = a·b / (||a|| ||b||)
     def cosine_sim(a, b):
@@ -220,7 +220,7 @@ def _(np):
 def _(np):
     # --- Temperature scaling and top-k / top-p sampling ---
     logits = np.array([2.0, 1.0, 0.5, -1.0, -2.0])
-    tokens = ["the", "cat", "dog", "moon", "xylophone"]
+    _tokens = ["the", "cat", "dog", "moon", "xylophone"]
 
     def softmax(x):
         e = np.exp(x - np.max(x))
@@ -229,14 +229,14 @@ def _(np):
     # Temperature: divide logits by T before softmax
     for T in [0.5, 1.0, 2.0]:
         probs = softmax(logits / T)
-        print(f"T={T}: {dict(zip(tokens, probs.round(3)))}")
+        print(f"T={T}: {dict(zip(_tokens, probs.round(3)))}")
 
     # Top-k: zero out all but top k before sampling
     k = 3
     top_k_idx = np.argsort(logits)[-k:]
     masked = np.full_like(logits, -1e9)
     masked[top_k_idx] = logits[top_k_idx]
-    print(f"\nTop-{k} probs: {dict(zip(tokens, softmax(masked).round(3)))}")
+    print(f"\nTop-{k} probs: {dict(zip(_tokens, softmax(masked).round(3)))}")
 
     # Top-p (nucleus): keep smallest set with cumulative prob >= p
     p = 0.9
@@ -245,7 +245,7 @@ def _(np):
     cumsum = np.cumsum(probs[sorted_idx])
     cutoff = np.searchsorted(cumsum, p) + 1
     nucleus_idx = sorted_idx[:cutoff]
-    print(f"Top-p={p} keeps: {[tokens[i] for i in nucleus_idx]}")
+    print(f"Top-p={p} keeps: {[_tokens[_i] for _i in nucleus_idx]}")
     return (softmax,)
 
 
@@ -277,29 +277,29 @@ def _(np):
         "the dog chased the cat",
         "the bird flew over the mat",
     ]
-    all_words = sorted(set(w for d in docs for w in d.split()))
+    all_words = sorted(set(_w for _d in docs for _w in _d.split()))
 
     # TF(t, d) = count(t, d) / len(d)
     tf = np.zeros((len(docs), len(all_words)))
-    for i, doc in enumerate(docs):
-        words = doc.split()
-        for j, w in enumerate(all_words):
-            tf[i, j] = words.count(w) / len(words)
+    for _i, doc in enumerate(docs):
+        _words = doc.split()
+        for _j, _w in enumerate(all_words):
+            tf[_i, _j] = _words.count(_w) / len(_words)
 
     # IDF(t) = log(|D| / |{d : t in d}|)
     idf = np.zeros(len(all_words))
-    for j, w in enumerate(all_words):
-        doc_freq = sum(1 for d in docs for _ in [] if w in d.split()) or sum(w in d.split() for d in docs)
-        idf[j] = np.log(len(docs) / doc_freq)
+    for _j, _w in enumerate(all_words):
+        doc_freq = sum(1 for _d in docs for _ in [] if _w in _d.split()) or sum(_w in _d.split() for _d in docs)
+        idf[_j] = np.log(len(docs) / doc_freq)
 
     tfidf = tf * idf  # broadcast: each row scaled by idf
     print("Vocabulary:", all_words)
     print("\nTF-IDF matrix (rows=docs, cols=words):")
     print(np.round(tfidf, 3))
     print("\nHighest TF-IDF per doc:")
-    for i, doc in enumerate(docs):
-        best = all_words[np.argmax(tfidf[i])]
-        print(f"  Doc {i} ('{doc}'): most distinctive word = '{best}'")
+    for _i, doc in enumerate(docs):
+        best = all_words[np.argmax(tfidf[_i])]
+        print(f"  Doc {_i} ('{doc}'): most distinctive word = '{best}'")
     return (tfidf,)
 
 
@@ -332,7 +332,7 @@ def _(np, softmax):
     scores = Q @ K.T / np.sqrt(d_k)
 
     # attention weights (softmax over keys for each query)
-    attn_weights = np.array([softmax(row) for row in scores])
+    attn_weights = np.array([softmax(_row) for _row in scores])
 
     # output = weighted sum of values
     attn_output = attn_weights @ V
@@ -381,7 +381,7 @@ def _(np):
 
         # Simulate model output: probability distribution over small vocab
         small_vocab = ["the", "cat", "sat", "on", "mat", "dog", "ran"]
-        fake_logits = _rng.standard_normal((len(masked_positions)), len(small_vocab))
+        fake_logits = _rng.standard_normal((len(masked_positions), len(small_vocab)))
         # Make correct answer have highest logit (pretend model is good)
         for idx, pos in enumerate(masked_positions):
             correct_word = sentence_tokens[pos]
@@ -423,18 +423,18 @@ def _(np, softmax):
     # --- Causal (autoregressive) attention: the GPT masking pattern ---
     _rng = np.random.default_rng(0)
     seq_len_ar = 5
-    d = 4
-    Q_ar = _rng.standard_normal((seq_len_ar, d))
-    K_ar = _rng.standard_normal((seq_len_ar, d))
-    V_ar = _rng.standard_normal((seq_len_ar, d))
+    _d = 4
+    Q_ar = _rng.standard_normal((seq_len_ar, _d))
+    K_ar = _rng.standard_normal((seq_len_ar, _d))
+    V_ar = _rng.standard_normal((seq_len_ar, _d))
 
-    scores_ar = Q_ar @ K_ar.T / np.sqrt(d)
+    scores_ar = Q_ar @ K_ar.T / np.sqrt(_d)
 
     # Causal mask: token i can only attend to tokens 0..i
     causal_mask = np.triu(np.ones((seq_len_ar, seq_len_ar)), k=1)  # upper triangle = 1
     scores_ar = np.where(causal_mask == 1, -1e9, scores_ar)
 
-    attn_causal = np.array([softmax(row) for row in scores_ar])
+    attn_causal = np.array([softmax(_row) for _row in scores_ar])
     print("Causal attention weights (lower-triangular pattern):")
     print(np.round(attn_causal, 3))
     print("\nEach token can only attend to itself and earlier tokens.")
@@ -542,7 +542,7 @@ def _(np):
             "Water boils at 100 degrees Celsius at sea level.",
         ]
         # Simulate embeddings (dim=16)
-        doc_embeddings = _rng.standard_normal((len(knowledge_base)), 16)
+        doc_embeddings = _rng.standard_normal((len(knowledge_base), 16))
         # Normalize for cosine similarity
         doc_embeddings = doc_embeddings / np.linalg.norm(doc_embeddings, axis=1, keepdims=True)
 

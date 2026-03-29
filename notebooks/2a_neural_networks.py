@@ -68,8 +68,8 @@ def _(np):
         # Hand-picked weights that solve XOR:
         # h = ReLU(W1 @ x + b1), y_hat = w2 @ h + b2
         W1_xor = np.array([[1, 1], [1, 1]])    # both neurons sum x1+x2
-        b1_xor = np.array([-0.5, -1.5])         # thresholds at 0.5 and 1.5
-        w2_xor = np.array([1, -1])              # subtract: "at least 1" minus "both"
+        b1_xor = np.array([0, -1])              # thresholds at 0 and 1
+        w2_xor = np.array([1, -2])              # -2 compensates for ReLU magnitudes
         b2_xor = 0.0
 
         for i in range(4):

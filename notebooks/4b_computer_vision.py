@@ -12,7 +12,8 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    return (np,)
+    rng = np.random.default_rng(42)
+    return np, rng
 
 
 @app.cell(hide_code=True)
@@ -297,7 +298,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def pixel_cross_entropy(pred_logits, target_labels, class_weights=None):
         """Pixel-wise cross-entropy loss for segmentation.
         pred_logits: (H, W, C) raw scores per class
@@ -317,13 +318,13 @@ def _(np):
         return loss / (H * W)
 
     # Tiny 4x4 segmentation map with 3 classes
-    pred = rng.standard_normal((4, 4, 3))
+    _pred = rng.standard_normal((4, 4, 3))
     labels = rng.integers(0, 3, (4, 4))
-    loss = pixel_cross_entropy(pred, labels)
-    print(f"Pixel-wise cross-entropy loss: {loss:.4f}")
+    _loss = pixel_cross_entropy(_pred, labels)
+    print(f"Pixel-wise cross-entropy loss: {_loss:.4f}")
 
     # With class weights (upweight rare class 2)
-    loss_w = pixel_cross_entropy(pred, labels, class_weights=[1.0, 1.0, 5.0])
+    loss_w = pixel_cross_entropy(_pred, labels, class_weights=[1.0, 1.0, 5.0])
     print(f"Weighted cross-entropy loss:   {loss_w:.4f}")
     return (pixel_cross_entropy,)
 
@@ -428,7 +429,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def vit_patch_embed(image, patch_size=4, embed_dim=8):
         """ViT patch embedding: image (H, W, C) -> (N+1, D) token sequence."""
         H, W, C = image.shape
@@ -473,7 +474,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def self_attention(tokens, d_k=8):
         """Single-head self-attention over token sequence (N, D)."""
         N, D = tokens.shape
@@ -525,7 +526,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def clip_contrastive_loss(image_embeds, text_embeds, temperature=0.07):
         """CLIP contrastive loss on a batch of (image, text) pairs."""
         # L2 normalize embeddings
@@ -547,8 +548,8 @@ def _(np):
     # Batch of 4 image-text pairs (embed_dim=16)
     img_emb = rng.standard_normal((4, 16))
     txt_emb = img_emb + rng.standard_normal((4, 16)) * 0.1  # text similar to matching image
-    loss, sim = clip_contrastive_loss(img_emb, txt_emb)
-    print(f"CLIP loss: {loss:.4f}")
+    _loss, sim = clip_contrastive_loss(img_emb, txt_emb)
+    print(f"CLIP loss: {_loss:.4f}")
     print(f"Similarity matrix (should be high on diagonal):\n{sim.round(2)}")
     return (clip_contrastive_loss,)
 
@@ -648,9 +649,9 @@ def _(np):
         video[t, 2, t] = 1.0  # spot moves right over time
     kernel_3d = np.ones((3, 3, 3)) / 27  # 3x3x3 averaging kernel
 
-    result = conv3d_naive(video, kernel_3d)
+    _result = conv3d_naive(video, kernel_3d)
     print(f"Video shape: {video.shape}, Kernel: {kernel_3d.shape}")
-    print(f"Output shape: {result.shape}")  # (3, 4, 4)
+    print(f"Output shape: {_result.shape}")  # (3, 4, 4)
     return (conv3d_naive,)
 
 
@@ -711,10 +712,10 @@ def _(np):
                    [0,0,1,1,2,2,2,2],
                    [0,0,1,1,1,2,2,2],
                    [0,0,0,1,1,1,2,2]] * 2)
-    pred = gt.copy()
-    pred[0, 2] = 0  # a few mispredictions
-    pred[1, 4] = 1
-    print(f"mIoU: {mean_iou(pred, gt, num_classes=3):.4f}")
+    _pred = gt.copy()
+    _pred[0, 2] = 0  # a few mispredictions
+    _pred[1, 4] = 1
+    print(f"mIoU: {mean_iou(_pred, gt, num_classes=3):.4f}")
     return (mean_iou,)
 
 
@@ -729,7 +730,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def random_horizontal_flip(img, p=0.5):
         """Flip image left-right with probability p."""
         if rng.random() < p:
@@ -886,7 +887,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def build_feature_pyramid(feature_maps):
         """Upsample all feature maps to the largest resolution and concatenate.
 
@@ -918,8 +919,8 @@ def _(np):
     fm1 = rng.standard_normal((8, 8))   # full resolution
     fm2 = rng.standard_normal((4, 4))   # 2x downsampled
     fm3 = rng.standard_normal((2, 2))   # 4x downsampled
-    result = build_feature_pyramid([fm1, fm2, fm3])
-    print(f"Expected output shape: (8, 8, 3), Got: {result.shape if result is not None else 'None'}")
+    _result = build_feature_pyramid([fm1, fm2, fm3])
+    print(f"Expected output shape: (8, 8, 3), Got: {_result.shape if _result is not None else 'None'}")
     return (build_feature_pyramid,)
 
 
@@ -991,7 +992,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def multi_head_attention(tokens, num_heads=2):
         """Multi-head self-attention over (N, D) token sequence.
 
@@ -1035,7 +1036,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def decode_yolo_grid(predictions, S=3, B=2, C=3, img_size=96):
         """Decode YOLO grid predictions into absolute bounding boxes.
 

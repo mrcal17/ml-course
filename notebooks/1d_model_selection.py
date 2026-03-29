@@ -443,12 +443,12 @@ def _(mo):
 
 @app.cell
 def _():
-    from sklearn.model_selection import GridSearchCV, train_test_split
+    from sklearn.model_selection import GridSearchCV, train_test_split as tts_gs
     from sklearn.linear_model import LogisticRegression
     from sklearn.datasets import load_breast_cancer as load_bc_gs
 
     X_gs, y_gs = load_bc_gs(return_X_y=True)
-    X_train_gs, X_test_gs, y_train_gs, y_test_gs = train_test_split(
+    X_train_gs, X_test_gs, y_train_gs, y_test_gs = tts_gs(
         X_gs, y_gs, test_size=0.2, random_state=42, stratify=y_gs
     )
 

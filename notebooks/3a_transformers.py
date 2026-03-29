@@ -100,6 +100,7 @@ def _(np):
         e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
         return e_x / e_x.sum(axis=axis, keepdims=True)
 
+    rng = np.random.default_rng(42)
     # Encoder hidden states: 5 source positions, dim=4
     h_enc = rng.standard_normal((5, 4))
     # Decoder state at one time step

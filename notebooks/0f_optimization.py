@@ -813,6 +813,8 @@ def _(optimizer_dropdown):
 
             return np.array(path)
 
+        import matplotlib.pyplot as plt
+
         _name = optimizer_dropdown.value
         _lr_map = {"SGD": 0.05, "Momentum": 0.02, "Adam": 0.3}
         _path = run_optimizer(_name, lr=_lr_map[_name])

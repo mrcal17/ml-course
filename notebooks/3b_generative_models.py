@@ -84,6 +84,7 @@ def _(mo):
 def _(np):
     # Linear autoencoder = PCA: encode to 2D, decode back to 5D
     # Generate data on a 2D subspace embedded in 5D
+    rng = np.random.default_rng(42)
     true_basis = rng.standard_normal((2, 5))  # 2D subspace in 5D
     X_ae = rng.standard_normal((200, 2)) @ true_basis  # data lives on 2D manifold
 

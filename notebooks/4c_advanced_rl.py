@@ -12,7 +12,8 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    return (np,)
+    rng = np.random.default_rng(42)
+    return np, rng
 
 
 @app.cell
@@ -52,7 +53,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     # --- Dyna-Q: Model-based RL in a simple gridworld ---
     # The agent learns a tabular model (s,a) -> (s',r) from real experience,
     # then generates simulated experience to speed up Q-learning.
@@ -143,8 +144,8 @@ def _(np):
     ratios = np.array([0.8, 1.0, 1.3, 1.5, 2.0])
     advs = np.array([1.0, 1.0, 1.0, 1.0, 1.0])  # all positive advantage
     for r_i, a_i in zip(ratios, advs):
-        loss = ppo_clipped_loss(np.array([r_i]), np.array([a_i]))
-        print(f"ratio={r_i:.1f}, adv={a_i:.1f} => L_clip={loss:.3f}")
+        _loss = ppo_clipped_loss(np.array([r_i]), np.array([a_i]))
+        print(f"ratio={r_i:.1f}, adv={a_i:.1f} => L_clip={_loss:.3f}")
     return (ppo_clipped_loss,)
 
 
@@ -223,7 +224,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     # --- Self-play with fictitious play in rock-paper-scissors ---
     # Each player tracks opponent's empirical action frequencies and best-responds.
     # In self-play, both players converge to the Nash equilibrium (uniform random).
@@ -524,9 +525,9 @@ def _(np):
     pairs = [(2.0, 0.5), (1.0, 0.8), (0.3, 1.5)]  # (chosen_r, rejected_r)
     for r_c, r_j in pairs:
         prob = preference_probability(r_c, r_j)
-        loss = reward_model_loss(r_c, r_j)
+        _loss = reward_model_loss(r_c, r_j)
         print(f"r_chosen={r_c:.1f}, r_rejected={r_j:.1f} => "
-              f"P(correct)={prob:.3f}, loss={loss:.3f}")
+              f"P(correct)={prob:.3f}, loss={_loss:.3f}")
     return (preference_probability, reward_model_loss)
 
 

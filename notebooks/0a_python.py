@@ -254,6 +254,7 @@ def _():
 
         model = LinearRegressor(5)
         print(model)
+        rng = np.random.default_rng()
         X_test = rng.standard_normal((3, 5))
         print(f"Predictions: {model.predict(X_test)}")
 
@@ -385,6 +386,7 @@ def _(mo):
 def _():
     def _run():
         import time
+        import numpy as np
 
         n = 1_000_000
 
@@ -435,6 +437,8 @@ def _():
     def _run():
 
         # Creation
+        import numpy as np
+        rng = np.random.default_rng()
         zeros = np.zeros((3, 4))           # 3x4 matrix of zeros
         ones = np.ones((2, 3))             # 2x3 matrix of ones
         identity = np.eye(4)               # 4x4 identity matrix
@@ -470,6 +474,7 @@ def _():
     def _run():
 
         # Indexing and slicing -- same as Python lists, but multi-dimensional
+        import numpy as np
         A = np.arange(20).reshape(4, 5)
         print(f"A:\n{A}\n")
 
@@ -509,6 +514,7 @@ def _():
     def _run():
 
         # Reshaping
+        import numpy as np
         v = np.arange(12)
         print(f"v: {v}")
         print(f"v.reshape(3, 4):\n{v.reshape(3, 4)}")
@@ -538,6 +544,7 @@ def _(mo):
 def _():
     def _run():
 
+        import numpy as np
         A = np.arange(20).reshape(4, 5)
         print(f"Original A[0, 0]: {A[0, 0]}")
 
@@ -579,6 +586,7 @@ def _():
     def _run():
 
         # Example 1: scalar + array (trivial broadcasting)
+        import numpy as np
         A = np.ones((3, 4))
         result1 = A + 5  # 5 is broadcast to (3, 4)
         print(f"A + 5:\n{result1}\n")
@@ -636,6 +644,8 @@ def _(mo):
 def _():
     def _run():
 
+        import numpy as np
+        rng = np.random.default_rng()
         A = rng.standard_normal((3, 3))
         b = rng.standard_normal(3)
 
@@ -681,6 +691,8 @@ def _(mo):
 def _():
     def _run():
 
+        import numpy as np
+        rng = np.random.default_rng()
         A = rng.standard_normal((3, 3))
         b = rng.standard_normal(3)
 
@@ -726,6 +738,7 @@ def _(mo):
 def _():
     def _run():
 
+        import numpy as np
         _rng = np.random.default_rng(seed=42)  # modern API -- use this, not _rng = np.random.default_rng()
 
         print(f"Standard normal:\n{_rng.standard_normal((3, 4))}\n")
@@ -893,6 +906,7 @@ def _(mo):
 @app.cell
 def _():
     def _run():
+        import numpy as np
         import pandas as pd
 
         # Create sample data with missing values
@@ -956,6 +970,7 @@ def _(mo):
 @app.cell
 def _():
     def _run():
+        import numpy as np
         import matplotlib.pyplot as plt
 
         # Line plot -- training curves
@@ -991,6 +1006,8 @@ def _():
     def _run():
 
         # Scatter plot -- 2D data visualization
+        import matplotlib.pyplot as plt
+        import numpy as np
         _rng = np.random.default_rng(42)
         X = _rng.standard_normal((200, 2))
         labels = (X[:, 0] + X[:, 1] > 0).astype(int)
@@ -1018,6 +1035,8 @@ def _():
     def _run():
 
         # Histogram -- distribution inspection
+        import matplotlib.pyplot as plt
+        import numpy as np
         _rng = np.random.default_rng(42)
         data = _rng.standard_normal(10000)
 
@@ -1045,6 +1064,8 @@ def _():
     def _run():
 
         # Heatmap -- correlation matrices, confusion matrices
+        import matplotlib.pyplot as plt
+        import numpy as np
         _rng = np.random.default_rng(42)
         corr_matrix = np.corrcoef(_rng.standard_normal((5, 100)))
 
@@ -1072,6 +1093,8 @@ def _(mo):
 def _():
     def _run():
 
+        import matplotlib.pyplot as plt
+        import numpy as np
         _rng = np.random.default_rng(42)
         epochs = range(1, 51)
         train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * _rng.standard_normal(50) * 0.05
@@ -1114,6 +1137,8 @@ def _(mo):
 def _():
     def _run():
 
+        import matplotlib.pyplot as plt
+        import numpy as np
         _rng = np.random.default_rng(42)
         epochs = range(1, 51)
         train_loss = np.exp(-np.linspace(0, 3, 50)) + 0.1 * _rng.standard_normal(50) * 0.05
@@ -1253,6 +1278,8 @@ def _(mo):
 def _():
     def _run():
 
+        import numpy as np
+        rng = np.random.default_rng()
         def pairwise_distances(X):
             """Compute pairwise Euclidean distances without loops.
             X: shape (n, d)
@@ -1325,6 +1352,7 @@ def _(mo):
 def _():
     def _run():
 
+        import numpy as np
         A = np.ones((3, 4, 5))
         B = np.ones((4, 1))
         C = np.ones((5,))

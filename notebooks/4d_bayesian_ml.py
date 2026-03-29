@@ -13,8 +13,8 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    _rng = np.random.default_rng(42)
-    return (np,)
+    rng = np.random.default_rng(42)
+    return np, rng
 
 
 @app.cell
@@ -87,8 +87,8 @@ def _(np):
         return alpha_post, alpha_prior, beta_post, beta_prior, posterior_pdf, prior_pdf, theta_grid
 
 
-    _run()
-    return
+    alpha_post, alpha_prior, beta_post, beta_prior, posterior_pdf, prior_pdf, theta_grid = _run()
+    return alpha_post, alpha_prior, beta_post, beta_prior, posterior_pdf, prior_pdf, theta_grid
 
 @app.cell
 def _(mo):
@@ -144,7 +144,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def _run():
         # --- Kernel functions in numpy ---
         def rbf_kernel(X1, X2, length_scale=1.0, signal_var=1.0):
@@ -175,8 +175,8 @@ def _(np):
         return X_grid, matern32_kernel, rbf_kernel, samples_mat, samples_rbf
 
 
-    _run()
-    return
+    X_grid, matern32_kernel, rbf_kernel, samples_mat, samples_rbf = _run()
+    return X_grid, matern32_kernel, rbf_kernel, samples_mat, samples_rbf
 
 @app.cell
 def _(mo):
@@ -200,7 +200,7 @@ def _(mo):
 
 
 @app.cell
-def _(X_grid, np, rbf_kernel):
+def _(rng, X_grid, np, rbf_kernel):
     def _run():
         # --- GP regression in numpy (the key equations from above) ---
         # Training data: noisy observations of sin(x)
@@ -226,8 +226,8 @@ def _(X_grid, np, rbf_kernel):
         return K, K_inv, K_s, X_train, cov_post, mu_post, noise_var, std_post, y_train
 
 
-    _run()
-    return
+    K, K_inv, K_s, X_train, cov_post, mu_post, noise_var, std_post, y_train = _run()
+    return K, K_inv, K_s, X_train, cov_post, mu_post, noise_var, std_post, y_train
 
 @app.cell(hide_code=True)
 def _(mo):
@@ -299,7 +299,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     # --- ELBO and the reparameterization trick (minimal demo) ---
     # Approximate posterior: q(w) = N(mu, sigma^2)
     # Prior: p(w) = N(0, 1)
@@ -339,7 +339,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     # --- MC Dropout in numpy: a tiny 1-hidden-layer network ---
     # Forward pass with dropout at test time
     def mc_dropout_predict(X, W1, b1, W2, b2, drop_rate=0.5, n_samples=50):
@@ -361,8 +361,8 @@ def _(np):
     x_test = np.linspace(-3, 3, 5).reshape(-1, 1)
     mean, std = mc_dropout_predict(x_test, W1, b1, W2, b2)
     print("MC Dropout predictions (mean +/- std):")
-    for i in range(len(x_test)):
-        print(f"  x={x_test[i,0]:+.1f}:  {mean[i,0]:.3f} +/- {std[i,0]:.3f}")
+    for _i in range(len(x_test)):
+        print(f"  x={x_test[_i,0]:+.1f}:  {mean[_i,0]:.3f} +/- {std[_i,0]:.3f}")
     return (mc_dropout_predict,)
 
 
@@ -426,7 +426,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     # --- Metropolis-Hastings for a 1D posterior ---
     # Target: posterior of mu given data ~ N(mu, 1), prior mu ~ N(0, 5^2)
     observed_data = np.array([2.1, 1.8, 2.5, 1.9, 2.3])
@@ -444,14 +444,14 @@ def _(np):
     samples_mh = np.zeros(n_samples_mh)
     samples_mh[0] = 0.0  # init
     accepted = 0
-    for i in range(1, n_samples_mh):
-        proposal = samples_mh[i-1] + 0.5 * rng.standard_normal()  # symmetric Gaussian proposal
-        log_alpha = log_posterior(proposal) - log_posterior(samples_mh[i-1])
+    for _i in range(1, n_samples_mh):
+        proposal = samples_mh[_i-1] + 0.5 * rng.standard_normal()  # symmetric Gaussian proposal
+        log_alpha = log_posterior(proposal) - log_posterior(samples_mh[_i-1])
         if np.log(rng.random()) < log_alpha:  # accept?
-            samples_mh[i] = proposal
+            samples_mh[_i] = proposal
             accepted += 1
         else:
-            samples_mh[i] = samples_mh[i-1]  # reject -> stay
+            samples_mh[_i] = samples_mh[_i-1]  # reject -> stay
 
     burnin = 500
     posterior_samples_mh = samples_mh[burnin:]
@@ -477,7 +477,7 @@ def _(mo):
 
 
 @app.cell
-def _(np, observed_data):
+def _(rng, np, observed_data):
     # --- Hamiltonian Monte Carlo (simplified, 1D) ---
     def grad_log_posterior(mu):
         """Gradient of log posterior w.r.t. mu"""
@@ -510,8 +510,8 @@ def _(np, observed_data):
     n_hmc = 2000
     hmc_chain = np.zeros(n_hmc)
     hmc_accepted = 0
-    for i in range(1, n_hmc):
-        hmc_chain[i], acc = hmc_sample(hmc_chain[i-1])
+    for _i in range(1, n_hmc):
+        hmc_chain[_i], acc = hmc_sample(hmc_chain[_i-1])
         hmc_accepted += acc
 
     print(f"HMC acceptance rate: {hmc_accepted/n_hmc:.1%} (much higher than MH!)")
@@ -719,7 +719,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def bayesian_linear_regression(X_train_blr, y_train_blr, X_test_blr, noise_var_blr=0.1, alpha_blr=1.0):
         """
         Bayesian linear regression with Gaussian prior.
@@ -776,7 +776,7 @@ def _(mo):
 
 
 @app.cell
-def _(np):
+def _(rng, np):
     def gp_regression(X_tr, y_tr, X_te, length_scale_gp=1.0, signal_var_gp=1.0, noise_var_gp=0.01):
         """
         Full GP regression: posterior mean, std, and log marginal likelihood.
