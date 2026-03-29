@@ -173,6 +173,9 @@
     .topbar { flex-direction: column; gap: 0.5rem; }
   }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
 </head>
 <body>
 
@@ -191,42 +194,42 @@
 // ===================== DATA =====================
 const Q = [
 // ---- 1B: Linear Regression ----
-{m:"1B",c:"Equation",q:"What is the closed-form OLS (Ordinary Least Squares) solution?",a:"w* = (X^T X)^(-1) X^T y",d:["w* = X^T y","w* = (X^T X) X^T y","w* = X (X^T X)^(-1) y"],x:"Set gradient of ||y - Xw||^2 to zero and solve.",s:"2-ordinary-least-squares-ols"},
-{m:"1B",c:"Concept",q:"What does the hat matrix H = X(X^T X)^(-1)X^T do?",a:"Projects y onto the column space of X",d:["Rotates y into feature space","Inverts the covariance","Normalizes residuals"],x:"y-hat = Hy is the orthogonal projection of y onto Col(X).",s:"2-ordinary-least-squares-ols"},
-{m:"1B",c:"Weakness",q:"Main weakness of OLS (Ordinary Least Squares) when p (features) is large?",a:"Overfitting and multicollinearity",d:["Underfitting","Slow gradient descent","Can't handle categoricals"],x:"When p >> n, OLS fits noise. Correlated features make X^T X nearly singular.",s:"2-ordinary-least-squares-ols"},
-{m:"1B",c:"Algorithm",q:"Ridge regression adds what penalty?",a:"lambda * ||w||^2 (squared L2 norm)",d:["lambda * ||w||_1 (L1 norm)","Constraint that w > 0","Extra bias term"],x:"Shrinks coefficients toward zero but never exactly to zero. Bayesian: Gaussian prior.",s:"7-regularization-controlling-complexity"},
+{m:"1B",c:"Equation",q:"What is the closed-form OLS (Ordinary Least Squares) solution?",a:"$\\mathbf{w}^* = (\\mathbf{X}^\\top \\mathbf{X})^{-1} \\mathbf{X}^\\top \\mathbf{y}$",d:["$\\mathbf{w}^* = \\mathbf{X}^\\top \\mathbf{y}$","$\\mathbf{w}^* = (\\mathbf{X}^\\top \\mathbf{X}) \\mathbf{X}^\\top \\mathbf{y}$","$\\mathbf{w}^* = \\mathbf{X} (\\mathbf{X}^\\top \\mathbf{X})^{-1} \\mathbf{y}$"],x:"Set gradient of $\\|\\mathbf{y} - \\mathbf{X}\\mathbf{w}\\|^2$ to zero and solve.",s:"2-ordinary-least-squares-ols"},
+{m:"1B",c:"Concept",q:"What does the hat matrix $\\mathbf{H} = \\mathbf{X}(\\mathbf{X}^\\top \\mathbf{X})^{-1}\\mathbf{X}^\\top$ do?",a:"Projects y onto the column space of X",d:["Rotates y into feature space","Inverts the covariance","Normalizes residuals"],x:"$\\hat{y} = \\mathbf{H}\\mathbf{y}$ is the orthogonal projection of $\\mathbf{y}$ onto $\\text{Col}(\\mathbf{X})$.",s:"2-ordinary-least-squares-ols"},
+{m:"1B",c:"Weakness",q:"Main weakness of OLS (Ordinary Least Squares) when p (features) is large?",a:"Overfitting and multicollinearity",d:["Underfitting","Slow gradient descent","Can't handle categoricals"],x:"When $p \\gg n$, OLS fits noise. Correlated features make $\\mathbf{X}^\\top \\mathbf{X}$ nearly singular.",s:"2-ordinary-least-squares-ols"},
+{m:"1B",c:"Algorithm",q:"Ridge regression adds what penalty?",a:"$\\lambda \\|\\mathbf{w}\\|_2^2$ (squared L2 norm)",d:["$\\lambda \\|\\mathbf{w}\\|_1$ (L1 norm)","Constraint that w > 0","Extra bias term"],x:"Shrinks coefficients toward zero but never exactly to zero. Bayesian: Gaussian prior.",s:"7-regularization-controlling-complexity"},
 {m:"1B",c:"Algorithm",q:"Which regularizer drives weights exactly to zero?",a:"Lasso (L1)",d:["Ridge (L2)","Elastic Net only","Polynomial"],x:"L1's diamond constraint has corners on axes, so solutions land at exact zeros.",s:"7-regularization-controlling-complexity"},
-{m:"1B",c:"Concept",q:"Polynomial regression is still linear. Why?",a:"Linear in parameters w, nonlinear in x",d:["Uses linear activation","Features always independent","Only works on linear data"],x:"phi(x)=[1,x,x^2,...] is nonlinear, but y=w^T phi(x) is linear in w.",w:{"Only works on linear data":"It works on nonlinear data — that's the whole point. The features are nonlinear transforms of x.","Uses linear activation":"Activation functions are a neural network concept, not relevant to regression."},s:"6-polynomial-regression-and-basis-functions"},
-{m:"1B",c:"Metric",q:"R^2 = 0.85 means:",a:"Model explains 85% of variance in y",d:["85% accurate","85% within 1 std dev","Correlation is 0.85"],x:"R^2 = 1 - SS_res/SS_tot, comparing to a naive mean predictor.",s:"5-evaluating-regression-models"},
-{m:"1B",c:"Complexity",q:"Time complexity of OLS (Ordinary Least Squares) closed-form?",a:"O(p^3) due to matrix inversion",d:["O(np)","O(n^2 p)","O(p^2)"],x:"Inverting the p x p matrix dominates. For large p, use gradient descent.",s:"2-ordinary-least-squares-ols"},
+{m:"1B",c:"Concept",q:"Polynomial regression is still linear. Why?",a:"Linear in parameters w, nonlinear in x",d:["Uses linear activation","Features always independent","Only works on linear data"],x:"$\\phi(x)=[1, x, x^2, \\ldots]$ is nonlinear, but $y = \\mathbf{w}^\\top \\phi(x)$ is linear in $\\mathbf{w}$.",w:{"Only works on linear data":"It works on nonlinear data — that's the whole point. The features are nonlinear transforms of x.","Uses linear activation":"Activation functions are a neural network concept, not relevant to regression."},s:"6-polynomial-regression-and-basis-functions"},
+{m:"1B",c:"Metric",q:"$R^2 = 0.85$ means:",a:"Model explains 85% of variance in y",d:["85% accurate","85% within 1 std dev","Correlation is 0.85"],x:"$R^2 = 1 - SS_{\\text{res}}/SS_{\\text{tot}}$, comparing to a naive mean predictor.",s:"5-evaluating-regression-models"},
+{m:"1B",c:"Complexity",q:"Time complexity of OLS (Ordinary Least Squares) closed-form?",a:"$O(p^3)$ due to matrix inversion",d:["$O(np)$","$O(n^2 p)$","$O(p^2)$"],x:"Inverting the p x p matrix dominates. For large p, use gradient descent.",s:"2-ordinary-least-squares-ols"},
 {m:"1B",c:"Concept",q:"Bias-variance decomposition of MSE (Mean Squared Error):",a:"Bias^2 + Variance + irreducible noise",d:["Bias + Variance","Bias^2 + Variance^2","Bias * Variance + noise"],x:"Can't reduce all three. Complex model = low bias, high variance.",w:{"Bias + Variance":"Close, but bias is squared in the decomposition — the derivation squares (f - E[f-hat]) when expanding the expectation.","Bias^2 + Variance^2":"Variance is already E[(f-hat - E[f-hat])^2], which is a squared quantity. Squaring it again would be wrong."},s:"8-bias-variance-tradeoff-in-action"},
 
 // ---- 1C: Classification ----
-{m:"1C",c:"Equation",q:"The sigmoid function is:",a:"sigma(z) = 1 / (1 + e^(-z))",d:["sigma(z) = e^z / (1+e^z)^2","sigma(z) = tanh(z)","sigma(z) = max(0,z)"],x:"Maps R to (0,1) for probabilities in logistic regression.",s:"2-logistic-regression"},
-{m:"1C",c:"Loss",q:"Logistic regression minimizes:",a:"Binary cross-entropy (negative log-likelihood)",d:["MSE (Mean Squared Error)","Hinge loss","Huber loss"],x:"NLL (Negative Log-Likelihood) = -sum[y log(y-hat) + (1-y)log(1-y-hat)]. From Bernoulli MLE.",s:"2-logistic-regression"},
+{m:"1C",c:"Equation",q:"The sigmoid function is:",a:"$\\sigma(z) = \\frac{1}{1 + e^{-z}}$",d:["$\\sigma(z) = \\frac{e^z}{(1+e^z)^2}$","$\\sigma(z) = \\tanh(z)$","$\\sigma(z) = \\max(0,z)$"],x:"Maps R to (0,1) for probabilities in logistic regression.",s:"2-logistic-regression"},
+{m:"1C",c:"Loss",q:"Logistic regression minimizes:",a:"Binary cross-entropy (negative log-likelihood)",d:["MSE (Mean Squared Error)","Hinge loss","Huber loss"],x:"$\\text{NLL} = -\\sum[y \\log \\hat{y} + (1-y)\\log(1-\\hat{y})]$. From Bernoulli MLE.",s:"2-logistic-regression"},
 {m:"1C",c:"Concept",q:"Why is squared error bad for logistic regression?",a:"Non-convex surface with local minima and gradient saturation",d:["Requires matrix inversion","Can't handle binary labels","Always underfits"],x:"When sigmoid saturates, squared error gradient vanishes.",w:{"Can't handle binary labels":"Squared error can technically handle 0/1 labels — it just creates a non-convex loss surface with sigmoid, making optimization unreliable.","Always underfits":"The issue is the opposite direction — the loss landscape has bad local minima, making optimization unreliable, not that the model is too simple."},s:"2-logistic-regression"},
-{m:"1C",c:"Algorithm",q:"Softmax generalizes sigmoid to:",a:"K classes: P(y=k|x) = e^(w_k^T x) / sum e^(w_j^T x)",d:["Tanh to multi-output","ReLU to probabilities","Step function to fuzzy logic"],x:"For K=2, softmax reduces to sigmoid.",s:"3-multiclass-classification"},
+{m:"1C",c:"Algorithm",q:"Softmax generalizes sigmoid to:",a:"$K$ classes: $P(y\\!=\\!k|x) = \\frac{e^{\\mathbf{w}_k^\\top x}}{\\sum_j e^{\\mathbf{w}_j^\\top x}}$",d:["Tanh to multi-output","ReLU to probabilities","Step function to fuzzy logic"],x:"For K=2, softmax reduces to sigmoid.",s:"3-multiclass-classification"},
 {m:"1C",c:"Concept",q:"Naive Bayes' key (usually wrong) assumption:",a:"Features are conditionally independent given the class",d:["Classes equally likely","Features normally distributed","Boundary is linear"],x:"Almost always wrong, yet works because only decision boundary needs to be correct.",s:"6-naive-bayes"},
-{m:"1C",c:"Algorithm",q:"Soft-margin SVM (Support Vector Machine) minimizes:",a:"(1/2)||w||^2 + C * sum(xi_i) with margin constraints",d:["Cross-entropy + L2","Sum of squared residuals","KL divergence"],x:"C controls tradeoff: large C = hard margin, small C = wider margin.",s:"7-support-vector-machines-svms"},
-{m:"1C",c:"Concept",q:"The kernel trick avoids:",a:"Explicitly computing high-dimensional feature maps",d:["Matrix inversion","Gradient computation","Cross-validation"],x:"K(x_i,x_j) = phi(x_i)^T phi(x_j) without forming phi.",s:"7-support-vector-machines-svms"},
+{m:"1C",c:"Algorithm",q:"Soft-margin SVM (Support Vector Machine) minimizes:",a:"$\\frac{1}{2}\\|\\mathbf{w}\\|^2 + C \\sum \\xi_i$ with margin constraints",d:["Cross-entropy + L2","Sum of squared residuals","KL divergence"],x:"C controls tradeoff: large C = hard margin, small C = wider margin.",s:"7-support-vector-machines-svms"},
+{m:"1C",c:"Concept",q:"The kernel trick avoids:",a:"Explicitly computing high-dimensional feature maps",d:["Matrix inversion","Gradient computation","Cross-validation"],x:"$K(x_i, x_j) = \\phi(x_i)^\\top \\phi(x_j)$ without forming $\\phi$.",s:"7-support-vector-machines-svms"},
 {m:"1C",c:"Algorithm",q:"RBF (Radial Basis Function) kernel maps to what feature space?",a:"Infinite-dimensional",d:["2D","Same as input","p^2 dimensional"],x:"Taylor expansion of the Gaussian has infinite terms.",s:"7-support-vector-machines-svms"},
-{m:"1C",c:"Metric",q:"When is precision more important than recall?",a:"When false positives are costly",d:["Balanced dataset","False negatives costly","Need high accuracy"],x:"Precision = TP/(TP+FP). High precision = few false alarms.",s:"8-evaluating-classifiers"},
-{m:"1C",c:"Metric",q:"F1 score uses what type of mean?",a:"Harmonic",d:["Arithmetic","Geometric","Weighted"],x:"F1 = 2PR/(P+R). Harmonic mean penalizes imbalance.",s:"8-evaluating-classifiers"},
-{m:"1C",c:"Algorithm",q:"LDA (Linear Discriminant Analysis) assumes all classes share the same ___ but different ___.",a:"Covariance matrix; means",d:["Means; variances","Priors; likelihoods","Features; labels"],x:"P(x|y=k) ~ N(mu_k, Sigma) with shared Sigma.",s:"5-linear-discriminant-analysis-lda"},
+{m:"1C",c:"Metric",q:"When is precision more important than recall?",a:"When false positives are costly",d:["Balanced dataset","False negatives costly","Need high accuracy"],x:"$\\text{Precision} = \\frac{TP}{TP+FP}$. High precision = few false alarms.",s:"8-evaluating-classifiers"},
+{m:"1C",c:"Metric",q:"F1 score uses what type of mean?",a:"Harmonic",d:["Arithmetic","Geometric","Weighted"],x:"$F_1 = \\frac{2PR}{P+R}$. Harmonic mean penalizes imbalance.",s:"8-evaluating-classifiers"},
+{m:"1C",c:"Algorithm",q:"LDA (Linear Discriminant Analysis) assumes all classes share the same ___ but different ___.",a:"Covariance matrix; means",d:["Means; variances","Priors; likelihoods","Features; labels"],x:"$P(x|y\\!=\\!k) \\sim \\mathcal{N}(\\mu_k, \\Sigma)$ with shared $\\Sigma$.",s:"5-linear-discriminant-analysis-lda"},
 
 // ---- 1D: Model Selection ----
 {m:"1D",c:"Concept",q:"The 'cardinal sin' of evaluation:",a:"Using test set for model selection",d:["No regularization","Too many epochs","Too many features"],x:"Once you peek at test set for decisions, it's no longer unbiased.",s:"1-train-validation-test-split"},
 {m:"1D",c:"Algorithm",q:"In k-fold CV (Cross-Validation), each fold is validation how many times?",a:"Exactly once",d:["k times","k-1 times","Twice"],x:"Each fold held out once, used for training k-1 times.",s:"2-cross-validation"},
 {m:"1D",c:"Concept",q:"Why does random search often beat grid search?",a:"Explores more unique values per dimension",d:["Always faster","Uses Bayesian optimization","Avoids local minima"],x:"Grid wastes evaluations on unimportant dimensions.",s:"4-hyperparameter-tuning"},
-{m:"1D",c:"Concept",q:"Average fraction of unique points in a bootstrap sample:",a:"~63.2%",d:["~50%","~75%","~90%"],x:"P(included) = 1 - (1-1/n)^n -> 1 - 1/e ~ 0.632.",s:"3-the-bootstrap"},
+{m:"1D",c:"Concept",q:"Average fraction of unique points in a bootstrap sample:",a:"~63.2%",d:["~50%","~75%","~90%"],x:"$P(\\text{included}) = 1 - (1-1/n)^n \\to 1 - 1/e \\approx 0.632$.",s:"3-the-bootstrap"},
 {m:"1D",c:"Concept",q:"What is data leakage?",a:"Test/future information contaminates training",d:["Data lost in preprocessing","Features dropped accidentally","Model memorizes training"],x:"Example: standardizing with stats from entire dataset including test.",s:"8-common-pitfalls"},
 {m:"1D",c:"Concept",q:"BIC (Bayesian Information Criterion) vs AIC (Akaike Information Criterion): BIC's penalty is:",a:"k*ln(n) vs AIC's 2k — heavier for large n",d:["Always lighter","Same penalty","2k^2"],x:"For large n, ln(n)>2, so BIC selects simpler models.",s:"6-information-criteria"},
 
 // ---- 1E: Trees & Ensembles ----
-{m:"1E",c:"Equation",q:"Gini impurity formula:",a:"G = 1 - sum(p_k^2)",d:["G = sum(p_k^2)","G = -sum(p_k log p_k)","G = sum(p_k(1-p_k)^2)"],x:"Zero for pure node, max when all classes equally represented.",s:"1-decision-trees"},
+{m:"1E",c:"Equation",q:"Gini impurity formula:",a:"$G = 1 - \\sum p_k^2$",d:["$G = \\sum p_k^2$","$G = -\\sum p_k \\log p_k$","$G = \\sum p_k(1-p_k)^2$"],x:"Zero for pure node, max when all classes equally represented.",s:"1-decision-trees"},
 {m:"1E",c:"Concept",q:"Decision trees are greedy — what does this mean?",a:"Each split is locally optimal without considering future splits",d:["Use all features at once","Always find global optimum","Require sorted data"],x:"No backtracking or lookahead.",s:"1-decision-trees"},
 {m:"1E",c:"Weakness",q:"Primary weakness of a single decision tree:",a:"High variance — small data changes produce different trees",d:["High bias","Slow training","Can't handle categoricals"],x:"Motivates ensembles: bagging averages many unstable trees.",s:"2-why-single-trees-fail"},
-{m:"1E",c:"Algorithm",q:"Random Forest's key innovation over bagging:",a:"Random subset of m features considered at each split",d:["Deeper trees","Gradient descent","Post-training pruning"],x:"Decorrelates trees. Default m = sqrt(p) for classification.",s:"4-random-forests"},
+{m:"1E",c:"Algorithm",q:"Random Forest's key innovation over bagging:",a:"Random subset of m features considered at each split",d:["Deeper trees","Gradient descent","Post-training pruning"],x:"Decorrelates trees. Default $m = \\sqrt{p}$ for classification.",s:"4-random-forests"},
 {m:"1E",c:"Concept",q:"Bagging reduces ___, boosting reduces ___.",a:"Variance; bias",d:["Bias; variance","Both bias","Both variance"],x:"Bagging averages noisy models. Boosting corrects errors sequentially.",w:{"Bias; variance":"Common mix-up. Bagging averages many high-variance models (like deep trees) to stabilize them. Boosting sequentially fixes errors, reducing systematic bias."},s:"3-bagging-bootstrap-aggregating"},
 {m:"1E",c:"Algorithm",q:"In gradient boosting, each new tree fits:",a:"Negative gradient (pseudo-residuals) of the loss",d:["Original labels","Previous predictions","Random feature subsets"],x:"For MSE, negative gradient = residuals. Generalizes to any loss.",s:"5-boosting-learning-from-mistakes"},
 {m:"1E",c:"Concept",q:"Why use a small learning rate in gradient boosting?",a:"Shrinkage prevents overfitting each correction",d:["Speeds training","Fewer trees needed","Deeper trees"],x:"Smaller eta = more trees but better generalization. Typical: 0.01-0.1.",s:"5-boosting-learning-from-mistakes"},
@@ -235,21 +238,21 @@ const Q = [
 {m:"1E",c:"Algorithm",q:"LightGBM's key speed innovation:",a:"Histogram-based splitting — bin features into ~256 buckets",d:["Uses image histograms","Plots feature distributions","Only works with discrete data"],x:"Reduces split search from O(n) to O(bins).",s:"6-xgboost-lightgbm-catboost-modern-gradient-boosting"},
 
 // ---- 1F: Unsupervised ----
-{m:"1F",c:"Equation",q:"PCA (Principal Component Analysis) finds eigenvectors of:",a:"Covariance matrix S = (1/(N-1)) X^T X",d:["Data matrix X","Identity matrix","Gram matrix XX^T"],x:"Eigenvectors = principal components. Eigenvalues = variance captured.",s:"1-principal-component-analysis-pca"},
-{m:"1F",c:"Algorithm",q:"K-Means++ chooses new centroids with probability proportional to:",a:"D(x)^2 — squared distance to nearest centroid",d:["1/K uniformly","Point's L1 norm","Point's density"],x:"Spreads initial centroids out for better convergence.",s:"2-k-means-clustering"},
+{m:"1F",c:"Equation",q:"PCA (Principal Component Analysis) finds eigenvectors of:",a:"Covariance matrix $\\mathbf{S} = \\frac{1}{N-1} \\mathbf{X}^\\top \\mathbf{X}$",d:["Data matrix X","Identity matrix","Gram matrix XX^T"],x:"Eigenvectors = principal components. Eigenvalues = variance captured.",s:"1-principal-component-analysis-pca"},
+{m:"1F",c:"Algorithm",q:"K-Means++ chooses new centroids with probability proportional to:",a:"$D(x)^2$ — squared distance to nearest centroid",d:["1/K uniformly","Point's L1 norm","Point's density"],x:"Spreads initial centroids out for better convergence.",s:"2-k-means-clustering"},
 {m:"1F",c:"Concept",q:"K-Means is EM (Expectation-Maximization) on a GMM (Gaussian Mixture Model) with what constraint?",a:"Isotropic covariance sigma^2*I with sigma->0 (hard assignments)",d:["Equal means","Zero mixing weights","Full-rank covariances"],x:"K-Means is the hard-assignment limit of GMM.",s:"4-gaussian-mixture-models-gmms-and-the-em-algorithm"},
 {m:"1F",c:"Weakness",q:"Critical limitation of t-SNE (t-Distributed Stochastic Neighbor Embedding) often overlooked:",a:"Between-cluster distances and cluster sizes are meaningless",d:["Only handles 2 features","Requires labels","Always same output"],x:"Preserves local structure only. Far-apart clusters might be close in original space.",s:"5-dimensionality-reduction-beyond-pca"},
 {m:"1F",c:"Algorithm",q:"EM (Expectation-Maximization) algorithm's E-step computes:",a:"Responsibilities — posterior probability of each cluster per point",d:["New cluster means","Log-likelihood","Feature importances"],x:"Bayes' theorem applied to each point: soft cluster assignments.",s:"4-gaussian-mixture-models-gmms-and-the-em-algorithm"},
 {m:"1F",c:"Algorithm",q:"Isolation Forest detects anomalies by:",a:"Shorter path length to isolate (fewer random splits)",d:["Low density","Far from centers","High variance"],x:"Random splits isolate outliers quickly because they're few and different.",s:"6-anomaly-outlier-detection"},
 {m:"1F",c:"Concept",q:"UMAP (Uniform Manifold Approximation and Projection) main advantage over t-SNE:",a:"Faster, preserves more global structure, arbitrary output dims",d:["Always better clusters","No hyperparameters","Only works with labels"],x:"t-SNE limited to 2-3D visualization; UMAP does general DR.",s:"5-dimensionality-reduction-beyond-pca"},
-{m:"1F",c:"Metric",q:"Silhouette score near 0 means:",a:"Point is on the boundary between two clusters",d:["Perfect cluster member","Outlier","Clustering failed"],x:"s(i)=(b-a)/max(a,b). Near 0 means equally close to own and neighboring cluster.",s:"2-k-means-clustering"},
+{m:"1F",c:"Metric",q:"Silhouette score near 0 means:",a:"Point is on the boundary between two clusters",d:["Perfect cluster member","Outlier","Clustering failed"],x:"$s(i) = (b-a)/\\max(a,b)$. Near 0 means equally close to own and neighboring cluster.",s:"2-k-means-clustering"},
 {m:"1F",c:"Algorithm",q:"Ward's linkage minimizes:",a:"Increase in total within-cluster variance",d:["Max pairwise distance","Number of clusters","Dendrogram entropy"],x:"Produces compact, balanced clusters similar to K-Means.",s:"3-hierarchical-clustering"},
 
 // ---- 2A: Neural Networks ----
 {m:"2A",c:"Concept",q:"Why can't a single-layer perceptron solve XOR?",a:"XOR is not linearly separable",d:["Too many parameters","Gradient vanishes","Requires convolution"],x:"Adding a hidden layer creates a nonlinear decision boundary that solves XOR.",w:{"Too many parameters":"A single perceptron has very few parameters (just weights + bias). The issue isn't parameter count — it's that no single line can separate the XOR outputs.","Requires convolution":"Convolution is for spatial patterns in images. XOR is a simple logic problem solvable with a 2-layer fully connected network."},s:"1-from-linear-models-to-neural-networks"},
 {m:"2A",c:"Concept",q:"The Universal Approximation Theorem states:",a:"A single hidden layer with enough neurons can approximate any continuous function",d:["Deep nets are always better","Neural nets find global optima","ReLU is the best activation"],x:"Guarantees existence but not learnability — doesn't say how many neurons or how to train.",s:"4-feedforward-networks-mlps"},
 {m:"2A",c:"Algorithm",q:"Backpropagation computes gradients using:",a:"The chain rule applied through the computational graph",d:["Finite differences","Random perturbations","Matrix inversion"],x:"Reverse-mode autodiff: compute loss, then propagate gradients backward layer by layer.",s:"7-backpropagation"},
-{m:"2A",c:"Concept",q:"ReLU's main advantage over sigmoid/tanh:",a:"No gradient saturation for positive inputs — faster training",d:["Always differentiable","Bounded output","Symmetric around zero"],x:"ReLU(x) = max(0,x). Gradient is 1 for x>0, avoiding the vanishing gradient problem.",w:{"Always differentiable":"ReLU is NOT differentiable at x=0. Sigmoid and tanh are actually smoother. ReLU wins despite this because its gradient doesn't vanish for positive inputs.","Bounded output":"ReLU is unbounded (outputs can grow to infinity). Sigmoid [0,1] and tanh [-1,1] are bounded. That's actually their weakness — saturation kills gradients.","Symmetric around zero":"Tanh is symmetric around zero, not ReLU. ReLU outputs 0 for all negative inputs."},s:"3-activation-functions"},
+{m:"2A",c:"Concept",q:"ReLU's main advantage over sigmoid/tanh:",a:"No gradient saturation for positive inputs — faster training",d:["Always differentiable","Bounded output","Symmetric around zero"],x:"$\\text{ReLU}(x) = \\max(0,x)$. Gradient is 1 for $x>0$, avoiding the vanishing gradient problem.",w:{"Always differentiable":"ReLU is NOT differentiable at x=0. Sigmoid and tanh are actually smoother. ReLU wins despite this because its gradient doesn't vanish for positive inputs.","Bounded output":"ReLU is unbounded (outputs can grow to infinity). Sigmoid [0,1] and tanh [-1,1] are bounded. That's actually their weakness — saturation kills gradients.","Symmetric around zero":"Tanh is symmetric around zero, not ReLU. ReLU outputs 0 for all negative inputs."},s:"3-activation-functions"},
 {m:"2A",c:"Concept",q:"Forward mode vs reverse mode autodiff — when is reverse preferred?",a:"When outputs << inputs (most neural nets: scalar loss, many parameters)",d:["When inputs << outputs","Always","Never"],x:"Reverse mode computes all parameter gradients in one backward pass. Forward mode needs one pass per parameter.",s:"8-automatic-differentiation"},
 
 // ---- 2B: Optimization ----
@@ -258,7 +261,7 @@ const Q = [
 {m:"2B",c:"Concept",q:"Batch Normalization normalizes across which dimension?",a:"The batch dimension — each feature normalized over the mini-batch",d:["Feature dimension","Time dimension","Layer dimension"],x:"For each feature: subtract batch mean, divide by batch std, then scale and shift with learned params.",s:"6-batch-normalization"},
 {m:"2B",c:"Concept",q:"What is the linear scaling rule for learning rate?",a:"When multiplying batch size by k, multiply learning rate by k",d:["Keep LR constant","Divide LR by k","Square the LR"],x:"Larger batches have lower gradient noise, so you can take larger steps.",s:"4-learning-rate-the-most-important-hyperparameter"},
 {m:"2B",c:"Algorithm",q:"Cosine annealing schedules the learning rate as:",a:"LR decreases following a cosine curve from max to min",d:["LR increases linearly","LR stays constant then drops","LR oscillates randomly"],x:"Smooth decay that spends more time at low LR. Often combined with warm restarts.",s:"4-learning-rate-the-most-important-hyperparameter"},
-{m:"2B",c:"Concept",q:"Residual/skip connections solve:",a:"Vanishing gradients — gradient flows directly through the skip path",d:["Overfitting","Slow data loading","Memory overflow"],x:"h(x) = f(x) + x. The identity shortcut ensures gradient >= 1 along the skip path.",s:"7-gradient-flow-problems"},
+{m:"2B",c:"Concept",q:"Residual/skip connections solve:",a:"Vanishing gradients — gradient flows directly through the skip path",d:["Overfitting","Slow data loading","Memory overflow"],x:"$h(x) = f(x) + x$. The identity shortcut ensures gradient >= 1 along the skip path.",s:"7-gradient-flow-problems"},
 
 // ---- 2C: Regularization ----
 {m:"2C",c:"Algorithm",q:"Dropout during training does what?",a:"Randomly zeroes out neurons with probability p at each forward pass",d:["Removes layers","Reduces learning rate","Clips gradients"],x:"Forces redundant representations. At test time, scale weights by (1-p) or use inverted dropout.",s:"3-dropout"},
@@ -282,7 +285,7 @@ const Q = [
 {m:"2E",c:"Concept",q:"Seq2seq models suffer from what bottleneck?",a:"The entire input is compressed into a single fixed-length vector",d:["Too many decoder layers","Vocabulary size","Training data size"],x:"Motivates attention: let the decoder look at all encoder states, not just the final one.",s:"7-sequence-to-sequence-models"},
 
 // ---- 3A: Transformers ----
-{m:"3A",c:"Equation",q:"Scaled dot-product attention formula:",a:"Attention(Q,K,V) = softmax(QK^T / sqrt(d_k)) V",d:["softmax(QV^T / d_k) K","sigmoid(QK^T) V","Q^T K V / n"],x:"Division by sqrt(d_k) prevents softmax saturation for large d_k.",s:"2-self-attention-attention-without-encoder-decoder"},
+{m:"3A",c:"Equation",q:"Scaled dot-product attention formula:",a:"$\\text{Attention}(Q,K,V) = \\text{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d_k}}\\right) V$",d:["$\\text{softmax}(QV^\\top / d_k) K$","$\\sigma(QK^\\top) V$","$Q^\\top K V / n$"],x:"Division by $\\sqrt{d_k}$ prevents softmax saturation for large $d_k$.",s:"2-self-attention-attention-without-encoder-decoder"},
 {m:"3A",c:"Concept",q:"Why use multi-head attention instead of single-head?",a:"Different heads attend to different relationship types in parallel",d:["Reduces parameters","Eliminates positional encoding","Faster than single head"],x:"Head 1 might capture syntax, head 2 semantics, etc. Concat and project.",s:"3-multi-head-attention"},
 {m:"3A",c:"Concept",q:"Why do Transformers need positional encoding?",a:"Self-attention is permutation-invariant — no inherent notion of order",d:["To reduce parameters","To handle variable-length input","To normalize activations"],x:"Without position info, 'dog bites man' = 'man bites dog' to the model.",w:{"To handle variable-length input":"Transformers already handle variable length via padding/masking. Positional encoding adds ORDER information, not length handling.","To normalize activations":"Layer norm handles activation normalization. Positional encoding injects sequence position so the model knows which token comes first, second, etc."},s:"5-positional-encoding-giving-transformers-a-sense-of-order"},
 {m:"3A",c:"Algorithm",q:"Transformer decoder uses masked self-attention to:",a:"Prevent attending to future tokens during generation",d:["Speed up training","Reduce memory","Handle missing data"],x:"Causal mask: position i can only attend to positions <= i. Ensures autoregressive generation.",s:"6-masked-self-attention-preventing-the-future-from-leaking"},
@@ -291,7 +294,7 @@ const Q = [
 // ---- 3B: Generative Models ----
 {m:"3B",c:"Concept",q:"VAE (Variational Autoencoder) loss function (ELBO) has two terms:",a:"Reconstruction loss + KL (Kullback-Leibler) divergence from prior",d:["MSE + accuracy","Hinge loss + entropy","Cross-entropy + L2"],x:"Reconstruction = faithful output. KL = keep latent distribution close to N(0,I).",s:"3-variational-autoencoders-vaes"},
 {m:"3B",c:"Concept",q:"Why do VAEs (Variational Autoencoders) produce blurry images?",a:"Reconstruction loss (MSE) averages over plausible outputs",d:["Too few latent dimensions","Wrong activation function","Not enough training data"],x:"When multiple sharp images are plausible, minimizing MSE produces their blurry average.",s:"3-variational-autoencoders-vaes"},
-{m:"3B",c:"Algorithm",q:"The reparameterization trick enables:",a:"Backpropagation through stochastic sampling: z = mu + sigma * epsilon",d:["Faster training","Larger batch sizes","Better initialization"],x:"Can't backprop through random sampling. Rewrite z so randomness (epsilon~N(0,1)) is external.",s:"3-variational-autoencoders-vaes"},
+{m:"3B",c:"Algorithm",q:"The reparameterization trick enables:",a:"Backpropagation through stochastic sampling: $z = \\mu + \\sigma \\cdot \\epsilon$",d:["Faster training","Larger batch sizes","Better initialization"],x:"Can't backprop through random sampling. Rewrite $z$ so randomness ($\\epsilon \\sim \\mathcal{N}(0,1)$) is external.",s:"3-variational-autoencoders-vaes"},
 {m:"3B",c:"Concept",q:"GANs (Generative Adversarial Networks) suffer from mode collapse — what is it?",a:"Generator produces only a few modes of the data, ignoring diversity",d:["Discriminator always wins","Training is too slow","Loss goes to infinity"],x:"Generator finds a few outputs that fool the discriminator and stops exploring.",s:"4-generative-adversarial-networks-gans"},
 {m:"3B",c:"Algorithm",q:"Diffusion models learn to:",a:"Reverse a gradual noise-corruption process (denoise step by step)",d:["Encode images to latent space","Adversarially fool a critic","Maximize likelihood directly"],x:"Forward: add noise over T steps. Reverse: neural net predicts and removes noise at each step.",s:"5-diffusion-models-the-current-frontier"},
 
@@ -302,16 +305,16 @@ const Q = [
 {m:"3C",c:"Concept",q:"Why does scale matter so much for GPT (Generative Pre-trained Transformer) models?",a:"Emergent capabilities appear at sufficient scale (in-context learning, reasoning)",d:["Smaller models can't converge","Architecture doesn't matter","Only data quality matters"],x:"Scaling laws show predictable improvement with more compute, data, and parameters.",s:"8-scaling-laws-and-emergent-abilities"},
 
 // ---- 3D: Reinforcement Learning ----
-{m:"3D",c:"Equation",q:"Bellman equation for state-value V^pi(s):",a:"V(s) = E[R + gamma * V(s') | s, pi]",d:["V(s) = max R","V(s) = sum P(s'|s)","V(s) = R / gamma"],x:"Value = immediate reward + discounted future value. Foundation of all RL (Reinforcement Learning) algorithms.",s:"3-value-functions-and-the-bellman-equations"},
+{m:"3D",c:"Equation",q:"Bellman equation for state-value $V^\\pi(s)$:",a:"$V(s) = \\mathbb{E}[R + \\gamma V(s') \\mid s, \\pi]$",d:["$V(s) = \\max R$","$V(s) = \\sum P(s'|s)$","$V(s) = R / \\gamma$"],x:"Value = immediate reward + discounted future value. Foundation of all RL (Reinforcement Learning) algorithms.",s:"3-value-functions-and-the-bellman-equations"},
 {m:"3D",c:"Concept",q:"Exploration vs exploitation tradeoff:",a:"Try new actions (explore) vs use best known action (exploit)",d:["Training vs testing","Online vs offline","Model vs data"],x:"Too much exploitation = miss better options. Too much exploration = waste time.",s:"1-a-different-paradigm"},
-{m:"3D",c:"Algorithm",q:"Q-Learning is off-policy because:",a:"It updates using the max Q over next actions, regardless of the policy actually followed",d:["It uses a replay buffer","It trains offline","It has no policy"],x:"Target: R + gamma * max_a' Q(s',a'). The max makes it learn the optimal policy regardless of behavior.",s:"6-temporal-difference-learning-the-key-innovation"},
-{m:"3D",c:"Algorithm",q:"REINFORCE algorithm estimates policy gradient using:",a:"Monte Carlo returns as the reward signal (complete episode rollouts)",d:["Temporal difference errors","Dynamic programming","Supervised labels"],x:"Gradient = E[sum(grad log pi(a|s) * G_t)]. High variance — that's why baselines help.",s:"8-policy-gradient-methods"},
+{m:"3D",c:"Algorithm",q:"Q-Learning is off-policy because:",a:"It updates using the max Q over next actions, regardless of the policy actually followed",d:["It uses a replay buffer","It trains offline","It has no policy"],x:"Target: $R + \\gamma \\max_{a'} Q(s',a')$. The max makes it learn the optimal policy regardless of behavior.",s:"6-temporal-difference-learning-the-key-innovation"},
+{m:"3D",c:"Algorithm",q:"REINFORCE algorithm estimates policy gradient using:",a:"Monte Carlo returns as the reward signal (complete episode rollouts)",d:["Temporal difference errors","Dynamic programming","Supervised labels"],x:"Gradient: $\\mathbb{E}[\\sum \\nabla \\log \\pi(a|s) \\cdot G_t]$. High variance — that's why baselines help.",s:"8-policy-gradient-methods"},
 {m:"3D",c:"Concept",q:"Discount factor gamma's role:",a:"Controls how much the agent values future vs immediate rewards",d:["Sets the learning rate","Determines episode length","Controls exploration"],x:"gamma=0: greedy (only immediate). gamma=1: far-sighted (all future rewards equal).",s:"2-markov-decision-processes-mdps"},
 
 // ---- 4A: NLP ----
 {m:"4A",c:"Algorithm",q:"BPE (Byte Pair Encoding) tokenization works by:",a:"Iteratively merging the most frequent adjacent character pairs",d:["Splitting on whitespace","Using a dictionary lookup","Character-level encoding only"],x:"Start with characters, greedily merge frequent pairs. Handles rare/unseen words via subwords.",s:"2-tokenization-turning-text-into-numbers"},
 {m:"4A",c:"Concept",q:"Word2Vec's skip-gram objective:",a:"Predict context words given the center word",d:["Predict center word from context","Classify word sentiment","Translate between languages"],x:"Learns embeddings where similar words have similar vectors. 'king - man + woman ~ queen'.",s:"3-word-embeddings-the-ideas-that-still-matter"},
-{m:"4A",c:"Metric",q:"Perplexity measures:",a:"How surprised the model is by the test data (lower = better)",d:["Model size","Training speed","Vocabulary coverage"],x:"PPL (Perplexity) = 2^(cross-entropy). A model with PPL=50 is as uncertain as choosing uniformly from 50 words.",s:"10-evaluation"},
+{m:"4A",c:"Metric",q:"Perplexity measures:",a:"How surprised the model is by the test data (lower = better)",d:["Model size","Training speed","Vocabulary coverage"],x:"$\\text{PPL} = 2^{H}$ where $H$ is cross-entropy. A model with PPL=50 is as uncertain as choosing uniformly from 50 words.",s:"10-evaluation"},
 {m:"4A",c:"Algorithm",q:"RLHF (Reinforcement Learning from Human Feedback) does:",a:"Fine-tunes LLM using a reward model trained on human preference rankings",d:["Trains from scratch with RL","Replaces all supervised training","Only works for games"],x:"SFT (Supervised Fine-Tuning) -> train reward model on preferences -> optimize policy with PPO against reward model.",s:"7-instruction-tuning-and-alignment"},
 {m:"4A",c:"Algorithm",q:"Top-p (nucleus) sampling selects tokens from:",a:"The smallest set of tokens whose cumulative probability exceeds p",d:["The top p tokens by count","Random tokens with probability p","All tokens equally"],x:"Adapts vocabulary size dynamically. High probability = few tokens. Flat distribution = many tokens.",s:"6-the-gpt-lineage-autoregressive-decoders"},
 
@@ -330,8 +333,8 @@ const Q = [
 {m:"4C",c:"Concept",q:"Model-based RL (Reinforcement Learning) advantage and risk:",a:"More sample-efficient, but compounding model errors can diverge",d:["Always better than model-free","No hyperparameters","Guaranteed convergence"],x:"Learning a world model means fewer real interactions, but errors in the model accumulate over long rollouts.",s:"1-model-based-rl-learning-a-world-model"},
 
 // ---- 4D: Bayesian ML ----
-{m:"4D",c:"Equation",q:"Bayes' theorem in ML: posterior =",a:"likelihood * prior / marginal likelihood",d:["prior / likelihood","likelihood - prior","prior + evidence"],x:"P(w|D) = P(D|w)P(w) / P(D). The foundation of all Bayesian inference.",s:"1-the-bayesian-philosophy"},
-{m:"4D",c:"Concept",q:"MAP (Maximum A Posteriori) estimation is Bayesian with what simplification?",a:"Point estimate at the posterior mode instead of the full posterior",d:["Uniform prior","No likelihood","Infinite data"],x:"MAP = argmax P(w|D). With Gaussian prior, MAP = Ridge regression. Loses uncertainty quantification.",s:"1-the-bayesian-philosophy"},
+{m:"4D",c:"Equation",q:"Bayes' theorem in ML: posterior =",a:"likelihood * prior / marginal likelihood",d:["prior / likelihood","likelihood - prior","prior + evidence"],x:"$P(\\mathbf{w}|D) = \\frac{P(D|\\mathbf{w})P(\\mathbf{w})}{P(D)}$. The foundation of all Bayesian inference.",s:"1-the-bayesian-philosophy"},
+{m:"4D",c:"Concept",q:"MAP (Maximum A Posteriori) estimation is Bayesian with what simplification?",a:"Point estimate at the posterior mode instead of the full posterior",d:["Uniform prior","No likelihood","Infinite data"],x:"$\\text{MAP} = \\arg\\max P(\\mathbf{w}|D)$. With Gaussian prior, MAP = Ridge regression. Loses uncertainty quantification.",s:"1-the-bayesian-philosophy"},
 {m:"4D",c:"Algorithm",q:"Gaussian Processes define a distribution over:",a:"Functions — any finite set of points is jointly Gaussian",d:["Parameters","Data points","Loss surfaces"],x:"Specified by mean function and kernel. Prior over functions -> posterior after seeing data.",s:"2-gaussian-processes"},
 {m:"4D",c:"Concept",q:"MC (Monte Carlo) Dropout approximates:",a:"Bayesian inference — dropout at test time gives uncertainty estimates",d:["Data augmentation","Feature selection","Model pruning"],x:"Run multiple forward passes with dropout on. Variance of predictions ~ epistemic uncertainty.",s:"3-bayesian-neural-networks"},
 {m:"4D",c:"Algorithm",q:"HMC (Hamiltonian Monte Carlo) improves on Metropolis-Hastings by:",a:"Using gradient information to propose distant, high-probability samples",d:["Not requiring a proposal distribution","Running faster on GPUs","Using fewer samples"],x:"Simulates Hamiltonian dynamics on the posterior surface. Much more efficient in high dimensions.",s:"4-markov-chain-monte-carlo-mcmc"},
@@ -342,7 +345,7 @@ const TF = [
 // Part 1
 {m:"1B",q:"Polynomial regression is a nonlinear model.",a:false,x:"Nonlinear in x, but linear in parameters w.",s:"6-polynomial-regression-and-basis-functions"},
 {m:"1B",q:"Ridge can set coefficients to exactly zero.",a:false,x:"Ridge shrinks toward zero but never reaches it. Lasso does.",s:"7-regularization-controlling-complexity"},
-{m:"1B",q:"OLS (Ordinary Least Squares) = MLE (Maximum Likelihood Estimation) under Gaussian noise.",a:true,x:"If errors are iid N(0,sigma^2), maximizing likelihood = minimizing squared error.",s:"4-the-probabilistic-view"},
+{m:"1B",q:"OLS (Ordinary Least Squares) = MLE (Maximum Likelihood Estimation) under Gaussian noise.",a:true,x:"If errors are iid $\\mathcal{N}(0, \\sigma^2)$, maximizing likelihood = minimizing squared error.",s:"4-the-probabilistic-view"},
 {m:"1B",q:"Elastic Net combines L1 and L2 penalties.",a:true,x:"Gets sparsity from L1 and handles correlated features from L2.",s:"7-regularization-controlling-complexity"},
 {m:"1C",q:"Naive Bayes requires features to actually be independent.",a:false,x:"Almost always wrong, but works because only the decision boundary needs to be correct.",s:"6-naive-bayes"},
 {m:"1C",q:"SVM (Support Vector Machine) boundary depends only on support vectors.",a:true,x:"Points far from the margin don't affect it.",s:"7-support-vector-machines-svms"},
@@ -353,7 +356,7 @@ const TF = [
 {m:"1E",q:"Adding more trees to gradient boosting can overfit.",a:true,x:"Unlike RF, boosting builds sequentially and can overfit. Use early stopping.",s:"5-boosting-learning-from-mistakes"},
 {m:"1E",q:"Random Forests overfit by adding too many trees.",a:false,x:"More trees reduce variance with diminishing returns. Averaging can't overfit.",s:"4-random-forests"},
 {m:"1E",q:"Gradient boosting uses weak learners (shallow trees).",a:true,x:"Typical depth 4-8. Ensemble strength comes from sequential correction.",s:"5-boosting-learning-from-mistakes"},
-{m:"1E",q:"Cost-complexity pruning adds alpha * |T| to tree loss.",a:true,x:"C_alpha(T) = errors + alpha * n_leaves. Larger alpha = simpler tree.",s:"1-decision-trees"},
+{m:"1E",q:"Cost-complexity pruning adds alpha * |T| to tree loss.",a:true,x:"$C_\\alpha(T) = \\text{errors} + \\alpha \\cdot |T|$. Larger $\\alpha$ = simpler tree.",s:"1-decision-trees"},
 {m:"1F",q:"PCA (Principal Component Analysis) components are orthogonal.",a:true,x:"Eigenvectors of symmetric covariance matrix are orthogonal.",s:"1-principal-component-analysis-pca"},
 {m:"1F",q:"K-Means always finds the global optimum.",a:false,x:"Converges to local minimum. Run multiple times or use K-Means++.",s:"2-k-means-clustering"},
 {m:"1F",q:"t-SNE embeddings can be used as features for a classifier.",a:false,x:"Visualization only. Non-deterministic, distances not meaningful.",s:"5-dimensionality-reduction-beyond-pca"},
@@ -494,6 +497,16 @@ function getPool(arr){if(curMod) return pool(arr,curMod);if(curPart) return pool
 
 document.getElementById("navTitle").addEventListener("click",()=>{curMod=null;curPart=null;used.clear();clearInterval(timer);showHome();});
 
+// ===================== MATH RENDERING =====================
+function renderMath(){
+  if(typeof renderMathInElement==="function"){
+    renderMathInElement(app,{delimiters:[
+      {left:"$$",right:"$$",display:true},
+      {left:"$",right:"$",display:false}
+    ],throwOnError:false});
+  }
+}
+
 // ===================== HOME =====================
 function showHome(){
   let h=`<div class="home"><div class="home-header"><h2>Choose Your Arena</h2><p>Pick a part, module, or go all-in</p></div>`;
@@ -569,7 +582,7 @@ function nextQuiz(){
     <div class="q-card"><div class="q-cat">${q.m} — ${q.c}</div><div class="q-text">${q.q}</div>
     <div class="opts">${opts.map(o=>`<button class="opt" data-a="${o===q.a?1:0}">${o}</button>`).join("")}</div>
     <div class="expl" id="expl">${q.x}</div></div><button class="nxt" id="nxt">Next</button></div>`;
-  app.innerHTML=h;bindBack();
+  app.innerHTML=h;bindBack();renderMath();
   app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     if(b.classList.contains("lk"))return;
     app.querySelectorAll(".opt").forEach(o=>{o.classList.add("lk");if(o.dataset.a==="1")o.classList.add("ok");});
@@ -591,7 +604,7 @@ function nextQuiz(){
         <div class="expl-why">${q.x}</div>${rl}`;
     }
     updateStats();$(".sc").textContent=`Score: ${qScore}/${qTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-    expl.classList.add("show");$("#nxt").classList.add("show");
+    expl.classList.add("show");renderMath();$("#nxt").classList.add("show");
   }));
   $("#nxt").addEventListener("click",nextQuiz);
 }
@@ -608,7 +621,7 @@ function nextTF(){
     <div class="q-card"><div class="q-cat">${q.m} — True or False</div><div class="q-text">${q.q}</div>
     <div class="opts"><button class="opt" data-v="true">True</button><button class="opt" data-v="false">False</button></div>
     <div class="expl" id="expl">${q.x}</div></div><button class="nxt" id="nxt">Next</button></div>`;
-  app.innerHTML=h;bindBack();
+  app.innerHTML=h;bindBack();renderMath();
   app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     if(b.classList.contains("lk"))return;
     const picked=b.dataset.v==="true";
@@ -626,7 +639,7 @@ function nextTF(){
         <div class="expl-why">${q.x}</div>${rl}`;
     }
     updateStats();$(".sc").textContent=`Score: ${tfScore}/${tfTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-    expl.classList.add("show");$("#nxt").classList.add("show");
+    expl.classList.add("show");renderMath();$("#nxt").classList.add("show");
   }));
   $("#nxt").addEventListener("click",nextTF);
 }
@@ -647,7 +660,7 @@ function nextMatch(){
     <div class="match-grid"><div class="match-col"><h4>Terms</h4>${ls.map(l=>`<div class="mi2 left" data-v="${l}">${l}</div>`).join("")}</div>
     <div class="match-col"><h4>Definitions</h4>${rs.map(r=>`<div class="mi2 right" data-v="${r}">${r}</div>`).join("")}</div></div></div>
     <button class="nxt" id="nxt">Next Set</button></div>`;
-  app.innerHTML=h;bindBack();
+  app.innerHTML=h;bindBack();renderMath();
   app.querySelectorAll(".mi2").forEach(el=>el.addEventListener("click",()=>{
     if(el.classList.contains("done"))return;
     const isL=el.classList.contains("left");
@@ -683,7 +696,7 @@ function nextSpeed(){
     <div class="q-card"><div class="q-cat">${q.m} — ${q.c} (SPEED)</div><div class="q-text">${q.q}</div>
     <div class="opts">${opts.map(o=>`<button class="opt" data-a="${o===q.a?1:0}">${o}</button>`).join("")}</div>
     <div class="expl" id="expl">${q.x}</div></div><button class="nxt" id="nxt">Next</button></div>`;
-  app.innerHTML=h;bindBack();
+  app.innerHTML=h;bindBack();renderMath();
   const fill=$("#tf2");
   clearInterval(timer);
   timer=setInterval(()=>{
@@ -696,7 +709,7 @@ function nextSpeed(){
       expl.innerHTML=`<div class="expl-label red">Time's up!</div>
         <div class="expl-correct">Correct answer: ${q.a}</div>
         <div class="expl-why">${q.x}</div>${reviewLink(q.m,q.s)}`;
-      expl.classList.add("show");$("#nxt").classList.add("show");}
+      expl.classList.add("show");renderMath();$("#nxt").classList.add("show");}
   },40);
   app.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>{
     if(done)return;done=true;clearInterval(timer);
@@ -719,7 +732,7 @@ function nextSpeed(){
         <div class="expl-why">${q.x}</div>${rl}`;
     }
     updateStats();$(".sc").textContent=`Score: ${sScore}/${sTotal}`;$(".st").textContent=`Streak: ${gStreak}`;
-    expl.classList.add("show");$("#nxt").classList.add("show");
+    expl.classList.add("show");renderMath();$("#nxt").classList.add("show");
   }));
   $("#nxt").addEventListener("click",nextSpeed);
 }
@@ -739,7 +752,7 @@ function runFlash(){
       <div class="fc-nav"><button id="fcPrev">&larr; Prev</button><div class="fc-count">${idx+1} / ${cards.length}</div><button id="fcNext">Next &rarr;</button></div>
       <div class="fc-rate"><button class="fc-hard" id="fcH">Hard</button><button class="fc-ok" id="fcO">OK</button><button class="fc-easy" id="fcE">Easy</button></div>
     </div>`;
-    app.innerHTML=h;bindBack();
+    app.innerHTML=h;bindBack();renderMath();
     $("#fcCard").addEventListener("click",()=>$("#fcCard").classList.toggle("flipped"));
     $("#fcPrev").addEventListener("click",()=>{if(idx>0){idx--;render();}});
     $("#fcNext").addEventListener("click",()=>{if(idx<cards.length-1){idx++;render();}});
@@ -768,7 +781,7 @@ function runSheet(){
     h+=`<div class="sheet-section"><h3>${s.id}: ${s.name}</h3><ul>${s.items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
   }
   h+=`</div>`;
-  app.innerHTML=h;bindBack();
+  app.innerHTML=h;bindBack();renderMath();
 }
 
 // ===================== SUMMARY =====================
