@@ -129,12 +129,28 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Part 5 — Reference & Practice
+    ## Part 5 — Applied Machine Learning
+
+    > *From theory to practice — the tools, workflows, and patterns that working ML engineers use every day.*
+
+    | # | Module | Topics | Interactive Elements |
+    |---|--------|--------|---------------------|
+    | 5A | [The scikit-learn Ecosystem](./5a_sklearn/) | Estimator API, preprocessing, Pipelines, ColumnTransformer, data leakage | Leakage demo, scaler comparison |
+    | 5B | [Model Selection in Practice](./5b_model_selection/) | End-to-end pipelines, metrics, hyperparameter tuning, diagnostic curves | Classifier comparison, validation curves |
+    | 5C | [Deep Learning with PyTorch](./5c_pytorch/) | Tensors, autograd, nn.Module, training loops, DataLoaders, CNNs | Gradient flow visualization, architecture comparison |
+    | 5D | [Transfer Learning & Representations](./5d_transfer_repr/) | Pretrained models, fine-tuning, LSTMs, autoencoders, latent spaces | Latent space explorer, interpolation |
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Part 6 — Reference
 
     | # | Module | Description |
     |---|--------|-------------|
-    | 5A | [Algorithm Study Guide](./5a_study_guide/) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
-    | 5B | [Practical ML Lab: sklearn & PyTorch](./5b_sklearn_pytorch_lab/) | 12 hands-on exercises — regression/classification pipelines, clustering, CNNs, transfer learning, autoencoders |
+    | 6A | [Algorithm Study Guide](./6a_study_guide/) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
     | | [Quiz & Flashcards](./quiz.html) | Interactive study tool with quizzes, flashcards, and spaced repetition across all course modules |
     """)
     return
@@ -162,13 +178,13 @@ def _(mo):
                                    │
                              1E (Trees/Ensembles)
                                    │
-                             1F (Unsupervised)
+                             1F (Unsupervised) ──────────→ 5A (sklearn) → 5B (Model Selection)
                                    │
                          2A (Neural Nets) → 2B (DL Optimization) → 2C (Regularization)
                                                                         │
                                               2D (CNNs) ←──────────────┘
                                                    │
-                                              2E (Sequences)
+                                              2E (Sequences) ────→ 5C (PyTorch) → 5D (Transfer/Repr)
                                                    │
                                         3A (Transformers) → 3B (Generative)
                                               │                     │
