@@ -129,11 +129,12 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Part 5 — Reference
+    ## Part 5 — Reference & Practice
 
     | # | Module | Description |
     |---|--------|-------------|
     | 5A | [Algorithm Study Guide](./5a_study_guide/) | Every algorithm in the course — filterable by section and type, with equations, strengths, weaknesses, and connections |
+    | 5B | [Practical ML Lab: sklearn & PyTorch](./5b_sklearn_pytorch_lab/) | 12 hands-on exercises — regression/classification pipelines, clustering, CNNs, transfer learning, autoencoders |
     | | [Quiz & Flashcards](./quiz.html) | Interactive study tool with quizzes, flashcards, and spaced repetition across all course modules |
     """)
     return
